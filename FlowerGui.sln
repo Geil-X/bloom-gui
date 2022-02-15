@@ -1,0 +1,18 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FlowerGui", "FlowerGui\FlowerGui.fsproj", "{10ECFFD4-65EF-4460-ACA4-956BD438BC87}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{62DF0705-2511-4001-9FD1-7A649217FF89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{10ECFFD4-65EF-4460-ACA4-956BD438BC87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10ECFFD4-65EF-4460-ACA4-956BD438BC87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10ECFFD4-65EF-4460-ACA4-956BD438BC87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10ECFFD4-65EF-4460-ACA4-956BD438BC87}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
