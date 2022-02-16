@@ -10,12 +10,12 @@
         <Compile Include="Extensions\EventExtensions.fs" />
         <Compile Include="Extensions\ImageExtensions.fs" />
         <Compile Include="Extensions\TupleExtensions.fs" />
+        <Compile Include="Extensions\DiscriminatedUnion.fs" />
+        <Compile Include="Extensions\MapExtensions.fs" />
         <Compile Include="Theme.fs" />
         <Compile Include="Widgets\Form.fs" />
         <Compile Include="Widgets\Icons.fs" />
         <Compile Include="Flower.fs" />
-        <Compile Include="Counter.fs" />
-        <Compile Include="About.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
         <AvaloniaResource Include="**\*.xaml" />
@@ -23,6 +23,7 @@
     
     <ItemGroup>
         <PackageReference Include="Avalonia.Desktop" Version="0.9.7" />
+        <PackageReference Include="Fsharp.Geometry" Version="0.1.10" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.4.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.4.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.4.0" />
