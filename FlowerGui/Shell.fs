@@ -9,15 +9,25 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
 
+open FlowerGui.Widgets
 open Extensions
 
 type State =
     { aboutState: About.State
       counterState: Counter.State }
 
+type Action =
+    | Save
+    | Load
+    | Open
+    | Undo
+    | Redo
+    | NewFlower
+
 type Msg =
     | AboutMsg of About.Msg
     | CounterMsg of Counter.Msg
+    | Action of Action
 
 let init =
     let aboutState, aboutCmd = About.init
@@ -39,6 +49,14 @@ let update (msg: Msg) (state: State) : State * Cmd<_> =
             Counter.update counterMsg state.counterState
 
         { state with counterState = counterMsg }, Cmd.none
+
+    | Action action ->
+        match action with
+        | Save -> state, Cmd.none
+        | Load -> state, Cmd.none
+        | Open -> state, Cmd.none
+        | NewFlower -> state, Cmd.none
+
 
 let menu =
     let fileItems : IView list =
@@ -63,14 +81,20 @@ let menu =
 
     Menu.create [ Menu.viewItems menuItems ]
 
-let iconDock =
+let iconDock dispatch =
+    let buttons : IView list =
+        [ Icons.save Theme.colors.offWhite, Save
+          Icons.load Theme.colors.offWhite, Load
+          Icons.undo Theme.colors.offWhite, Undo
+          Icons.redo Theme.colors.offWhite, Redo
+          Icons.newIcon Theme.colors.offWhite, NewFlower
+           ]
+        |> List.map
+            (fun (icon, action) -> Form.imageButton icon (Event.handleEvent (Action action) >> dispatch) :> IView)
+
     StackPanel.create [
         StackPanel.orientation Orientation.Horizontal
-        StackPanel.children [
-            TextBlock.create [ TextBlock.text "Text 1" ]
-            TextBlock.create [ TextBlock.text "Text 2" ]
-            TextBlock.create [ TextBlock.text "Text 3" ]
-        ]
+        StackPanel.children buttons
     ]
 
 let flowerProperties =
@@ -79,20 +103,17 @@ let flowerProperties =
             TextBlock.create [ TextBlock.text "Flower Name" ]
         ]
     ]
-    
+
 let simulationSpace =
-    Canvas.create [
-        Canvas.background "#383838"
-    ]
+    Canvas.create [ Canvas.background "#383838" ]
 
 
 let view (state: State) (dispatch: Msg -> unit) =
     let panels : IView list =
         [ View.withAttr (Menu.dock Dock.Top) menu
-          View.withAttr (StackPanel.dock Dock.Top) iconDock
+          View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) flowerProperties
-          simulationSpace
-          ]
+          simulationSpace ]
 
     DockPanel.create [ DockPanel.children panels ]
 
@@ -101,10 +122,10 @@ type MainWindow() as this =
 
     do
         base.Title <- "Full App"
-        base.Width <- 800.0
-        base.Height <- 600.0
-        base.MinWidth <- 800.0
-        base.MinHeight <- 600.0
+        base.Width <- Theme.window.width
+        base.Height <- Theme.window.height
+        base.MinWidth <- Theme.window.width
+        base.MinHeight <- Theme.window.height
 
         //this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
         //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
