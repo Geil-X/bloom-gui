@@ -6,6 +6,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="Extensions\ViewExtensions.fs" />
+        <Compile Include="Types.fs" />
+        <Compile Include="Flower.fs" />
         <Compile Include="Counter.fs" />
         <Compile Include="About.fs" />
         <Compile Include="Shell.fs" />
@@ -23,4 +26,5 @@
     <ItemGroup>
         <EmbeddedResource Remove=".template.config\**" />
     </ItemGroup>
+
 </Project>
