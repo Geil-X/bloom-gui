@@ -1,6 +1,7 @@
 module FlowerGui.Shell
 
 open Avalonia.FuncUI.Types
+open Avalonia.Layout
 open Elmish
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
@@ -37,70 +38,63 @@ let update (msg: Msg) (state: State) : State * Cmd<_> =
         let counterMsg =
             Counter.update counterMsg state.counterState
 
-        { state with counterState = counterMsg },
-        Cmd.none
-        
+        { state with counterState = counterMsg }, Cmd.none
+
 let menu =
-    let fileItems: IView list = [
-        MenuItem.create [
-            MenuItem.header "Open"
-        ]
-        MenuItem.create [
-            MenuItem.header "Save"
-        ]
-        MenuItem.create [
-            MenuItem.header "Save As"
-        ]
-    ]
-    
-    let editItems: IView list = [
-        MenuItem.create [
-            MenuItem.header "Undo"
-        ]
-        MenuItem.create [
-            MenuItem.header "Redo"
-        ]
-    ]
-    
-    
-    let menuItems: IView list = [
-        MenuItem.create [
+    let fileItems : IView list =
+        [ MenuItem.create [ MenuItem.header "Open" ]
+          MenuItem.create [ MenuItem.header "Save" ]
+          MenuItem.create [ MenuItem.header "Save As" ] ]
+
+    let editItems : IView list =
+        [ MenuItem.create [ MenuItem.header "Undo" ]
+          MenuItem.create [ MenuItem.header "Redo" ] ]
+
+
+    let menuItems : IView list =
+        [ MenuItem.create [
             MenuItem.header "File"
             MenuItem.viewItems fileItems
-        ]
-        MenuItem.create [
-            MenuItem.header "Edit"
-            MenuItem.viewItems editItems
+          ]
+          MenuItem.create [
+              MenuItem.header "Edit"
+              MenuItem.viewItems editItems
+          ] ]
+
+    Menu.create [ Menu.viewItems menuItems ]
+
+let iconDock =
+    StackPanel.create [
+        StackPanel.orientation Orientation.Horizontal
+        StackPanel.children [
+            TextBlock.create [ TextBlock.text "Text 1" ]
+            TextBlock.create [ TextBlock.text "Text 2" ]
+            TextBlock.create [ TextBlock.text "Text 3" ]
         ]
     ]
 
-    Menu.create [
-      Menu.viewItems menuItems
+let flowerProperties =
+    StackPanel.create [
+        StackPanel.children [
+            TextBlock.create [ TextBlock.text "Flower Name" ]
+        ]
     ]
     
-let iconDock = []
-    
+let simulationSpace =
+    Canvas.create [
+        Canvas.background "#383838"
+    ]
+
 
 let view (state: State) (dispatch: Msg -> unit) =
-    DockPanel.create [
-        DockPanel.children [
-            View.withAttr (Menu.dock Dock.Top) menu
-            
-            TabControl.create [
-                TabControl.tabStripPlacement Dock.Top
-                TabControl.viewItems [
-                    TabItem.create [
-                        TabItem.header "Counter Sample"
-                        TabItem.content (Counter.view state.counterState (CounterMsg >> dispatch))
-                    ]
-                    TabItem.create [
-                        TabItem.header "About"
-                        TabItem.content (About.view state.aboutState (AboutMsg >> dispatch))
-                    ]
-                ]
-            ]
-        ]
-    ]
+    let panels : IView list =
+        [ View.withAttr (Menu.dock Dock.Top) menu
+          View.withAttr (StackPanel.dock Dock.Top) iconDock
+          View.withAttr (StackPanel.dock Dock.Left) flowerProperties
+          simulationSpace
+          ]
+
+    DockPanel.create [ DockPanel.children panels ]
 
 type MainWindow() as this =
     inherit HostWindow()
