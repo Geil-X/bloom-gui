@@ -17,8 +17,7 @@ let palette =
     {| primary = colors.yellow
        panelBackground = colors.darkGray
        panelAccent = colors.lightGray
-       canvasBackdrop = colors.gray
-       canvasBackground = colors.offWhite |}
+       canvasBackground = colors.gray |}
 
 let window = {| height = 600.; width = 800. |}
 
@@ -35,3 +34,5 @@ let spacing =
        large = 16. |}
 
 let size = {| small = 150. |}
+
+let drawing = {|  strokeWidth = 2. |}

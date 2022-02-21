@@ -8,12 +8,15 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI
 open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
+open Geometry
 
 open FlowerGui.Widgets
 open Extensions
 
+
 type State =
-    { Flowers: Map<FlowerId, Flower>
+    { CanvasSize: Size<Pixels>
+      Flowers: Map<FlowerId, Flower>
       Selected: FlowerId option }
 
 type Action =
@@ -35,7 +38,10 @@ let selectedFlower state : Flower option =
     |> Option.bind (fun id -> Map.tryFind id state.Flowers)
 
 let init =
-    { Flowers = Map.empty; Selected = None }, Cmd.batch []
+    { CanvasSize = Size.create Length.zero Length.zero
+      Flowers = Map.empty
+      Selected = None },
+    Cmd.batch []
 
 let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -53,7 +59,15 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
         | Undo -> state, Cmd.none
         | Redo -> state, Cmd.none
         | Open -> state, Cmd.none
-        | NewFlower -> state, Cmd.none
+        | NewFlower ->
+            let newFlower =
+                Flower.basic $"Flower {Map.count state.Flowers}"
+                |> Flower.setPosition (Point2D.pixels 100. 100.)
+
+            { state with
+                  Flowers = Map.add newFlower.Id newFlower state.Flowers
+                  Selected = Some newFlower.Id },
+            Cmd.none
 
 
 let menu =
@@ -115,12 +129,21 @@ let flowerProperties state dispatch =
                            | None -> ()
                    LabelPlacement = Orientation.Vertical |}
         ]
+        StackPanel.minWidth 150.
     ]
 
 
 
-let simulationSpace =
-    Canvas.create [ Canvas.background "#383838" ]
+let simulationSpace state dispatch =
+    let flowers =
+        Map.values state.Flowers
+        |> Seq.map Flower.draw
+        |> Seq.toList
+
+    Canvas.create [
+        Canvas.children flowers
+        Canvas.background Theme.palette.canvasBackground
+    ]
 
 
 let view (state: State) (dispatch: Msg -> unit) =
@@ -128,7 +151,7 @@ let view (state: State) (dispatch: Msg -> unit) =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)
-          simulationSpace ]
+          simulationSpace state dispatch ]
 
     DockPanel.create [ DockPanel.children panels ]
 
