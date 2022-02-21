@@ -16,8 +16,8 @@ open Extensions
 
 type State =
     { CanvasSize: Size<Pixels>
-      Flowers: Map<FlowerId, Flower>
-      Selected: FlowerId option }
+      Flowers: Map<Flower.Id, Flower.State>
+      Selected: Flower.Id option }
 
 type Action =
     | Save
@@ -28,12 +28,13 @@ type Action =
     | NewFlower
 
 type Msg =
-    | ChangeName of (FlowerId * string)
+    | ChangeName of (Flower.Id * string)
     | Action of Action
+    | FlowerMsg of (Flower.Id * Flower.Msg)
 
 // State accessors
 
-let selectedFlower state : Flower option =
+let selectedFlower state : Flower.State option =
     state.Selected
     |> Option.bind (fun id -> Map.tryFind id state.Flowers)
 
@@ -69,19 +70,33 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
                   Selected = Some newFlower.Id },
             Cmd.none
 
+    | FlowerMsg (flowerId, flowerMsg) ->
+        { state with
+              Flowers = Map.update flowerId (Flower.update flowerMsg) state.Flowers },
+        Cmd.none
 
 let menu =
-    let fileItems : IView list =
-        [ MenuItem.create [ MenuItem.header "Open" ]
-          MenuItem.create [ MenuItem.header "Save" ]
-          MenuItem.create [ MenuItem.header "Save As" ] ]
+    let fileItems: IView list =
+        [ MenuItem.create [
+            MenuItem.header "Open"
+          ]
+          MenuItem.create [
+              MenuItem.header "Save"
+          ]
+          MenuItem.create [
+              MenuItem.header "Save As"
+          ] ]
 
-    let editItems : IView list =
-        [ MenuItem.create [ MenuItem.header "Undo" ]
-          MenuItem.create [ MenuItem.header "Redo" ] ]
+    let editItems: IView list =
+        [ MenuItem.create [
+            MenuItem.header "Undo"
+          ]
+          MenuItem.create [
+              MenuItem.header "Redo"
+          ] ]
 
 
-    let menuItems : IView list =
+    let menuItems: IView list =
         [ MenuItem.create [
             MenuItem.header "File"
             MenuItem.viewItems fileItems
@@ -94,7 +109,7 @@ let menu =
     Menu.create [ Menu.viewItems menuItems ]
 
 let iconDock dispatch =
-    let buttons : IView list =
+    let buttons: IView list =
         [ Icons.save Theme.colors.offWhite, Save
           Icons.load Theme.colors.offWhite, Load
           Icons.undo Theme.colors.offWhite, Undo
@@ -135,25 +150,30 @@ let flowerProperties state dispatch =
 
 
 let simulationSpace state dispatch =
-    let flowers =
+    let flowerDispatch (flower: Flower.State) dispatch msg = dispatch (FlowerMsg(flower.Id, msg))
+
+    let flowers: IView list =
         Map.values state.Flowers
-        |> Seq.map Flower.draw
+        |> Seq.map (fun flower -> Flower.draw flower (flowerDispatch flower dispatch) :> IView)
         |> Seq.toList
 
     Canvas.create [
         Canvas.children flowers
         Canvas.background Theme.palette.canvasBackground
+        Canvas.name Constants.CanvasId
     ]
 
 
 let view (state: State) (dispatch: Msg -> unit) =
-    let panels : IView list =
+    let panels: IView list =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)
           simulationSpace state dispatch ]
 
-    DockPanel.create [ DockPanel.children panels ]
+    DockPanel.create [
+        DockPanel.children panels
+    ]
 
 type MainWindow() as this =
     inherit HostWindow()

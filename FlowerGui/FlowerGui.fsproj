@@ -13,7 +13,7 @@
         <Compile Include="Extensions\TupleExtensions.fs" />
         <Compile Include="Extensions\DiscriminatedUnion.fs" />
         <Compile Include="Extensions\MapExtensions.fs" />
-        <Compile Include="Extensions\Point2D.fs" />
+        <Compile Include="Events.fs" />
         <Compile Include="Theme.fs" />
         <Compile Include="Widgets\Form.fs" />
         <Compile Include="Widgets\Icons.fs" />
@@ -26,7 +26,7 @@
     
     <ItemGroup>
         <PackageReference Include="Avalonia.Desktop" Version="0.9.7" />
-        <PackageReference Include="Fsharp.Geometry" Version="0.1.20" />
+        <PackageReference Include="Fsharp.Geometry" Version="0.1.22" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.4.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.4.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.4.0" />

@@ -1,5 +1,7 @@
 module FlowerGui.Theme
 
+/// Color palette is based off of the yellow color with a 150° tetradic color scheme
+/// https://paletton.com/#uid=70I2m0krBw0hcHpmp-MvIrjzmlr
 let colors =
     {| darkGray = "#202020"
        gray = "#303030"
@@ -9,15 +11,17 @@ let colors =
        offWhite = "#e6e6e6"
        yellow = "#FFA123"
        lightYellow = "#E4AE67"
-       blue = "#4F2DBE"
-       lightBlue = "#D3CAEF"
-       green = "#26D81D" |}
+       blue = "#206BA4"
+       lightBlue = "#3D7FB2"
+       green = "#18AF6E" |}
 
 let palette =
     {| primary = colors.yellow
+       primaryLight = colors.lightYellow
        panelBackground = colors.darkGray
        panelAccent = colors.lightGray
-       canvasBackground = colors.gray |}
+       canvasBackground = colors.gray
+       shadowColor = colors.lightGray |}
 
 let window = {| height = 600.; width = 800. |}
 
@@ -35,4 +39,6 @@ let spacing =
 
 let size = {| small = 150. |}
 
-let drawing = {|  strokeWidth = 2. |}
+let drawing =
+    {| strokeWidth = 1.
+       dashArray = [ 3.; 3. ] |}
