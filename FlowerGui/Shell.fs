@@ -17,9 +17,17 @@ open Extensions
 type State =
     { CanvasSize: Size<Pixels>
       Flowers: Map<Flower.Id, Flower.State>
-      Selected: Flower.Id option }
+      Selected: Flower.Id option
+      Hovered: Flower.Id option
+      Pressed: Flower.Id option
+      Dragging: Flower.Id option }
 
-type Action =
+type Msg =
+    | ChangeName of (Flower.Id * string)
+    | Action of Action
+    | FlowerInteraction of FlowerInteraction
+
+and Action =
     | Save
     | Load
     | Open
@@ -27,10 +35,12 @@ type Action =
     | Redo
     | NewFlower
 
-type Msg =
-    | ChangeName of (Flower.Id * string)
-    | Action of Action
-    | FlowerMsg of (Flower.Id * Flower.Msg)
+and FlowerInteraction =
+    | Hovered of Flower.Id
+    | Unhovered of Flower.Id
+    | Selected of Flower.Id
+    | Pressed of Flower.Id
+    | Dragged of Flower.Id
 
 // State accessors
 
@@ -41,7 +51,10 @@ let selectedFlower state : Flower.State option =
 let init =
     { CanvasSize = Size.create Length.zero Length.zero
       Flowers = Map.empty
-      Selected = None },
+      Selected = None
+      Hovered = None
+      Pressed = None
+      Dragging = None },
     Cmd.batch []
 
 let update (msg: Msg) (state: State) : State * Cmd<Msg> =
@@ -70,10 +83,23 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
                   Selected = Some newFlower.Id },
             Cmd.none
 
-    | FlowerMsg (flowerId, flowerMsg) ->
-        { state with
-              Flowers = Map.update flowerId (Flower.update flowerMsg) state.Flowers },
-        Cmd.none
+    | FlowerInteraction interaction ->
+        match interaction with
+        | Hovered id ->
+            printfn "Hovered"
+            { state with Hovered = Some id }, Cmd.none
+        | Unhovered _ ->
+            printfn "Unhovered"
+            { state with Hovered = None }, Cmd.none
+        | Selected id ->
+            printfn "Selected"
+            { state with Selected = Some id }, Cmd.none
+        | Pressed id ->
+            printfn "Pressed"
+            { state with Pressed = Some id }, Cmd.none
+        | Dragged id ->
+            printfn "Dragged"
+            { state with Dragging = Some id }, Cmd.none
 
 let menu =
     let fileItems: IView list =
@@ -150,11 +176,26 @@ let flowerProperties state dispatch =
 
 
 let simulationSpace state dispatch =
-    let flowerDispatch (flower: Flower.State) dispatch msg = dispatch (FlowerMsg(flower.Id, msg))
+    let drawFlower flower : IView =
+        Flower.draw
+            flower
+            //            [ if Option.contains flower.Id state.Pressed then
+//                  Flower.pressed
+            [ if Option.contains flower.Id state.Hovered then
+                  Flower.hovered
+              //              if Option.contains flower.Id state.Selected then
+//                  Flower.selected
+//              if Option.contains flower.Id state.Dragging then
+//                  Flower.dragged
+
+              Flower.onHover (fun () -> FlowerInteraction.Hovered flower.Id |> dispatch)
+              Flower.onUnhover (fun () -> FlowerInteraction.Unhovered flower.Id |> dispatch)
+              Flower.onPressed (fun () -> FlowerInteraction.Pressed flower.Id |> dispatch)
+              Flower.onSelected (fun () -> FlowerInteraction.Selected flower.Id |> dispatch) ]
 
     let flowers: IView list =
         Map.values state.Flowers
-        |> Seq.map (fun flower -> Flower.draw flower (flowerDispatch flower dispatch) :> IView)
+        |> Seq.map drawFlower
         |> Seq.toList
 
     Canvas.create [
@@ -169,7 +210,7 @@ let view (state: State) (dispatch: Msg -> unit) =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)
-          simulationSpace state dispatch ]
+          simulationSpace state (FlowerInteraction >> dispatch) ]
 
     DockPanel.create [
         DockPanel.children panels

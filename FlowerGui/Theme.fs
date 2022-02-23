@@ -9,15 +9,22 @@ let colors =
        lighterGray = "#828282"
        lightOffWhite = "#f0f0f0"
        offWhite = "#e6e6e6"
+       darkerYellow = "#AB6200"
+       darkYellow = "#DA7E02"
        yellow = "#FFA123"
        lightYellow = "#E4AE67"
+       lighterYellow = "#FFC476"
        blue = "#206BA4"
        lightBlue = "#3D7FB2"
        green = "#18AF6E" |}
 
 let palette =
-    {| primary = colors.yellow
+    {|
+       primaryDarkest = colors.darkerYellow
+       primaryDark = colors.darkYellow
+       primary = colors.yellow
        primaryLight = colors.lightYellow
+       primaryLightest = colors.lighterYellow
        panelBackground = colors.darkGray
        panelAccent = colors.lightGray
        canvasBackground = colors.gray

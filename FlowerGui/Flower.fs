@@ -1,30 +1,31 @@
 module FlowerGui.Flower
 
-open Avalonia.FuncUI.Types
-open Avalonia.Layout
-open Elmish
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI
-open Avalonia.FuncUI.Components.Hosts
-open Avalonia.FuncUI.Elmish
 
 open System
 open Avalonia.Input
 open Avalonia.Media
 open Avalonia.Controls.Shapes
-open Avalonia.FuncUI.DSL
 open Geometry
 
 open FlowerGui
 
 type Id = Guid
 
-type UiState =
+
+type Attribute =
+    // States
     | Hovered
     | Selected
     | Pressed
     | Dragged
+
+    // Events
+    | OnHovered of (unit -> unit)
+    | OnUnhovered of (unit -> unit)
+    | OnPressed of (unit -> unit)
+    | OnSelected of (unit -> unit)
 
 type State =
     { Id: Id
@@ -32,14 +33,8 @@ type State =
       I2cAddress: uint
       Position: Point2D<Pixels, UserSpace>
       Color: Color
-      Radius: Length<Pixels>
-      States: Set<UiState> }
+      Radius: Length<Pixels> }
 
-type Msg =
-    | PointerEnter
-    | PointerLeave
-    | PointerPressed of Events.MouseEvent<Pixels, UserSpace>
-    | PointerReleased of Events.MouseEvent<Pixels, UserSpace>
 
 // ---- Builders -----
 
@@ -49,8 +44,8 @@ let basic name =
       Position = Point2D.origin ()
       I2cAddress = 0u
       Color = Colors.White
-      Radius = Length.pixels 20
-      States = Set.empty }
+      Radius = Length.pixels 20 }
+
 
 // ---- Modifiers ----
 
@@ -59,23 +54,6 @@ let setI2cAddress i2CAddress flower : State = { flower with I2cAddress = i2CAddr
 let setColor color flower : State = { flower with Color = color }
 let setPosition position flower : State = { flower with Position = position }
 
-let private addState state (flower: State) =
-    { flower with
-          States = Set.add state flower.States }
-
-let private removeState state (flower: State) =
-    { flower with
-          States = Set.remove state flower.States }
-
-let noStates (flower: State) : State = { flower with States = Set.empty }
-let hover = addState Hovered
-let unhover = removeState Hovered
-let select = addState Selected
-let deselect = removeState Selected
-
-// ---- Accessors ----
-
-let inState uiState state = Set.contains uiState state.States
 
 // ---- Queries ----
 
@@ -83,81 +61,89 @@ let containsPoint point state =
     Circle2D.atPoint state.Position state.Radius
     |> Circle2D.containsPoint point
 
-// ---- Updates ----
 
-let update msg state =
-    match msg with
-    | PointerEnter -> hover state
+// ---- Attributes ----
 
-    | PointerLeave -> unhover state
+// States
+let hovered = Attribute.Hovered
+let pressed = Attribute.Pressed
+let selected = Attribute.Selected
+let dragged = Attribute.Dragged
 
-    | PointerPressed e ->
-        printfn $"Pressed: {e.MouseButton} at {e.Position}"
+// Events
+let onHover = Attribute.OnHovered
+let onUnhover = Attribute.OnUnhovered
+let onPressed = Attribute.OnPressed
+let onSelected = Attribute.OnSelected
 
-        if e.MouseButton = MouseButton.Left
-           && containsPoint e.Position state then
-            Events.handle e
-
-            state
-        else
-            state
-
-    | PointerReleased e ->
-        printfn $"Released: {e.MouseButton} at {e.Position}"
-
-        if e.MouseButton = MouseButton.Left
-           && containsPoint e.Position state then
-            Events.handle e
-
-            select state
-        else
-            deselect state
 
 
 // ---- Drawing ----
 
-let draw (flower: State) dispatch =
+let draw (flower: State) (attributes: Attribute list) =
+    let onPointerPressed (e: PointerPressedEventArgs) (msg: unit -> unit) : Unit =
+        e
+        |> (Events.pressedEvent Constants.CanvasId)
+        |> (fun e ->
+            if e.MouseButton = MouseButton.Left
+               && containsPoint e.Position flower then
+                Events.handle e
+                msg ())
+
+    let onPointerReleased (e: PointerReleasedEventArgs) (msg: unit -> unit) : unit =
+        e
+        |> (Events.releasedEvent Constants.CanvasId)
+        |> (fun e ->
+            if e.MouseButton = MouseButton.Left
+               && containsPoint e.Position flower then
+                Events.handle e
+                msg ())
+
+    let circleAttributes =
+        List.map
+            (fun attribute ->
+                match attribute with
+                | Hovered -> Ellipse.fill Theme.palette.primaryLight
+                | Pressed -> Ellipse.fill Theme.palette.primaryLightest
+                | Selected -> Ellipse.isVisible true
+                | Dragged -> (Ellipse.fill Theme.palette.primaryDark)
+                | OnHovered hoveredMsg -> Ellipse.onPointerEnter (fun _ -> hoveredMsg ())
+                | OnUnhovered unhoveredMsg -> Ellipse.onPointerLeave (fun _ -> unhoveredMsg ())
+                | OnPressed pressedMsg -> Ellipse.onPointerPressed (fun e -> (onPointerPressed e pressedMsg))
+                | OnSelected selectedMsg -> Ellipse.onPointerReleased (fun e -> (onPointerReleased e selectedMsg)))
+            attributes
+
     let circle =
         Circle2D.atPoint flower.Position flower.Radius
 
-    let fill =
-        if Set.contains Hovered flower.States then
-            Theme.palette.primaryLight
+    let selection =
+        if List.exists
+            (fun e ->
+                match e with
+                | Selected -> true
+                | _ -> false)
+            attributes then
+
+            Draw.boundingBox
+                (Circle2D.boundingBox circle)
+                [ Rectangle.stroke Theme.colors.blue
+                  Rectangle.strokeThickness Theme.drawing.strokeWidth
+                  Rectangle.strokeDashArray Theme.drawing.dashArray ]
+            |> Some
         else
-            Theme.palette.primary
-
-    let selection () =
-        Draw.boundingBox
-            (Circle2D.boundingBox circle)
-            [ Rectangle.stroke Theme.colors.blue
-              Rectangle.strokeThickness Theme.drawing.strokeWidth
-              Rectangle.strokeDashArray Theme.drawing.dashArray ]
-
+            None
 
 
     let circle =
         Draw.circle
             circle
-            [ Ellipse.fill fill
-              Ellipse.strokeThickness Theme.drawing.strokeWidth
-              Ellipse.onPointerEnter (fun _ -> dispatch PointerEnter)
-              Ellipse.onPointerLeave (fun _ -> dispatch PointerLeave)
-              Ellipse.onPointerPressed (
-                  Events.pressedEvent Constants.CanvasId
-                  >> PointerPressed
-                  >> dispatch
-              )
-              Ellipse.onPointerReleased (
-                  Events.releasedEvent Constants.CanvasId
-                  >> PointerReleased
-                  >> dispatch
-              ) ]
-
+            (circleAttributes
+             @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
+                 Ellipse.fill Theme.palette.primary ])
 
     Canvas.create [
         Canvas.children [
-            if inState Selected flower then
-                selection ()
+            yield! selection |> Option.toList
             circle
         ]
     ]
