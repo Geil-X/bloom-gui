@@ -14,22 +14,19 @@ open Gui
 type Id = Guid
 
 
-type Attribute =
-    | ViewState of ViewState
-    | Event of Event
-
-and ViewState =
+type Attribute<'Unit, 'Coordinates> =
+    // States
     | Hovered
     | Selected
     | Pressed
     | Dragged
 
-and Event =
-    | OnEnter of (unit -> unit)
-    | OnLeave of (unit -> unit)
-    | OnPressed of (unit -> unit)
-    | OnReleased of (unit -> unit)
-    | OnMoved of (unit -> unit)
+    // Events
+    | OnPointerEnter of (MouseEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerLeave of (MouseEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerMoved of (MouseEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerPressed of (MouseButtonEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerReleased of (MouseButtonEvent<'Unit, 'Coordinates> -> unit)
 
 type State =
     { Id: Id
@@ -48,7 +45,7 @@ let basic name =
       Position = Point2D.origin ()
       I2cAddress = 0u
       Color = Colors.White
-      Radius = Length.pixels 20 }
+      Radius = Length.pixels 20. }
 
 
 // ---- Modifiers ----
@@ -69,58 +66,46 @@ let containsPoint point state =
 // ---- Attributes ----
 
 // States
-let hovered = Hovered |> ViewState
-let pressed = Pressed |> ViewState
-let selected = Selected |> ViewState
-let dragged = Dragged |> ViewState
+let hovered = Attribute.Hovered
+let pressed = Attribute.Pressed
+let selected = Attribute.Selected
+let dragged = Attribute.Dragged
 
 // Events
-let onEnter = OnEnter >> Event
-let onLeave = OnLeave >> Event
-let onMoved = OnLeave >> Event
-let onPressed = OnPressed >> Event
-let onReleased = OnReleased >> Event
+let onPointerEnter = Attribute.OnPointerEnter
+let onPointerLeave = Attribute.OnPointerLeave
+let onPointerPressed = Attribute.OnPointerPressed
+let onPointerReleased = Attribute.OnPointerReleased
+let onPointerMoved = Attribute.OnPointerMoved
+
 
 
 // ---- Drawing ----
 
-let draw (flower: State) (attributes: Attribute list) =
-    let onPointerPressed (e: PointerPressedEventArgs) (msg: unit -> unit) : Unit =
-        e
-        |> (Events.pressedEvent Constants.CanvasId)
-        |> (fun e ->
-            if e.MouseButton = MouseButton.Left
-               && containsPoint e.Position flower then
-                Events.handle e
-                msg ())
-
-    let onPointerReleased (e: PointerReleasedEventArgs) (msg: unit -> unit) : unit =
-        e
-        |> (Events.releasedEvent Constants.CanvasId)
-        |> (fun e ->
-            if e.MouseButton = MouseButton.Left
-               && containsPoint e.Position flower then
-                Events.handle e
-                msg ())
-
+let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
     let circleAttributes =
         List.map
             (fun attribute ->
                 match attribute with
-                | ViewState viewState ->
-                    match viewState with
-                    | Hovered -> Ellipse.fill Theme.palette.primaryLight
-                    | Pressed -> Ellipse.fill Theme.palette.primaryLightest
-                    | Selected -> Ellipse.isVisible true
-                    | Dragged -> (Ellipse.fill Theme.palette.primaryDark)
-                | Event event ->
-                    match event with
-                    | OnMoved movedMsg -> Ellipse.onPointerMoved (fun _ -> movedMsg ())
-                    | OnEnter enterMsg -> Ellipse.onPointerEnter (fun _ -> enterMsg ())
-                    | OnLeave leaveMsg -> Ellipse.onPointerLeave (fun _ -> leaveMsg ())
-                    | OnPressed pressedMsg -> Ellipse.onPointerPressed (fun e -> (onPointerPressed e pressedMsg))
-                    | OnReleased releasedMessage ->
-                        Ellipse.onPointerReleased (fun e -> (onPointerReleased e releasedMessage)))
+                | Hovered -> Ellipse.fill Theme.palette.primaryLight
+                | Pressed -> Ellipse.fill Theme.palette.primaryLightest
+                | Selected -> Ellipse.isVisible true
+                | Dragged -> (Ellipse.fill Theme.palette.primaryDark)
+
+                | OnPointerEnter enterMsg -> Ellipse.onPointerEnter (Events.pointerEnter Constants.CanvasId >> enterMsg)
+                | OnPointerLeave leaveMsg -> Ellipse.onPointerLeave (Events.pointerLeave Constants.CanvasId >> leaveMsg)
+                | OnPointerMoved movedMsg -> Ellipse.onPointerMoved (Events.pointerMoved Constants.CanvasId >> movedMsg)
+
+                | OnPointerPressed pressedMsg ->
+                    Ellipse.onPointerPressed (
+                        Events.pointerPressed Constants.CanvasId
+                        >> pressedMsg
+                    )
+                | OnPointerReleased releasedMsg ->
+                    Ellipse.onPointerReleased (
+                        Events.pointerReleased Constants.CanvasId
+                        >> releasedMsg
+                    ))
             attributes
 
     let circle =
@@ -130,7 +115,7 @@ let draw (flower: State) (attributes: Attribute list) =
         if List.exists
             (fun e ->
                 match e with
-                | ViewState Selected -> true
+                | Selected -> true
                 | _ -> false)
             attributes then
 

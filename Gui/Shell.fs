@@ -152,27 +152,17 @@ open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
 
 let menu =
-    let fileItems: IView list =
-        [ MenuItem.create [
-            MenuItem.header "Open"
-          ]
-          MenuItem.create [
-              MenuItem.header "Save"
-          ]
-          MenuItem.create [
-              MenuItem.header "Save As"
-          ] ]
+    let fileItems : IView list =
+        [ MenuItem.create [ MenuItem.header "Open" ]
+          MenuItem.create [ MenuItem.header "Save" ]
+          MenuItem.create [ MenuItem.header "Save As" ] ]
 
-    let editItems: IView list =
-        [ MenuItem.create [
-            MenuItem.header "Undo"
-          ]
-          MenuItem.create [
-              MenuItem.header "Redo"
-          ] ]
+    let editItems : IView list =
+        [ MenuItem.create [ MenuItem.header "Undo" ]
+          MenuItem.create [ MenuItem.header "Redo" ] ]
 
 
-    let menuItems: IView list =
+    let menuItems : IView list =
         [ MenuItem.create [
             MenuItem.header "File"
             MenuItem.viewItems fileItems
@@ -185,7 +175,7 @@ let menu =
     Menu.create [ Menu.viewItems menuItems ]
 
 let iconDock dispatch =
-    let buttons: IView list =
+    let buttons : IView list =
         [ Icons.save Theme.colors.offWhite, Save
           Icons.load Theme.colors.offWhite, Load
           Icons.undo Theme.colors.offWhite, Undo
@@ -234,8 +224,22 @@ let simulationSpace state dispatch =
               Flower.onMoved (fun () -> OnMoved flower.Id |> dispatch)
               Flower.onPressed (fun () -> OnPressed flower.Id |> dispatch)
               Flower.onReleased (fun () -> OnReleased flower.Id |> dispatch) ]
+            [ if Option.contains flower.Id state.Pressed then
+                  Flower.pressed
+              if Option.contains flower.Id state.Hovered then
+                  Flower.hovered
+//              if Option.contains flower.Id state.Selected then
+//                  Flower.selected
+//              if Option.contains flower.Id state.Dragging then
+//                  Flower.dragged
 
-    let flowers: IView list =
+              Flower.onHover (fun () -> FlowerInteraction.Hovered flower.Id |> dispatch)
+              Flower.onUnhover (fun () -> FlowerInteraction.Unhovered flower.Id |> dispatch)
+              Flower.onPressed (fun () -> FlowerInteraction.Pressed flower.Id |> dispatch)
+              Flower.onSelected (fun () -> FlowerInteraction.Selected flower.Id |> dispatch) ]
+        :> IView
+
+    let flowers : IView list =
         Map.values state.Flowers
         |> Seq.map drawFlower
         |> Seq.toList
@@ -248,15 +252,13 @@ let simulationSpace state dispatch =
 
 
 let view (state: State) (dispatch: Msg -> unit) =
-    let panels: IView list =
+    let panels : IView list =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)
           simulationSpace state (FlowerEvent >> dispatch) ]
 
-    DockPanel.create [
-        DockPanel.children panels
-    ]
+    DockPanel.create [ DockPanel.children panels ]
 
 type MainWindow() as this =
     inherit HostWindow()
