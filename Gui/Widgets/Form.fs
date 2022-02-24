@@ -1,4 +1,4 @@
-module FlowerGui.Widgets.Form
+module Gui.Widgets.Form
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
@@ -7,7 +7,7 @@ open Avalonia.Interactivity
 
 open Avalonia.Layout
 open Avalonia.Media
-open FlowerGui
+open Gui
 open Utilities.Extensions
 
 let formElement

@@ -1,4 +1,4 @@
-module FlowerGui.Draw
+module Gui.Draw
 
 open Avalonia.Controls.Shapes
 open Avalonia.FuncUI.DSL

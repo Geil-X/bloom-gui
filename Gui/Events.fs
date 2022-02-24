@@ -1,4 +1,4 @@
-namespace FlowerGui
+namespace Gui
 
 open Avalonia.Input
 open Avalonia.Interactivity

@@ -1,4 +1,4 @@
-module FlowerGui.Flower
+module Gui.Flower
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
@@ -9,23 +9,27 @@ open Avalonia.Media
 open Avalonia.Controls.Shapes
 open Geometry
 
-open FlowerGui
+open Gui
 
 type Id = Guid
 
 
 type Attribute =
-    // States
+    | ViewState of ViewState
+    | Event of Event
+
+and ViewState =
     | Hovered
     | Selected
     | Pressed
     | Dragged
 
-    // Events
-    | OnHovered of (unit -> unit)
-    | OnUnhovered of (unit -> unit)
+and Event =
+    | OnEnter of (unit -> unit)
+    | OnLeave of (unit -> unit)
     | OnPressed of (unit -> unit)
-    | OnSelected of (unit -> unit)
+    | OnReleased of (unit -> unit)
+    | OnMoved of (unit -> unit)
 
 type State =
     { Id: Id
@@ -65,17 +69,17 @@ let containsPoint point state =
 // ---- Attributes ----
 
 // States
-let hovered = Attribute.Hovered
-let pressed = Attribute.Pressed
-let selected = Attribute.Selected
-let dragged = Attribute.Dragged
+let hovered = Hovered |> ViewState
+let pressed = Pressed |> ViewState
+let selected = Selected |> ViewState
+let dragged = Dragged |> ViewState
 
 // Events
-let onHover = Attribute.OnHovered
-let onUnhover = Attribute.OnUnhovered
-let onPressed = Attribute.OnPressed
-let onSelected = Attribute.OnSelected
-
+let onEnter = OnEnter >> Event
+let onLeave = OnLeave >> Event
+let onMoved = OnLeave >> Event
+let onPressed = OnPressed >> Event
+let onReleased = OnReleased >> Event
 
 
 // ---- Drawing ----
@@ -103,14 +107,20 @@ let draw (flower: State) (attributes: Attribute list) =
         List.map
             (fun attribute ->
                 match attribute with
-                | Hovered -> Ellipse.fill Theme.palette.primaryLight
-                | Pressed -> Ellipse.fill Theme.palette.primaryLightest
-                | Selected -> Ellipse.isVisible true
-                | Dragged -> (Ellipse.fill Theme.palette.primaryDark)
-                | OnHovered hoveredMsg -> Ellipse.onPointerEnter (fun _ -> hoveredMsg ())
-                | OnUnhovered unhoveredMsg -> Ellipse.onPointerLeave (fun _ -> unhoveredMsg ())
-                | OnPressed pressedMsg -> Ellipse.onPointerPressed (fun e -> (onPointerPressed e pressedMsg))
-                | OnSelected selectedMsg -> Ellipse.onPointerReleased (fun e -> (onPointerReleased e selectedMsg)))
+                | ViewState viewState ->
+                    match viewState with
+                    | Hovered -> Ellipse.fill Theme.palette.primaryLight
+                    | Pressed -> Ellipse.fill Theme.palette.primaryLightest
+                    | Selected -> Ellipse.isVisible true
+                    | Dragged -> (Ellipse.fill Theme.palette.primaryDark)
+                | Event event ->
+                    match event with
+                    | OnMoved movedMsg -> Ellipse.onPointerMoved (fun _ -> movedMsg ())
+                    | OnEnter enterMsg -> Ellipse.onPointerEnter (fun _ -> enterMsg ())
+                    | OnLeave leaveMsg -> Ellipse.onPointerLeave (fun _ -> leaveMsg ())
+                    | OnPressed pressedMsg -> Ellipse.onPointerPressed (fun e -> (onPointerPressed e pressedMsg))
+                    | OnReleased releasedMessage ->
+                        Ellipse.onPointerReleased (fun e -> (onPointerReleased e releasedMessage)))
             attributes
 
     let circle =
@@ -120,7 +130,7 @@ let draw (flower: State) (attributes: Attribute list) =
         if List.exists
             (fun e ->
                 match e with
-                | Selected -> true
+                | ViewState Selected -> true
                 | _ -> false)
             attributes then
 

@@ -1,5 +1,5 @@
 // Icons can be found here https://materialdesignicons.com/
-module FlowerGui.Icons
+module Gui.Icons
 
 open Avalonia
 open Avalonia.Controls

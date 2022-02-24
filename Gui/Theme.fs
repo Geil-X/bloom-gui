@@ -1,4 +1,4 @@
-module FlowerGui.Theme
+module Gui.Theme
 
 /// Color palette is based off of the yellow color with a 150° tetradic color scheme
 /// https://paletton.com/#uid=70I2m0krBw0hcHpmp-MvIrjzmlr

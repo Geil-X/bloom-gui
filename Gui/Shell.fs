@@ -1,31 +1,32 @@
-module FlowerGui.Shell
+module Gui.Shell
 
-open Avalonia.FuncUI.Types
-open Avalonia.Layout
+
 open Elmish
-open Avalonia.Controls
-open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI
-open Avalonia.FuncUI.Components.Hosts
-open Avalonia.FuncUI.Elmish
-open Geometry
-
-open FlowerGui.Widgets
+open Gui.Widgets
 open Extensions
 
+open Geometry
+open Gui
+
+
+// ---- Types ----
 
 type State =
     { CanvasSize: Size<Pixels>
       Flowers: Map<Flower.Id, Flower.State>
-      Selected: Flower.Id option
-      Hovered: Flower.Id option
-      Pressed: Flower.Id option
-      Dragging: Flower.Id option }
+      FlowerInteraction: FlowerInteraction
+      Selected: Flower.Id option }
+
+and FlowerInteraction =
+    | Hovering of Flower.Id
+    | Pressing of Flower.Id
+    | Dragging of Flower.Id
+    | NoInteraction
 
 type Msg =
     | ChangeName of (Flower.Id * string)
     | Action of Action
-    | FlowerInteraction of FlowerInteraction
+    | FlowerEvent of FlowerEvent
 
 and Action =
     | Save
@@ -35,27 +36,41 @@ and Action =
     | Redo
     | NewFlower
 
-and FlowerInteraction =
-    | Hovered of Flower.Id
-    | Unhovered of Flower.Id
-    | Selected of Flower.Id
-    | Pressed of Flower.Id
-    | Dragged of Flower.Id
+and FlowerEvent =
+    | OnEnter of Flower.Id
+    | OnLeave of Flower.Id
+    | OnMoved of Flower.Id
+    | OnPressed of Flower.Id
+    | OnReleased of Flower.Id
 
-// State accessors
+// ---- Init ----
+
+let init () =
+    { CanvasSize = Size.create Length.zero Length.zero
+      Flowers = Map.empty
+      FlowerInteraction = NoInteraction
+      Selected = None },
+    Cmd.batch []
+
+
+// ---- Update helper functions -----
 
 let selectedFlower state : Flower.State option =
     state.Selected
     |> Option.bind (fun id -> Map.tryFind id state.Flowers)
 
-let init =
-    { CanvasSize = Size.create Length.zero Length.zero
-      Flowers = Map.empty
-      Selected = None
-      Hovered = None
-      Pressed = None
-      Dragging = None },
-    Cmd.batch []
+let addFlower (flower: Flower.State) (state: State) : State =
+    { state with
+          Flowers = Map.add flower.Id flower state.Flowers }
+
+let addNewFlower (state: State) : State =
+    let flower =
+        Flower.basic $"Flower {Map.count state.Flowers}"
+
+    { state with
+          Flowers = Map.add flower.Id flower state.Flowers }
+
+// ---- Update ----
 
 let update (msg: Msg) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -83,23 +98,58 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
                   Selected = Some newFlower.Id },
             Cmd.none
 
-    | FlowerInteraction interaction ->
-        match interaction with
-        | Hovered id ->
-            printfn "Hovered"
-            { state with Hovered = Some id }, Cmd.none
-        | Unhovered _ ->
-            printfn "Unhovered"
-            { state with Hovered = None }, Cmd.none
-        | Selected id ->
-            printfn "Selected"
-            { state with Selected = Some id }, Cmd.none
-        | Pressed id ->
-            printfn "Pressed"
-            { state with Pressed = Some id }, Cmd.none
-        | Dragged id ->
-            printfn "Dragged"
-            { state with Dragging = Some id }, Cmd.none
+    | FlowerEvent flowerEvent ->
+        match flowerEvent with
+        | OnEnter flowerId ->
+            { state with
+                  FlowerInteraction = Hovering flowerId },
+            Cmd.none
+
+        | OnLeave _ ->
+            { state with
+                  FlowerInteraction = NoInteraction },
+            Cmd.none
+
+        | OnMoved flowerId ->
+            { state with
+                  FlowerInteraction = Dragging flowerId },
+            Cmd.none
+
+        | OnPressed flowerId ->
+            { state with
+                  FlowerInteraction = Pressing flowerId },
+            Cmd.none
+
+        | OnReleased flowerId ->
+            match state.FlowerInteraction with
+            | Dragging _ ->
+                { state with
+                      FlowerInteraction = Hovering flowerId },
+                Cmd.none
+
+            | Pressing _ ->
+                { state with
+                      FlowerInteraction = Hovering flowerId
+                      Selected = Some flowerId },
+                Cmd.none
+
+            | flowerEvent ->
+                printfn $"Unhandled event {flowerEvent}"
+                state, Cmd.none
+
+
+
+
+// ---- View Functions ----
+
+open Avalonia.FuncUI.Types
+open Avalonia.Layout
+open Elmish
+open Avalonia.Controls
+open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI
+open Avalonia.FuncUI.Components.Hosts
+open Avalonia.FuncUI.Elmish
 
 let menu =
     let fileItems: IView list =
@@ -179,19 +229,11 @@ let simulationSpace state dispatch =
     let drawFlower flower : IView =
         Flower.draw
             flower
-            //            [ if Option.contains flower.Id state.Pressed then
-//                  Flower.pressed
-            [ if Option.contains flower.Id state.Hovered then
-                  Flower.hovered
-              //              if Option.contains flower.Id state.Selected then
-//                  Flower.selected
-//              if Option.contains flower.Id state.Dragging then
-//                  Flower.dragged
-
-              Flower.onHover (fun () -> FlowerInteraction.Hovered flower.Id |> dispatch)
-              Flower.onUnhover (fun () -> FlowerInteraction.Unhovered flower.Id |> dispatch)
-              Flower.onPressed (fun () -> FlowerInteraction.Pressed flower.Id |> dispatch)
-              Flower.onSelected (fun () -> FlowerInteraction.Selected flower.Id |> dispatch) ]
+            [ Flower.onEnter (fun () -> OnEnter flower.Id |> dispatch)
+              Flower.onLeave (fun () -> OnLeave flower.Id |> dispatch)
+              Flower.onMoved (fun () -> OnMoved flower.Id |> dispatch)
+              Flower.onPressed (fun () -> OnPressed flower.Id |> dispatch)
+              Flower.onReleased (fun () -> OnReleased flower.Id |> dispatch) ]
 
     let flowers: IView list =
         Map.values state.Flowers
@@ -210,7 +252,7 @@ let view (state: State) (dispatch: Msg -> unit) =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)
-          simulationSpace state (FlowerInteraction >> dispatch) ]
+          simulationSpace state (FlowerEvent >> dispatch) ]
 
     DockPanel.create [
         DockPanel.children panels
@@ -229,6 +271,6 @@ type MainWindow() as this =
         //this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
         //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
 
-        Elmish.Program.mkProgram (fun () -> init) update view
+        Elmish.Program.mkProgram init update view
         |> Program.withHost this
         |> Program.run

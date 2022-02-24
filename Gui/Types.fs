@@ -1,4 +1,4 @@
-namespace FlowerGui
+namespace Gui
 
 type UserSpace = UserSpace
 
