@@ -4,7 +4,6 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 
 open System
-open Avalonia.Input
 open Avalonia.Media
 open Avalonia.Controls.Shapes
 open Geometry

@@ -1,6 +1,5 @@
 module Gui.Shell
 
-
 open Elmish
 open Gui.Widgets
 open Extensions
@@ -15,6 +14,7 @@ type State =
     { CanvasSize: Size<Pixels>
       Flowers: Map<Flower.Id, Flower.State>
       FlowerInteraction: FlowerInteraction
+      MousePressedLocation: Point2D<Pixels, UserSpace> option
       Selected: Flower.Id option }
 
 and FlowerInteraction =
@@ -37,11 +37,11 @@ and Action =
     | NewFlower
 
 and FlowerEvent =
-    | OnEnter of Flower.Id
-    | OnLeave of Flower.Id
-    | OnMoved of Flower.Id
-    | OnPressed of Flower.Id
-    | OnReleased of Flower.Id
+    | OnEnter of Flower.Id * MouseEvent<Pixels, UserSpace>
+    | OnLeave of Flower.Id * MouseEvent<Pixels, UserSpace>
+    | OnMoved of Flower.Id * MouseEvent<Pixels, UserSpace>
+    | OnPressed of Flower.Id * MouseButtonEvent<Pixels, UserSpace>
+    | OnReleased of Flower.Id * MouseButtonEvent<Pixels, UserSpace>
 
 // ---- Init ----
 
@@ -49,6 +49,7 @@ let init () =
     { CanvasSize = Size.create Length.zero Length.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
+      MousePressedLocation = None
       Selected = None },
     Cmd.batch []
 
@@ -94,47 +95,68 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
                 |> Flower.setPosition (Point2D.pixels 100. 100.)
 
             { state with
-                  Flowers = Map.add newFlower.Id newFlower state.Flowers
-                  Selected = Some newFlower.Id },
+                  Flowers = Map.add newFlower.Id newFlower state.Flowers },
             Cmd.none
 
     | FlowerEvent flowerEvent ->
         match flowerEvent with
-        | OnEnter flowerId ->
+        | OnEnter (flowerId, _) ->
+            printfn "Hovering"
+
             { state with
                   FlowerInteraction = Hovering flowerId },
             Cmd.none
 
         | OnLeave _ ->
+            printfn "Left"
+
             { state with
                   FlowerInteraction = NoInteraction },
             Cmd.none
 
-        | OnMoved flowerId ->
-            { state with
-                  FlowerInteraction = Dragging flowerId },
-            Cmd.none
-
-        | OnPressed flowerId ->
-            { state with
-                  FlowerInteraction = Pressing flowerId },
-            Cmd.none
-
-        | OnReleased flowerId ->
+        | OnMoved (flowerId, _) ->
             match state.FlowerInteraction with
-            | Dragging _ ->
+            | Pressing pressingId when pressingId = flowerId->
+                printfn "Dragging"
                 { state with
-                      FlowerInteraction = Hovering flowerId },
+                      FlowerInteraction = Dragging flowerId },
                 Cmd.none
+                
+            // Take no action
+            | _ -> state, Cmd.none
+                
 
-            | Pressing _ ->
+        | OnPressed (flowerId, e) ->
+            if InputTypes.isPrimary e.MouseButton then
+                printfn "Pressing"
+
                 { state with
-                      FlowerInteraction = Hovering flowerId
-                      Selected = Some flowerId },
+                      FlowerInteraction = Pressing flowerId },
                 Cmd.none
+            else
+                state, Cmd.none
 
-            | flowerEvent ->
-                printfn $"Unhandled event {flowerEvent}"
+        | OnReleased (flowerId, e) ->
+            if InputTypes.isPrimary e.MouseButton then
+                printfn "Released"
+
+                match state.FlowerInteraction with
+                | Dragging _ ->
+                    { state with
+                          FlowerInteraction = Hovering flowerId },
+                    Cmd.none
+
+                | Pressing _ ->
+                    { state with
+                          FlowerInteraction = Hovering flowerId
+                          Selected = Some flowerId },
+                    Cmd.none
+
+                | flowerEvent ->
+                    printfn $"Unhandled event {flowerEvent}"
+                    state, Cmd.none
+
+            else
                 state, Cmd.none
 
 
@@ -144,7 +166,6 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
 
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
-open Elmish
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI
@@ -152,17 +173,17 @@ open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
 
 let menu =
-    let fileItems : IView list =
+    let fileItems: IView list =
         [ MenuItem.create [ MenuItem.header "Open" ]
           MenuItem.create [ MenuItem.header "Save" ]
           MenuItem.create [ MenuItem.header "Save As" ] ]
 
-    let editItems : IView list =
+    let editItems: IView list =
         [ MenuItem.create [ MenuItem.header "Undo" ]
           MenuItem.create [ MenuItem.header "Redo" ] ]
 
 
-    let menuItems : IView list =
+    let menuItems: IView list =
         [ MenuItem.create [
             MenuItem.header "File"
             MenuItem.viewItems fileItems
@@ -175,7 +196,7 @@ let menu =
     Menu.create [ Menu.viewItems menuItems ]
 
 let iconDock dispatch =
-    let buttons : IView list =
+    let buttons: IView list =
         [ Icons.save Theme.colors.offWhite, Save
           Icons.load Theme.colors.offWhite, Load
           Icons.undo Theme.colors.offWhite, Undo
@@ -213,33 +234,30 @@ let flowerProperties state dispatch =
         StackPanel.minWidth 150.
     ]
 
-
-
 let simulationSpace state dispatch =
+    let flowerState (flower: Flower.State) : Flower.Attribute<Pixels, UserSpace> option =
+        match state.FlowerInteraction with
+        | Hovering id when id = flower.Id -> Flower.hovered |> Some
+        | Pressing id when id = flower.Id -> Flower.pressed |> Some
+        | Dragging id when id = flower.Id -> Flower.dragged |> Some
+        | _ -> None
+
+
     let drawFlower flower : IView =
         Flower.draw
             flower
-            [ Flower.onEnter (fun () -> OnEnter flower.Id |> dispatch)
-              Flower.onLeave (fun () -> OnLeave flower.Id |> dispatch)
-              Flower.onMoved (fun () -> OnMoved flower.Id |> dispatch)
-              Flower.onPressed (fun () -> OnPressed flower.Id |> dispatch)
-              Flower.onReleased (fun () -> OnReleased flower.Id |> dispatch) ]
-            [ if Option.contains flower.Id state.Pressed then
-                  Flower.pressed
-              if Option.contains flower.Id state.Hovered then
-                  Flower.hovered
-//              if Option.contains flower.Id state.Selected then
-//                  Flower.selected
-//              if Option.contains flower.Id state.Dragging then
-//                  Flower.dragged
+            [ if Option.contains flower.Id state.Selected then
+                  Flower.selected
+              yield! flowerState flower |> Option.toList
 
-              Flower.onHover (fun () -> FlowerInteraction.Hovered flower.Id |> dispatch)
-              Flower.onUnhover (fun () -> FlowerInteraction.Unhovered flower.Id |> dispatch)
-              Flower.onPressed (fun () -> FlowerInteraction.Pressed flower.Id |> dispatch)
-              Flower.onSelected (fun () -> FlowerInteraction.Selected flower.Id |> dispatch) ]
+              Flower.onPointerEnter (fun e -> OnEnter(flower.Id, e) |> dispatch)
+              Flower.onPointerLeave (fun e -> OnLeave(flower.Id, e) |> dispatch)
+              Flower.onPointerMoved (fun e -> OnMoved(flower.Id, e) |> dispatch)
+              Flower.onPointerPressed (fun e -> OnPressed(flower.Id, e) |> dispatch)
+              Flower.onPointerReleased (fun e -> OnReleased(flower.Id, e) |> dispatch) ]
         :> IView
 
-    let flowers : IView list =
+    let flowers: IView list =
         Map.values state.Flowers
         |> Seq.map drawFlower
         |> Seq.toList
@@ -252,7 +270,7 @@ let simulationSpace state dispatch =
 
 
 let view (state: State) (dispatch: Msg -> unit) =
-    let panels : IView list =
+    let panels: IView list =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)
