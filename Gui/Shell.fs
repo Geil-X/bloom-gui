@@ -14,14 +14,22 @@ type State =
     { CanvasSize: Size<Pixels>
       Flowers: Map<Flower.Id, Flower.State>
       FlowerInteraction: FlowerInteraction
-      MousePressedLocation: Point2D<Pixels, UserSpace> option
       Selected: Flower.Id option }
 
 and FlowerInteraction =
     | Hovering of Flower.Id
-    | Pressing of Flower.Id
-    | Dragging of Flower.Id
+    | Pressing of PressedData
+    | Dragging of DraggingData
     | NoInteraction
+
+and PressedData =
+    { Id: Flower.Id
+      MousePressedLocation: Point2D<Pixels, UserSpace>
+      InitialFlowerPosition: Point2D<Pixels, UserSpace> }
+
+and DraggingData =
+    { Id: Flower.Id
+      DraggingDelta: Vector2D<Pixels, UserSpace> }
 
 type Msg =
     | ChangeName of (Flower.Id * string)
@@ -49,16 +57,16 @@ let init () =
     { CanvasSize = Size.create Length.zero Length.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
-      MousePressedLocation = None
       Selected = None },
     Cmd.batch []
 
 
 // ---- Update helper functions -----
 
-let selectedFlower state : Flower.State option =
-    state.Selected
-    |> Option.bind (fun id -> Map.tryFind id state.Flowers)
+let minMouseMovement = Length.pixels 10.
+let minMouseMovementSquared = Length.square minMouseMovement
+
+let selectedFlower id flowers : Flower.State option = Map.tryFind id flowers
 
 let addFlower (flower: Flower.State) (state: State) : State =
     { state with
@@ -114,25 +122,60 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
                   FlowerInteraction = NoInteraction },
             Cmd.none
 
-        | OnMoved (flowerId, _) ->
+        | OnMoved (flowerId, e) ->
             match state.FlowerInteraction with
-            | Pressing pressingId when pressingId = flowerId->
+            | Pressing pressing when
+                pressing.Id = flowerId
+                && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared ->
+
                 printfn "Dragging"
+
+                let delta =
+                    pressing.InitialFlowerPosition
+                    - pressing.MousePressedLocation
+
+                let newPosition = e.Position + delta
+
                 { state with
-                      FlowerInteraction = Dragging flowerId },
+                      Flowers = Map.update pressing.Id (Flower.setPosition newPosition) state.Flowers
+                      FlowerInteraction =
+                          Dragging
+                              { Id = pressing.Id
+                                DraggingDelta = delta } },
                 Cmd.none
-                
+
+            | Dragging draggingData ->
+                printfn "Dragging"
+
+                let newPosition = e.Position + draggingData.DraggingDelta
+
+                { state with
+                      Flowers = Map.update draggingData.Id (Flower.setPosition newPosition) state.Flowers },
+                Cmd.none
+
             // Take no action
             | _ -> state, Cmd.none
-                
+
 
         | OnPressed (flowerId, e) ->
             if InputTypes.isPrimary e.MouseButton then
+                let maybeFlower = selectedFlower flowerId state.Flowers
+
                 printfn "Pressing"
 
-                { state with
-                      FlowerInteraction = Pressing flowerId },
-                Cmd.none
+                match maybeFlower with
+                | Some pressed ->
+                    { state with
+                          FlowerInteraction =
+                              Pressing
+                                  { Id = flowerId
+                                    MousePressedLocation = e.Position
+                                    InitialFlowerPosition = pressed.Position } },
+                    Cmd.none
+
+                | None ->
+                    printfn "Could not find the flower that was pressed"
+                    state, Cmd.none
             else
                 state, Cmd.none
 
@@ -152,10 +195,12 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
                           Selected = Some flowerId },
                     Cmd.none
 
+
                 | flowerEvent ->
                     printfn $"Unhandled event {flowerEvent}"
                     state, Cmd.none
 
+            // Non primary button pressed
             else
                 state, Cmd.none
 
@@ -173,17 +218,17 @@ open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
 
 let menu =
-    let fileItems: IView list =
+    let fileItems : IView list =
         [ MenuItem.create [ MenuItem.header "Open" ]
           MenuItem.create [ MenuItem.header "Save" ]
           MenuItem.create [ MenuItem.header "Save As" ] ]
 
-    let editItems: IView list =
+    let editItems : IView list =
         [ MenuItem.create [ MenuItem.header "Undo" ]
           MenuItem.create [ MenuItem.header "Redo" ] ]
 
 
-    let menuItems: IView list =
+    let menuItems : IView list =
         [ MenuItem.create [
             MenuItem.header "File"
             MenuItem.viewItems fileItems
@@ -196,7 +241,7 @@ let menu =
     Menu.create [ Menu.viewItems menuItems ]
 
 let iconDock dispatch =
-    let buttons: IView list =
+    let buttons : IView list =
         [ Icons.save Theme.colors.offWhite, Save
           Icons.load Theme.colors.offWhite, Load
           Icons.undo Theme.colors.offWhite, Undo
@@ -211,10 +256,9 @@ let iconDock dispatch =
     ]
 
 let flowerProperties state dispatch =
-    let selected = selectedFlower state
-
     let selectedName =
-        selected
+        state.Selected
+        |> Option.bind (fun id -> selectedFlower id state.Flowers)
         |> Option.map (fun flower -> flower.Name)
         |> Option.defaultValue "All"
 
@@ -238,8 +282,8 @@ let simulationSpace state dispatch =
     let flowerState (flower: Flower.State) : Flower.Attribute<Pixels, UserSpace> option =
         match state.FlowerInteraction with
         | Hovering id when id = flower.Id -> Flower.hovered |> Some
-        | Pressing id when id = flower.Id -> Flower.pressed |> Some
-        | Dragging id when id = flower.Id -> Flower.dragged |> Some
+        | Pressing pressing when pressing.Id = flower.Id -> Flower.pressed |> Some
+        | Dragging dragging when dragging.Id = flower.Id -> Flower.dragged |> Some
         | _ -> None
 
 
@@ -257,7 +301,7 @@ let simulationSpace state dispatch =
               Flower.onPointerReleased (fun e -> OnReleased(flower.Id, e) |> dispatch) ]
         :> IView
 
-    let flowers: IView list =
+    let flowers : IView list =
         Map.values state.Flowers
         |> Seq.map drawFlower
         |> Seq.toList
@@ -270,7 +314,7 @@ let simulationSpace state dispatch =
 
 
 let view (state: State) (dispatch: Msg -> unit) =
-    let panels: IView list =
+    let panels : IView list =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)

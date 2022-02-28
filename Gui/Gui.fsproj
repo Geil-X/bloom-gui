@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <Compile Include="Geometry\Draw.fs" />
+        <Compile Include="Geometry\Vector2D.fs" />
         <Compile Include="Extensions\ViewExtensions.fs" />
         <Compile Include="Extensions\EventExtensions.fs" />
         <Compile Include="Extensions\ImageExtensions.fs" />
