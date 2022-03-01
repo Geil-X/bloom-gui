@@ -126,9 +126,11 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
             match backgroundEvent with
             | BackgroundEvent.OnReleased _ ->
                 printfn "Background: Pointer Released"
+
                 { state with
                       FlowerInteraction = NoInteraction
-                      Selected = None }, Cmd.none
+                      Selected = None },
+                Cmd.none
 
         | FlowerEvent flowerEvent ->
             match flowerEvent with
@@ -150,8 +152,7 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
                 match state.FlowerInteraction with
                 | Pressing pressing when
                     pressing.Id = flowerId
-                    && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
-                    ->
+                    && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared ->
                     printfn $"Flower: Start Dragging {flowerId}"
 
                     let delta =
@@ -243,17 +244,17 @@ open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
 
 let menu =
-    let fileItems: IView list =
+    let fileItems : IView list =
         [ MenuItem.create [ MenuItem.header "Open" ]
           MenuItem.create [ MenuItem.header "Save" ]
           MenuItem.create [ MenuItem.header "Save As" ] ]
 
-    let editItems: IView list =
+    let editItems : IView list =
         [ MenuItem.create [ MenuItem.header "Undo" ]
           MenuItem.create [ MenuItem.header "Redo" ] ]
 
 
-    let menuItems: IView list =
+    let menuItems : IView list =
         [ MenuItem.create [
             MenuItem.header "File"
             MenuItem.viewItems fileItems
@@ -266,7 +267,7 @@ let menu =
     Menu.create [ Menu.viewItems menuItems ]
 
 let iconDock (dispatch: Msg -> Unit) =
-    let buttons: IView list =
+    let buttons : IView list =
         [ Icons.save Theme.colors.offWhite, Action.Save
           Icons.load Theme.colors.offWhite, Action.Load
           Icons.undo Theme.colors.offWhite, Action.Undo
@@ -325,8 +326,8 @@ let drawFlower (state: State) (dispatch: FlowerEvent -> Unit) (flower: Flower.St
           Flower.onPointerReleased (fun e -> FlowerEvent.OnReleased(flower.Id, e) |> dispatch) ]
     :> IView
 
-let simulationSpace state (dispatch: SimulationEvent -> Unit) : IView =
-    let flowers: IView list =
+let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
+    let flowers : IView list =
         Map.values state.Flowers
         |> Seq.map (drawFlower state (SimulationEvent.FlowerEvent >> dispatch))
         |> Seq.toList
@@ -335,19 +336,21 @@ let simulationSpace state (dispatch: SimulationEvent -> Unit) : IView =
         Canvas.children flowers
         Canvas.background Theme.palette.canvasBackground
         Canvas.name Constants.CanvasId
-        // Todo: this event is triggering first and should trigger last
-//        Canvas.onPointerReleased (
-//            Events.pointerReleased Constants.CanvasId
-//            >> BackgroundEvent.OnReleased
-//            >> SimulationEvent.BackgroundEvent
-//            >> dispatch
-//        )
-        ]
+        Canvas.onPointerReleased (
+            Events.pointerReleased Constants.CanvasId
+            >> Option.map (
+                BackgroundEvent.OnReleased
+                >> SimulationEvent.BackgroundEvent
+                >> dispatch
+            )
+            >> Option.defaultValue ()
+        )
+    ]
     :> IView
 
 
 let view (state: State) (dispatch: Msg -> unit) =
-    let panels: IView list =
+    let panels : IView list =
         [ View.withAttr (Menu.dock Dock.Top) menu
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)

@@ -37,5 +37,7 @@ let findChildControl (name: string) (source: IControl) : IControl option =
 let findControl (name: String) (source: IControl) : IControl option =
     if source.Name = name then
         Some source
+    else if source.VisualRoot = null then
+        None
     else
         findChildControl name (source.VisualRoot :?> IControl)

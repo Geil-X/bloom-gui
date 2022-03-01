@@ -91,19 +91,36 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                 | Selected -> Ellipse.isVisible true
                 | Dragged -> (Ellipse.fill Theme.palette.primaryDark)
 
-                | OnPointerEnter enterMsg -> Ellipse.onPointerEnter (Events.pointerEnter Constants.CanvasId >> enterMsg)
-                | OnPointerLeave leaveMsg -> Ellipse.onPointerLeave (Events.pointerLeave Constants.CanvasId >> leaveMsg)
-                | OnPointerMoved movedMsg -> Ellipse.onPointerMoved (Events.pointerMoved Constants.CanvasId >> movedMsg)
+                | OnPointerEnter enterMsg ->
+                    Ellipse.onPointerEnter (
+                        Events.pointerEnter Constants.CanvasId
+                        >> Option.map enterMsg
+                        >> Option.defaultValue ()
+                    )
+                | OnPointerLeave leaveMsg ->
+                    Ellipse.onPointerLeave (
+                        Events.pointerLeave Constants.CanvasId
+                        >> Option.map leaveMsg
+                        >> Option.defaultValue ()
+                    )
+                | OnPointerMoved movedMsg ->
+                    Ellipse.onPointerMoved (
+                        Events.pointerMoved Constants.CanvasId
+                        >> Option.map movedMsg
+                        >> Option.defaultValue ()
+                    )
 
                 | OnPointerPressed pressedMsg ->
                     Ellipse.onPointerPressed (
                         Events.pointerPressed Constants.CanvasId
-                        >> pressedMsg
+                        >> Option.map pressedMsg
+                        >> Option.defaultValue ()
                     )
                 | OnPointerReleased releasedMsg ->
                     Ellipse.onPointerReleased (
                         Events.pointerReleased Constants.CanvasId
-                        >> releasedMsg
+                        >> Option.map releasedMsg
+                        >> Option.defaultValue ()
                     ))
             attributes
 
