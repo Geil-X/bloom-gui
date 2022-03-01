@@ -82,13 +82,10 @@ let minMouseMovementSquared = Length.square minMouseMovement
 
 let selectedFlower id flowers : Flower.State option = Map.tryFind id flowers
 
-let addFlower (flower: Flower.State) (state: State) : State =
-    { state with
-          Flowers = Map.add flower.Id flower state.Flowers }
-
 let addNewFlower (state: State) : State =
     let flower =
         Flower.basic $"Flower {Map.count state.Flowers}"
+        |> Flower.setPosition (Point2D.pixels 100. 100.)
 
     { state with
           Flowers = Map.add flower.Id flower state.Flowers }
@@ -112,12 +109,7 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> =
         | Action.Redo -> state, Cmd.none
         | Action.Open -> state, Cmd.none
         | Action.NewFlower ->
-            let newFlower =
-                Flower.basic $"Flower {Map.count state.Flowers}"
-                |> Flower.setPosition (Point2D.pixels 100. 100.)
-
-            { state with
-                  Flowers = Map.add newFlower.Id newFlower state.Flowers },
+            addNewFlower state,
             Cmd.none
 
     | SimulationEvent event ->

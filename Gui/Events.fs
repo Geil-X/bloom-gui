@@ -63,12 +63,15 @@ module Events =
 
     /// Convert an Avalonia pointer event into a one that is using geometric points.
     /// Position is given relative to the screen element given by the id string.
-    let private pointerEvent (id: string) (e: PointerEventArgs) : MouseEvent<'Unit, 'Coordinates> option =
+    let private pointerEvent (parentId: string) (e: PointerEventArgs) : MouseEvent<'Unit, 'Coordinates> option =
         if e.Route = RoutingStrategies.Tunnel then
             None
         else
             e.Handled <- true
-            { Position = point id e; BaseEvent = e } |> Some
+
+            { Position = point parentId e
+              BaseEvent = e }
+            |> Some
 
     let pointerEnter = pointerEvent
     let pointerLeave = pointerEvent
@@ -76,25 +79,28 @@ module Events =
 
 
     /// Position is given relative to the screen element given by the id string.
-    let pointerPressed (id: string) (e: PointerPressedEventArgs) : MouseButtonEvent<'Unit, 'Coordinates> option =
+    let pointerPressed (parentId: string) (e: PointerPressedEventArgs) : MouseButtonEvent<'Unit, 'Coordinates> option =
         if e.Route = RoutingStrategies.Tunnel then
             None
         else
             e.Handled <- true
 
             { MouseButton = e.MouseButton
-              Position = point id e
+              Position = point parentId e
               BaseEvent = e }
             |> Some
 
     /// Position is given relative to the screen element given by the id string.
-    let pointerReleased (id: string) (e: PointerReleasedEventArgs) : MouseButtonEvent<'Unit, 'Coordinates> option =
+    let pointerReleased
+        (parentId: string)
+        (e: PointerReleasedEventArgs)
+        : MouseButtonEvent<'Unit, 'Coordinates> option =
         if e.Route = RoutingStrategies.Tunnel then
             None
         else
             e.Handled <- true
 
             { MouseButton = e.InitialPressMouseButton
-              Position = point id e
+              Position = point parentId e
               BaseEvent = e }
             |> Some

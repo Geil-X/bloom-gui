@@ -7,11 +7,11 @@ open System
 open Avalonia.Media
 open Avalonia.Controls.Shapes
 open Geometry
+open Extensions
 
 open Gui
 
 type Id = Guid
-
 
 type Attribute<'Unit, 'Coordinates> =
     // States
@@ -86,10 +86,10 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
         List.map
             (fun attribute ->
                 match attribute with
-                | Hovered -> Ellipse.fill Theme.palette.primaryLight
-                | Pressed -> Ellipse.fill Theme.palette.primaryLightest
-                | Selected -> Ellipse.isVisible true
-                | Dragged -> (Ellipse.fill Theme.palette.primaryDark)
+                | Hovered -> Ellipse.fill Theme.palette.primaryLight |> Some
+                | Pressed -> Ellipse.fill Theme.palette.primaryLightest |> Some
+                | Selected -> None
+                | Dragged -> (Ellipse.fill Theme.palette.primaryDark) |> Some
 
                 | OnPointerEnter enterMsg ->
                     Ellipse.onPointerEnter (
@@ -97,18 +97,21 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         >> Option.map enterMsg
                         >> Option.defaultValue ()
                     )
+                    |> Some
                 | OnPointerLeave leaveMsg ->
                     Ellipse.onPointerLeave (
                         Events.pointerLeave Constants.CanvasId
                         >> Option.map leaveMsg
                         >> Option.defaultValue ()
                     )
+                    |> Some
                 | OnPointerMoved movedMsg ->
                     Ellipse.onPointerMoved (
                         Events.pointerMoved Constants.CanvasId
                         >> Option.map movedMsg
                         >> Option.defaultValue ()
                     )
+                    |> Some
 
                 | OnPointerPressed pressedMsg ->
                     Ellipse.onPointerPressed (
@@ -116,13 +119,16 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         >> Option.map pressedMsg
                         >> Option.defaultValue ()
                     )
+                    |> Some
                 | OnPointerReleased releasedMsg ->
                     Ellipse.onPointerReleased (
                         Events.pointerReleased Constants.CanvasId
                         >> Option.map releasedMsg
                         >> Option.defaultValue ()
-                    ))
+                    )
+                    |> Some)
             attributes
+        |> List.filterNone
 
     let circle =
         Circle2D.atPoint flower.Position flower.Radius
@@ -144,7 +150,6 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
         else
             None
 
-
     let circle =
         Draw.circle
             circle
@@ -153,6 +158,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                  Ellipse.fill Theme.palette.primary ])
 
     Canvas.create [
+        Canvas.name "Flower canvas"
         Canvas.children [
             yield! selection |> Option.toList
             circle
