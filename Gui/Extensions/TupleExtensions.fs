@@ -1,6 +1,10 @@
 namespace Extensions
 
 module Tuple2 =
+    let first (x, _) = x
+    
+    let second (_, y) = y
+    
     let pair x y = x, y
 
     let replicate x = x, x

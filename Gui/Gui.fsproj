@@ -3,16 +3,20 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
+        <RootNamespace>Gui</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <Compile Include="Geometry\Draw.fs" />
+        <Compile Include="Geometry\Vector2D.fs" />
         <Compile Include="Extensions\ViewExtensions.fs" />
         <Compile Include="Extensions\EventExtensions.fs" />
         <Compile Include="Extensions\ImageExtensions.fs" />
         <Compile Include="Extensions\TupleExtensions.fs" />
         <Compile Include="Extensions\DiscriminatedUnion.fs" />
         <Compile Include="Extensions\MapExtensions.fs" />
+        <Compile Include="Extensions\ListExtensions.fs" />
+        <Compile Include="InputTypes.fs" />
         <Compile Include="Events.fs" />
         <Compile Include="Theme.fs" />
         <Compile Include="Widgets\Form.fs" />
