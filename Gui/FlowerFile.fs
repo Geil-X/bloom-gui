@@ -12,20 +12,14 @@ type FileError = exn
 // ---- File Dialogs ----
 
 let dialogTitle = "Flower File"
-let extensions = Seq.singleton Flower.extension
+let extensions = Seq.singleton "bloom"
 let defaultDirectory = Environment.SpecialFolder.MyDocuments
 
-let openFileDialog (window: Window) : Async<string []> =
-    let dialog =
-        Dialogs.openFileDialog dialogTitle extensions defaultDirectory
+let openFileDialog (window: Window) =
+    Dialogs.openFileDialog dialogTitle extensions defaultDirectory window
 
-    dialog.ShowAsync(window) |> Async.AwaitTask
-
-let saveFileDialog (window: Window) : Async<string> =
-    let dialog =
-        Dialogs.saveFileDialog dialogTitle extensions defaultDirectory
-
-    dialog.ShowAsync(window) |> Async.AwaitTask
+let saveFileDialog (window: Window) =
+    Dialogs.saveFileDialog dialogTitle extensions defaultDirectory window
 
 
 // ---- Read & Write ----

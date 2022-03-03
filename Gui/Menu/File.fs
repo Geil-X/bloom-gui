@@ -3,6 +3,7 @@ module Gui.Menu.File
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
+open Avalonia.Threading
 open Elmish
 open System
 
@@ -47,12 +48,13 @@ let update msg flowers window : Cmd<Msg> * External =
 
     | OpenFile ->
         Log.debug "Open a file"
-        
-        let fileDialogTask =
-            FlowerFile.openFileDialog
-            
-        Cmd.OfAsync.perform fileDialogTask window LoadFiles, External.DoNothing
-        
+
+        Cmd.OfTask.perform FlowerFile.openFileDialog window LoadFiles, External.DoNothing
+
+    | SaveAs ->
+        Log.debug "Save As"
+
+        Cmd.OfTask.perform FlowerFile.saveFileDialog window SaveFileToPath, External.DoNothing
 
     | LoadFiles paths ->
         match Array.tryHead paths with
@@ -64,15 +66,6 @@ let update msg flowers window : Cmd<Msg> * External =
         // Todo: Make this an asynchronous command
         Cmd.none, External.FileLoaded(FlowerFile.loadFlowerFile path)
 
-    | SaveAs ->
-        Log.debug "Save As"
-
-        // Todo: save file task
-//        let fileDialogTask =
-//            Dialogs.saveFileDialogTask "Fold File" [ Flower.extension ] window
-//
-//        Cmd.OfAsync.perform fileDialogTask () SaveFileToPath, External.DoNothing
-        Cmd.none, External.DoNothing
 
     | SaveFileToPath path ->
         Log.debug $"Save {path}"
@@ -80,6 +73,7 @@ let update msg flowers window : Cmd<Msg> * External =
         match FlowerFile.writeFlowerFile path flowers with
         | None -> Cmd.none, External.SavedFile
         | Some error -> Cmd.none, External.ErrorSavingFile error
+
 
 let view (dispatch: Msg -> unit) =
     let menuOption (name: String) msg : IView =

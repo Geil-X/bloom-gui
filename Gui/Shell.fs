@@ -2,6 +2,8 @@ module Gui.Shell
 
 open Avalonia.Controls
 open Elmish
+open Avalonia.FuncUI.Elmish
+open Avalonia.FuncUI.Components.Hosts
 
 open Geometry
 open Gui
@@ -379,6 +381,7 @@ type MainWindow() as this =
         //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
 
         let updateWithServices (msg: Msg) (state: State) = update msg state this
+        
 
         Program.mkProgram init updateWithServices view
         |> Program.withHost this

@@ -35,8 +35,6 @@ type State =
       Color: Color
       Radius: Length<Pixels> }
     
-let extension = ".blm"
-
 
 // ---- Builders -----
 
