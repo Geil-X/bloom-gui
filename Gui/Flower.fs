@@ -2,16 +2,16 @@ module Gui.Flower
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-
 open System
 open Avalonia.Media
 open Avalonia.Controls.Shapes
 open Geometry
-open Extensions
+open MBrace.FsPickler.Json
 
 open Gui
+open Extensions
 
-type Id = Guid
+type Id = uint
 
 type Attribute<'Unit, 'Coordinates> =
     // States
@@ -21,11 +21,11 @@ type Attribute<'Unit, 'Coordinates> =
     | Dragged
 
     // Events
-    | OnPointerEnter of (MouseEvent<'Unit, 'Coordinates> -> unit)
-    | OnPointerLeave of (MouseEvent<'Unit, 'Coordinates> -> unit)
-    | OnPointerMoved of (MouseEvent<'Unit, 'Coordinates> -> unit)
-    | OnPointerPressed of (MouseButtonEvent<'Unit, 'Coordinates> -> unit)
-    | OnPointerReleased of (MouseButtonEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerEnter of (Id * MouseEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerLeave of (Id * MouseEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerMoved of (Id * MouseEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerPressed of (Id * MouseButtonEvent<'Unit, 'Coordinates> -> unit)
+    | OnPointerReleased of (Id * MouseButtonEvent<'Unit, 'Coordinates> -> unit)
 
 type State =
     { Id: Id
@@ -34,12 +34,18 @@ type State =
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       Radius: Length<Pixels> }
+    
+let extension = ".blm"
 
 
 // ---- Builders -----
 
+let mutable index = 0u
+
 let basic name =
-    { Id = Guid.NewGuid()
+    index <- index + 1u
+    
+    { Id = index
       Name = name
       Position = Point2D.origin ()
       I2cAddress = 0u
@@ -60,6 +66,17 @@ let setPosition position flower : State = { flower with Position = position }
 let containsPoint point state =
     Circle2D.atPoint state.Position state.Radius
     |> Circle2D.containsPoint point
+
+// ---- Serialization & Deserialization ----
+
+let jsonSerializer =
+    FsPickler.CreateJsonSerializer(indent = false)
+
+let serialize (stream: IO.TextWriter) (flower: State seq): unit =
+    jsonSerializer.Serialize(stream, flower)
+
+let deserialize (flowerStream: IO.TextReader) : State seq =
+    jsonSerializer.Deserialize<State seq>(flowerStream)
 
 
 // ---- Attributes ----
@@ -94,21 +111,21 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                 | OnPointerEnter enterMsg ->
                     Ellipse.onPointerEnter (
                         Events.pointerEnter Constants.CanvasId
-                        >> Option.map enterMsg
+                        >> Option.map (fun e -> enterMsg (flower.Id, e))
                         >> Option.defaultValue ()
                     )
                     |> Some
                 | OnPointerLeave leaveMsg ->
                     Ellipse.onPointerLeave (
                         Events.pointerLeave Constants.CanvasId
-                        >> Option.map leaveMsg
+                        >> Option.map (fun e -> leaveMsg (flower.Id, e))
                         >> Option.defaultValue ()
                     )
                     |> Some
                 | OnPointerMoved movedMsg ->
                     Ellipse.onPointerMoved (
                         Events.pointerMoved Constants.CanvasId
-                        >> Option.map movedMsg
+                        >> Option.map (fun e -> movedMsg (flower.Id, e))
                         >> Option.defaultValue ()
                     )
                     |> Some
@@ -116,14 +133,14 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                 | OnPointerPressed pressedMsg ->
                     Ellipse.onPointerPressed (
                         Events.pointerPressed Constants.CanvasId
-                        >> Option.map pressedMsg
+                        >> Option.map (fun e -> pressedMsg (flower.Id, e))
                         >> Option.defaultValue ()
                     )
                     |> Some
                 | OnPointerReleased releasedMsg ->
                     Ellipse.onPointerReleased (
                         Events.pointerReleased Constants.CanvasId
-                        >> Option.map releasedMsg
+                        >> Option.map (fun e -> releasedMsg (flower.Id, e))
                         >> Option.defaultValue ()
                     )
                     |> Some)
@@ -157,10 +174,6 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
              @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
                  Ellipse.fill Theme.palette.primary ])
 
-    Canvas.create [
-        Canvas.name "Flower canvas"
-        Canvas.children [
-            yield! selection |> Option.toList
-            circle
-        ]
-    ]
+    Canvas.create [ Canvas.name "Flower canvas"
+                    Canvas.children [ yield! selection |> Option.toList
+                                      circle ] ]
