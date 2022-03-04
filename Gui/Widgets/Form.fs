@@ -11,17 +11,17 @@ open Gui
 open Utilities.Extensions
 
 let formElement
-    (state: {| name: string
-               orientation: Orientation
-               element: IView |})
+    (state: {| Name: string
+               Orientation: Orientation
+               Element: IView |})
     : IView<StackPanel> =
     StackPanel.create
-    <| [ StackPanel.orientation state.orientation
+    <| [ StackPanel.orientation state.Orientation
          StackPanel.margin Theme.spacing.medium
          StackPanel.spacing Theme.spacing.small
          StackPanel.children
-         <| [ TextBlock.create [ TextBlock.text state.name ]
-              state.element ] ]
+         <| [ TextBlock.create [ TextBlock.text state.Name ]
+              state.Element ] ]
 
 let textItem
     (state: {| Name: string
@@ -31,44 +31,44 @@ let textItem
     : IView<StackPanel> =
 
     formElement
-        {| name = state.Name
-           orientation = state.LabelPlacement
-           element =
+        {| Name = state.Name
+           Orientation = state.LabelPlacement
+           Element =
                TextBox.create [
                    TextBox.text state.Value
                    TextBox.onTextChanged state.OnChange
                ] |}
 
 let multiline
-    (state: {| name: string
-               value: string
-               onSelected: string -> unit |})
+    (state: {| Name: string
+               Value: string
+               OnSelected: string -> unit |})
     : IView<StackPanel> =
 
     formElement
-        {| name = state.name
-           orientation = Orientation.Vertical
-           element =
+        {| Name = state.Name
+           Orientation = Orientation.Vertical
+           Element =
                TextBox.create
                <| [ TextBox.acceptsReturn true
                     TextBox.textWrapping TextWrapping.Wrap
-                    TextBox.text state.value
-                    TextBox.onTextChanged state.onSelected ] |}
+                    TextBox.text state.Value
+                    TextBox.onTextChanged state.OnSelected ] |}
 
 let dropdownSelection
-    (state: {| name: string
-               selected: 'a
-               onSelected: 'a -> unit |})
+    (state: {| Name: string
+               Selected: 'a
+               OnSelected: 'a -> unit |})
     : IView<StackPanel> =
 
     formElement
-        {| name = state.name
-           orientation = Orientation.Vertical
-           element =
+        {| Name = state.Name
+           Orientation = Orientation.Vertical
+           Element =
                ComboBox.create
                <| [ ComboBox.dataItems (Seq.map DiscriminatedUnion.toString DiscriminatedUnion.allCases<'a>)
-                    ComboBox.selectedItem (DiscriminatedUnion.toString state.selected)
-                    ComboBox.onSelectedItemChanged (tryUnbox >> Option.iter state.onSelected) ] |}
+                    ComboBox.selectedItem (DiscriminatedUnion.toString state.Selected)
+                    ComboBox.onSelectedItemChanged (tryUnbox >> Option.iter state.OnSelected) ] |}
 
 
 let imageButton (icon: IView<'a>) (onClick: RoutedEventArgs -> unit) : IView<Button> =

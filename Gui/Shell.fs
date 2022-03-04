@@ -51,7 +51,7 @@ type Action =
 type BackgroundEvent = OnReleased of MouseButtonEvent<Pixels, UserSpace>
 
 [<RequireQualifiedAccess>]
-type public FlowerEvent =
+type public FlowerPointerEvent =
     | OnEnter of Flower.Id * MouseEvent<Pixels, UserSpace>
     | OnLeave of Flower.Id * MouseEvent<Pixels, UserSpace>
     | OnMoved of Flower.Id * MouseEvent<Pixels, UserSpace>
@@ -60,11 +60,11 @@ type public FlowerEvent =
 
 type SimulationEvent =
     | BackgroundEvent of BackgroundEvent
-    | FlowerEvent of FlowerEvent
+    | FlowerEvent of FlowerPointerEvent
 
 
 type Msg =
-    | ChangeName of (Flower.Id * string)
+    | FlowerPropertiesMsg of FlowerProperties.Msg
     | Action of Action
     | SimulationEvent of SimulationEvent
     | MenuMsg of Menu.Msg
@@ -108,13 +108,6 @@ let addNewFlower (state: State) : State =
 
 let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     match msg with
-    | ChangeName (id, name) ->
-        { state with
-              Flowers =
-                  state.Flowers
-                  |> Map.update id (Flower.setName name) },
-        Cmd.none
-
     | Action action ->
         match action with
         | Action.Save -> state, Cmd.none
@@ -152,6 +145,25 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
         newState, Cmd.map MenuMsg menuCmd
 
+    | FlowerPropertiesMsg msg ->
+        match msg with
+        | FlowerProperties.ChangeName (id, newName) ->
+            Log.verbose $"Updated flower '{id}' with new name '{newName}'"
+            { state with
+                  Flowers = Map.update id (Flower.setName newName) state.Flowers },
+            Cmd.none
+        | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
+            match String.parseUint i2cAddressString with
+            | Some i2cAddress ->
+                Log.verbose $"Updated flower '{id}' with new I2C Address '{i2cAddress}'"
+                { state with
+                      Flowers = Map.update id (Flower.setI2cAddress i2cAddress) state.Flowers },
+                Cmd.none
+            | None ->
+                // Todo: handle invalid I2C Address
+                state, Cmd.none
+
+
     | SimulationEvent event ->
         match event with
         | BackgroundEvent backgroundEvent ->
@@ -166,21 +178,21 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
         | FlowerEvent flowerEvent ->
             match flowerEvent with
-            | FlowerEvent.OnEnter (flowerId, _) ->
+            | FlowerPointerEvent.OnEnter (flowerId, _) ->
                 Log.verbose $"Flower: Hovering {flowerId}"
 
                 { state with
                       FlowerInteraction = Hovering flowerId },
                 Cmd.none
 
-            | FlowerEvent.OnLeave (flowerId, _) ->
+            | FlowerPointerEvent.OnLeave (flowerId, _) ->
                 Log.verbose $"Flower: Pointer Left {flowerId}"
 
                 { state with
                       FlowerInteraction = NoInteraction },
                 Cmd.none
 
-            | FlowerEvent.OnMoved (flowerId, e) ->
+            | FlowerPointerEvent.OnMoved (flowerId, e) ->
                 match state.FlowerInteraction with
                 | Pressing pressing when
                     pressing.Id = flowerId
@@ -214,7 +226,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                 | _ -> state, Cmd.none
 
 
-            | FlowerEvent.OnPressed (flowerId, e) ->
+            | FlowerPointerEvent.OnPressed (flowerId, e) ->
                 if InputTypes.isPrimary e.MouseButton then
                     let maybeFlower = selectedFlower flowerId state.Flowers
 
@@ -236,7 +248,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                 else
                     state, Cmd.none
 
-            | FlowerEvent.OnReleased (flowerId, e) ->
+            | FlowerPointerEvent.OnReleased (flowerId, e) ->
                 if InputTypes.isPrimary e.MouseButton then
                     match state.FlowerInteraction with
                     | Dragging _ ->
@@ -269,8 +281,6 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Components.Hosts
-open Avalonia.FuncUI.Elmish
 
 let iconDock (dispatch: Msg -> Unit) =
     let buttons: IView list =
@@ -285,31 +295,7 @@ let iconDock (dispatch: Msg -> Unit) =
         StackPanel.children buttons
     ]
 
-let flowerProperties state (dispatch: Msg -> Unit) =
-    let selectedName =
-        state.Selected
-        |> Option.bind (fun id -> selectedFlower id state.Flowers)
-        |> Option.map (fun flower -> flower.Name)
-        |> Option.defaultValue "All"
-
-
-    StackPanel.create [
-        StackPanel.children [
-            Form.textItem
-                {| Name = "Name"
-                   Value = selectedName
-                   OnChange =
-                       fun name ->
-                           match state.Selected with
-                           | Some id -> ChangeName(id, name) |> dispatch
-                           | None -> ()
-                   LabelPlacement = Orientation.Vertical |}
-        ]
-        StackPanel.minWidth 150.
-    ]
-
-
-let drawFlower (state: State) (dispatch: FlowerEvent -> Unit) (flower: Flower.State) : IView =
+let drawFlower (state: State) (dispatch: FlowerPointerEvent -> Unit) (flower: Flower.State) : IView =
     let flowerState (flower: Flower.State) : Flower.Attribute<Pixels, UserSpace> option =
         match state.FlowerInteraction with
         | Hovering id when id = flower.Id -> Flower.hovered |> Some
@@ -323,11 +309,11 @@ let drawFlower (state: State) (dispatch: FlowerEvent -> Unit) (flower: Flower.St
               Flower.selected
           yield! flowerState flower |> Option.toList
 
-          Flower.onPointerEnter (FlowerEvent.OnEnter >> dispatch)
-          Flower.onPointerLeave (FlowerEvent.OnLeave >> dispatch)
-          Flower.onPointerMoved (FlowerEvent.OnMoved >> dispatch)
-          Flower.onPointerPressed (FlowerEvent.OnPressed >> dispatch)
-          Flower.onPointerReleased (FlowerEvent.OnReleased >> dispatch) ]
+          Flower.onPointerEnter (FlowerPointerEvent.OnEnter >> dispatch)
+          Flower.onPointerLeave (FlowerPointerEvent.OnLeave >> dispatch)
+          Flower.onPointerMoved (FlowerPointerEvent.OnMoved >> dispatch)
+          Flower.onPointerPressed (FlowerPointerEvent.OnPressed >> dispatch)
+          Flower.onPointerReleased (FlowerPointerEvent.OnReleased >> dispatch) ]
     :> IView
 
 let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
@@ -355,10 +341,13 @@ let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
 
 
 let view (state: State) (dispatch: Msg -> unit) =
+    let selected =
+        Option.bind (fun id -> selectedFlower id state.Flowers) state.Selected
+
     let panels: IView list =
         [ View.withAttr (Menu.dock Dock.Top) (Menu.view (MenuMsg >> dispatch))
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
-          View.withAttr (StackPanel.dock Dock.Left) (flowerProperties state dispatch)
+          View.withAttr (StackPanel.dock Dock.Left) (FlowerProperties.view selected (FlowerPropertiesMsg >> dispatch))
           simulationSpace state (Msg.SimulationEvent >> dispatch) ]
 
     DockPanel.create [ DockPanel.children panels ]
@@ -381,7 +370,7 @@ type MainWindow() as this =
         //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
 
         let updateWithServices (msg: Msg) (state: State) = update msg state this
-        
+
 
         Program.mkProgram init updateWithServices view
         |> Program.withHost this

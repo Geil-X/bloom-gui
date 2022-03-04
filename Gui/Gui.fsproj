@@ -16,6 +16,7 @@
         <Compile Include="Extensions\DiscriminatedUnion.fs" />
         <Compile Include="Extensions\MapExtensions.fs" />
         <Compile Include="Extensions\ListExtensions.fs" />
+        <Compile Include="Extensions\StringExtensions.fs" />
         <Compile Include="InputTypes.fs" />
         <Compile Include="Events.fs" />
         <Compile Include="Theme.fs" />
@@ -28,6 +29,7 @@
         <Compile Include="FlowerFile.fs" />
         <Compile Include="Menu\File.fs" />
         <Compile Include="Menu\Menu.fs" />
+        <Compile Include="FlowerProperties.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
         <AvaloniaResource Include="**\*.xaml" />

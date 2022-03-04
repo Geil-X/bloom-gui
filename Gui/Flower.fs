@@ -50,6 +50,12 @@ let basic name =
       Color = Colors.White
       Radius = Length.pixels 20. }
 
+// ---- Accessors ----
+
+let name flower = flower.Position
+let i2cAddress flower = flower.I2cAddress
+let color flower = flower.Color
+let position flower = flower.Position
 
 // ---- Modifiers ----
 

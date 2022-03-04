@@ -26,7 +26,7 @@ let ``Basic actions test cases`` =
     [ { Name = "Hovering on mouse over"
         InitialState = initialState
         Messages =
-            [ FlowerEvent.OnEnter(flower.Id, MouseEvent.empty ()) ]
+            [ FlowerPointerEvent.OnEnter(flower.Id, MouseEvent.empty ()) ]
             |> List.map SimulationEvent.FlowerEvent
         Expected =
             { initialState with
@@ -36,8 +36,8 @@ let ``Basic actions test cases`` =
       { Name = "Pressed on mouse down"
         InitialState = initialState
         Messages =
-            [ FlowerEvent.OnEnter(flower.Id, MouseEvent.empty ())
-              FlowerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left) ]
+            [ FlowerPointerEvent.OnEnter(flower.Id, MouseEvent.empty ())
+              FlowerPointerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left) ]
             |> List.map SimulationEvent.FlowerEvent
         Expected =
             { initialState with
@@ -50,9 +50,9 @@ let ``Basic actions test cases`` =
       { Name = "Selected on mouse press and release at same location"
         InitialState = initialState
         Messages =
-            [ FlowerEvent.OnEnter(flower.Id, MouseEvent.empty ())
-              FlowerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left)
-              FlowerEvent.OnReleased(flower.Id, MouseButtonEvent.withButton MouseButton.Left) ]
+            [ FlowerPointerEvent.OnEnter(flower.Id, MouseEvent.empty ())
+              FlowerPointerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left)
+              FlowerPointerEvent.OnReleased(flower.Id, MouseButtonEvent.withButton MouseButton.Left) ]
             |> List.map SimulationEvent.FlowerEvent
         Expected =
             { initialState with
@@ -62,10 +62,10 @@ let ``Basic actions test cases`` =
       { Name = "Selected on mouse press and release near the same location"
         InitialState = initialState
         Messages =
-            [ FlowerEvent.OnEnter(flower.Id, MouseEvent.empty ())
-              FlowerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left)
-              FlowerEvent.OnMoved(flower.Id, MouseEvent.atPosition (Point2D.pixels 5. 5.))
-              FlowerEvent.OnReleased(
+            [ FlowerPointerEvent.OnEnter(flower.Id, MouseEvent.empty ())
+              FlowerPointerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left)
+              FlowerPointerEvent.OnMoved(flower.Id, MouseEvent.atPosition (Point2D.pixels 5. 5.))
+              FlowerPointerEvent.OnReleased(
                   flower.Id,
                   MouseButtonEvent.atPositionWithButton (Point2D.pixels 5. 5.) MouseButton.Left
               ) ]
@@ -78,9 +78,9 @@ let ``Basic actions test cases`` =
       { Name = "Select & Deselect on background released"
         InitialState = initialState
         Messages =
-            [ FlowerEvent.OnEnter(flower.Id, MouseEvent.empty ())
+            [ FlowerPointerEvent.OnEnter(flower.Id, MouseEvent.empty ())
               |> SimulationEvent.FlowerEvent
-              FlowerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left)
+              FlowerPointerEvent.OnPressed(flower.Id, MouseButtonEvent.withButton MouseButton.Left)
               |> SimulationEvent.FlowerEvent
               BackgroundEvent.OnReleased(MouseButtonEvent.withButton MouseButton.Left)
               |> SimulationEvent.BackgroundEvent ]
@@ -89,12 +89,12 @@ let ``Basic actions test cases`` =
       { Name = "Dragging on mouse down and move"
         InitialState = initialState
         Messages =
-            [ FlowerEvent.OnEnter(flower.Id, MouseEvent.empty ())
-              FlowerEvent.OnPressed(
+            [ FlowerPointerEvent.OnEnter(flower.Id, MouseEvent.empty ())
+              FlowerPointerEvent.OnPressed(
                   flower.Id,
                   MouseButtonEvent.atPositionWithButton (Point2D.pixels 5. 5.) MouseButton.Left
               )
-              FlowerEvent.OnMoved(flower.Id, MouseEvent.atPosition (Point2D.pixels 20. 20.)) ]
+              FlowerPointerEvent.OnMoved(flower.Id, MouseEvent.atPosition (Point2D.pixels 20. 20.)) ]
             |> List.map SimulationEvent.FlowerEvent
         Expected =
             { initialState with
