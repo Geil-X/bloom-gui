@@ -148,19 +148,28 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | FlowerPropertiesMsg msg ->
         match msg with
         | FlowerProperties.ChangeName (id, newName) ->
-            Log.verbose $"Updated flower '{id}' with new name '{newName}'"
-            { state with
-                  Flowers = Map.update id (Flower.setName newName) state.Flowers },
-            Cmd.none
-        | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
-            match String.parseUint i2cAddressString with
-            | Some i2cAddress ->
-                Log.verbose $"Updated flower '{id}' with new I2C Address '{i2cAddress}'"
+            if Option.contains id state.Selected then
+                Log.verbose $"Updated flower '{id}' with new name '{newName}'"
+
                 { state with
-                      Flowers = Map.update id (Flower.setI2cAddress i2cAddress) state.Flowers },
+                      Flowers = Map.update id (Flower.setName newName) state.Flowers },
                 Cmd.none
-            | None ->
-                // Todo: handle invalid I2C Address
+            else
+                state, Cmd.none
+
+        | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
+            if Option.contains id state.Selected then
+                match String.parseUint i2cAddressString with
+                | Some i2cAddress ->
+                    Log.verbose $"Updated flower '{id}' with new I2C Address '{i2cAddress}'"
+
+                    { state with
+                          Flowers = Map.update id (Flower.setI2cAddress i2cAddress) state.Flowers },
+                    Cmd.none
+                | None ->
+                    // Todo: handle invalid I2C Address
+                    state, Cmd.none
+            else
                 state, Cmd.none
 
 
@@ -290,10 +299,8 @@ let iconDock (dispatch: Msg -> Unit) =
         |> List.map
             (fun (icon, action) -> Form.imageButton icon (Event.handleEvent (Action action) >> dispatch) :> IView)
 
-    StackPanel.create [
-        StackPanel.orientation Orientation.Horizontal
-        StackPanel.children buttons
-    ]
+    StackPanel.create [ StackPanel.orientation Orientation.Horizontal
+                        StackPanel.children buttons ]
 
 let drawFlower (state: State) (dispatch: FlowerPointerEvent -> Unit) (flower: Flower.State) : IView =
     let flowerState (flower: Flower.State) : Flower.Attribute<Pixels, UserSpace> option =
@@ -323,20 +330,18 @@ let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
         |> Seq.map (drawFlower state (SimulationEvent.FlowerEvent >> dispatch))
         |> Seq.toList
 
-    Canvas.create [
-        Canvas.children flowers
-        Canvas.background Theme.palette.canvasBackground
-        Canvas.name Constants.CanvasId
-        Canvas.onPointerReleased (
-            Events.pointerReleased Constants.CanvasId
-            >> Option.map (
-                BackgroundEvent.OnReleased
-                >> SimulationEvent.BackgroundEvent
-                >> dispatch
-            )
-            >> Option.defaultValue ()
-        )
-    ]
+    Canvas.create [ Canvas.children flowers
+                    Canvas.background Theme.palette.canvasBackground
+                    Canvas.name Constants.CanvasId
+                    Canvas.onPointerReleased (
+                        Events.pointerReleased Constants.CanvasId
+                        >> Option.map (
+                            BackgroundEvent.OnReleased
+                            >> SimulationEvent.BackgroundEvent
+                            >> dispatch
+                        )
+                        >> Option.defaultValue ()
+                    ) ]
     :> IView
 
 
