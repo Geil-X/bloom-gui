@@ -27,9 +27,9 @@
         <Compile Include="Types.fs" />
         <Compile Include="Flower.fs" />
         <Compile Include="FlowerFile.fs" />
+        <Compile Include="FlowerProperties.fs" />
         <Compile Include="Menu\File.fs" />
         <Compile Include="Menu\Menu.fs" />
-        <Compile Include="FlowerProperties.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
         <AvaloniaResource Include="**\*.xaml" />

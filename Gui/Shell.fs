@@ -98,7 +98,7 @@ let newFile (state: State) (flowers: Flower.State seq) : State =
 
 let addNewFlower (state: State) : State =
     let flower =
-        Flower.basic $"Flower {Map.count state.Flowers}"
+        Flower.basic $"Flower {Map.count state.Flowers + 1}"
         |> Flower.setPosition (Point2D.pixels 100. 100.)
 
     { state with
@@ -120,7 +120,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | MenuMsg menuMsg ->
         let menuCmd, menuExternal =
             Menu.update menuMsg (Map.values state.Flowers) window
-
+            
         let newState =
             match menuExternal with
             | Menu.FileExternal fileExternal ->

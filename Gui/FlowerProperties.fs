@@ -2,9 +2,9 @@ module Gui.FlowerProperties
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
+
 open Geometry
 open Gui.Widgets
 

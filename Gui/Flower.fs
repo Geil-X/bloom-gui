@@ -34,7 +34,7 @@ type State =
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       Radius: Length<Pixels> }
-    
+
 
 // ---- Builders -----
 
@@ -42,7 +42,7 @@ let mutable index = 0u
 
 let basic name =
     index <- index + 1u
-    
+
     { Id = index
       Name = name
       Position = Point2D.origin ()
@@ -76,7 +76,7 @@ let containsPoint point state =
 let jsonSerializer =
     FsPickler.CreateJsonSerializer(indent = false)
 
-let serialize (stream: IO.TextWriter) (flower: State seq): unit =
+let serialize (stream: IO.TextWriter) (flower: State seq) : unit =
     jsonSerializer.Serialize(stream, flower)
 
 let deserialize (flowerStream: IO.TextReader) : State seq =
@@ -119,6 +119,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         >> Option.defaultValue ()
                     )
                     |> Some
+
                 | OnPointerLeave leaveMsg ->
                     Ellipse.onPointerLeave (
                         Events.pointerLeave Constants.CanvasId
@@ -126,6 +127,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         >> Option.defaultValue ()
                     )
                     |> Some
+
                 | OnPointerMoved movedMsg ->
                     Ellipse.onPointerMoved (
                         Events.pointerMoved Constants.CanvasId
@@ -141,6 +143,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         >> Option.defaultValue ()
                     )
                     |> Some
+
                 | OnPointerReleased releasedMsg ->
                     Ellipse.onPointerReleased (
                         Events.pointerReleased Constants.CanvasId
@@ -148,6 +151,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         >> Option.defaultValue ()
                     )
                     |> Some)
+
             attributes
         |> List.filterNone
 
@@ -170,7 +174,14 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
             |> Some
         else
             None
-
+            
+    let name =
+        TextBlock.create [
+            TextBlock.text flower.Name
+            TextBlock.left (flower.Position.X.value() - 20.)
+            TextBlock.top (flower.Position.Y.value() - 35.)
+        ]
+            
     let circle =
         Draw.circle
             circle
@@ -178,6 +189,10 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
              @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
                  Ellipse.fill Theme.palette.primary ])
 
-    Canvas.create [ Canvas.name "Flower canvas"
-                    Canvas.children [ yield! selection |> Option.toList
-                                      circle ] ]
+    Canvas.create [
+        Canvas.children [
+            circle
+            yield! selection |> Option.toList
+            name
+        ]
+    ]
