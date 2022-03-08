@@ -1,4 +1,4 @@
-module Tests
+module Tests.Shell
 
 open Avalonia.Input
 open NUnit.Framework
@@ -115,6 +115,6 @@ let ``Basic actions test cases`` =
 [<TestCaseSource(nameof ``Basic actions test cases``)>]
 let ``Basic flower actions`` (initialState: State) (messages: Shell.SimulationEvent list) : State =
     let updateWithoutCmd state msg =
-        update (SimulationEvent msg) state |> Tuple2.first
+        update (SimulationEvent msg) state Mock.Window |> Tuple2.first
 
     List.fold updateWithoutCmd initialState messages

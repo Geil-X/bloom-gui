@@ -96,13 +96,17 @@ let newFile (state: State) (flowers: Flower.State seq) : State =
           FlowerInteraction = NoInteraction
           Selected = None }
 
+let addFlower (flower: Flower.State) (state: State) : State =
+    { state with
+          Flowers = Map.add flower.Id flower state.Flowers }
+
 let addNewFlower (state: State) : State =
     let flower =
         Flower.basic $"Flower {Map.count state.Flowers + 1}"
         |> Flower.setPosition (Point2D.pixels 100. 100.)
 
-    { state with
-          Flowers = Map.add flower.Id flower state.Flowers }
+    addFlower flower state
+
 
 // ---- Update ----
 
@@ -120,7 +124,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | MenuMsg menuMsg ->
         let menuCmd, menuExternal =
             Menu.update menuMsg (Map.values state.Flowers) window
-            
+
         let newState =
             match menuExternal with
             | Menu.FileExternal fileExternal ->
@@ -205,8 +209,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                 match state.FlowerInteraction with
                 | Pressing pressing when
                     pressing.Id = flowerId
-                    && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
-                    ->
+                    && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared ->
                     Log.verbose $"Flower: Start Dragging {flowerId}"
 
                     let delta =
@@ -292,15 +295,17 @@ open Avalonia.Layout
 open Avalonia.FuncUI.DSL
 
 let iconDock (dispatch: Msg -> Unit) =
-    let buttons: IView list =
+    let buttons : IView list =
         [ Icons.save Theme.colors.offWhite, Action.Save
           Icons.load Theme.colors.offWhite, Action.Load
           Icons.newIcon Theme.colors.offWhite, Action.NewFlower ]
         |> List.map
             (fun (icon, action) -> Form.imageButton icon (Event.handleEvent (Action action) >> dispatch) :> IView)
 
-    StackPanel.create [ StackPanel.orientation Orientation.Horizontal
-                        StackPanel.children buttons ]
+    StackPanel.create [
+        StackPanel.orientation Orientation.Horizontal
+        StackPanel.children buttons
+    ]
 
 let drawFlower (state: State) (dispatch: FlowerPointerEvent -> Unit) (flower: Flower.State) : IView =
     let flowerState (flower: Flower.State) : Flower.Attribute<Pixels, UserSpace> option =
@@ -330,18 +335,20 @@ let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
         |> Seq.map (drawFlower state (SimulationEvent.FlowerEvent >> dispatch))
         |> Seq.toList
 
-    Canvas.create [ Canvas.children flowers
-                    Canvas.background Theme.palette.canvasBackground
-                    Canvas.name Constants.CanvasId
-                    Canvas.onPointerReleased (
-                        Events.pointerReleased Constants.CanvasId
-                        >> Option.map (
-                            BackgroundEvent.OnReleased
-                            >> SimulationEvent.BackgroundEvent
-                            >> dispatch
-                        )
-                        >> Option.defaultValue ()
-                    ) ]
+    Canvas.create [
+        Canvas.children flowers
+        Canvas.background Theme.palette.canvasBackground
+        Canvas.name Constants.CanvasId
+        Canvas.onPointerReleased (
+            Events.pointerReleased Constants.CanvasId
+            >> Option.map (
+                BackgroundEvent.OnReleased
+                >> SimulationEvent.BackgroundEvent
+                >> dispatch
+            )
+            >> Option.defaultValue ()
+        )
+    ]
     :> IView
 
 
@@ -349,7 +356,7 @@ let view (state: State) (dispatch: Msg -> unit) =
     let selected =
         Option.bind (fun id -> selectedFlower id state.Flowers) state.Selected
 
-    let panels: IView list =
+    let panels : IView list =
         [ View.withAttr (Menu.dock Dock.Top) (Menu.view (MenuMsg >> dispatch))
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (FlowerProperties.view selected (FlowerPropertiesMsg >> dispatch))
