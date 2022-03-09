@@ -2,9 +2,11 @@ module Gui.FlowerFile
 
 open System
 open System.IO
+open System.Threading.Tasks
 open Avalonia.Controls
 
 open Gui.Widgets
+open Extensions
 
 type FileError = exn
 
@@ -17,6 +19,7 @@ let defaultDirectory = Environment.SpecialFolder.MyDocuments
 
 let openFileDialog (window: Window) =
     Dialogs.openFileDialog dialogTitle extensions defaultDirectory window
+    |> Task.map Array.tryHead
 
 let saveFileDialog (window: Window) =
     Dialogs.saveFileDialog dialogTitle extensions defaultDirectory window
@@ -24,23 +27,23 @@ let saveFileDialog (window: Window) =
 
 // ---- Read & Write ----
 
-let private readFile path (deserializer: StreamReader -> 'T) : Result<'T, FileError> =
-    try
+// Note: Can throw an exception
+let private readFile path (deserializer: StreamReader -> 'T) : Task<'T> =
+    task {
         use reader = new StreamReader(File.OpenRead(path))
-        deserializer reader |> Ok
-    with
-    | exn -> Error exn
+        return deserializer reader
+    }
 
 /// TODO: catch json deserialization errors
-let loadFlowerFile path : Result<Flower.State seq, FileError> = readFile path Flower.deserialize
+// Note: Can throw an exception
+let loadFlowerFile path : Task<Flower.State seq> = readFile path Flower.deserialize
 
-let private writeFile path (serializer: StreamWriter -> 'T -> Unit) (data: 'T) : FileError option =
-    try
-        let writer = new StreamWriter(File.OpenWrite(path))
+// Note: Can throw an exception
+let private writeFile path (serializer: StreamWriter -> 'T -> Unit) (data: 'T) : Task<unit> =
+    task {
+        use writer = new StreamWriter(File.OpenWrite(path))
         serializer writer data
+    }
 
-        None
-    with
-    | exn -> Some exn
-
-let writeFlowerFile path (flowers: Flower.State seq) : FileError option = writeFile path Flower.serialize flowers
+/// Note: Can throw an exception
+let writeFlowerFile (path, flowers: Flower.State seq) : Task<unit> = writeFile path Flower.serialize flowers

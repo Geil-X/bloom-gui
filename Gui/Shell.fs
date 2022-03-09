@@ -40,11 +40,16 @@ and DraggingData =
 
 [<RequireQualifiedAccess>]
 type Action =
-    | Save
-    | Load
-    | Open
-    | Undo
-    | Redo
+    | NewFile
+    | SaveAsDialog
+    | ErrorPickingSaveFile
+    | SaveAs of string
+    | ErrorSavingFile of exn
+    | OpenFileDialog
+    | ErrorPickingFileToOpen
+    | OpenFile of string
+    | FileOpened of Flower.State seq
+    | CouldNotOpenFile of exn
     | NewFlower
 
 [<RequireQualifiedAccess>]
@@ -100,6 +105,12 @@ let addFlower (flower: Flower.State) (state: State) : State =
     { state with
           Flowers = Map.add flower.Id flower state.Flowers }
 
+let addFlowers (flowers: Flower.State seq) (state: State) : State =
+    let flowerMap =
+        Seq.fold (fun map (flower: Flower.State) -> Map.add flower.Id flower map) Map.empty flowers
+
+    { state with Flowers = flowerMap }
+
 let addNewFlower (state: State) : State =
     let flower =
         Flower.basic $"Flower {Map.count state.Flowers + 1}"
@@ -114,40 +125,60 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     match msg with
     | Action action ->
         match action with
-        | Action.Save -> state, Cmd.none
-        | Action.Load -> state, Cmd.none
-        | Action.Undo -> state, Cmd.none
-        | Action.Redo -> state, Cmd.none
-        | Action.Open -> state, Cmd.none
+        | Action.NewFile -> newFile state Seq.empty, Cmd.none
+
+        | Action.SaveAsDialog -> state, Cmd.OfTask.perform FlowerFile.saveFileDialog window (Action.SaveAs >> Action)
+
+        | Action.ErrorPickingSaveFile ->
+            Log.error "Could not pick file to save as"
+            state, Cmd.none
+
+        | Action.SaveAs path ->
+            state,
+            Cmd.OfTask.attempt
+                FlowerFile.writeFlowerFile
+                (path, Map.values state.Flowers)
+                (Action.ErrorSavingFile >> Action)
+
+        | Action.ErrorSavingFile exn ->
+            Log.error $"Could not save file {exn}"
+            state, Cmd.none
+
+        | Action.OpenFileDialog ->
+            state,
+            Cmd.OfTask.perform
+                FlowerFile.openFileDialog
+                window
+                (Option.split Action.OpenFile Action.ErrorPickingFileToOpen
+                 >> Action)
+
+        | Action.ErrorPickingFileToOpen ->
+            Log.error "Could not pick file to open"
+            state, Cmd.none
+
+        | Action.OpenFile path ->
+            state,
+            Cmd.OfTask.either
+                FlowerFile.loadFlowerFile
+                path
+                (Action.FileOpened >> Action)
+                (Action.CouldNotOpenFile >> Action)
+
+        | Action.FileOpened flowers -> newFile state flowers, Cmd.none
+
+        | Action.CouldNotOpenFile exn ->
+            Log.error $"Could not open file\n{exn}"
+            state, Cmd.none
+
         | Action.NewFlower -> addNewFlower state, Cmd.none
 
     | MenuMsg menuMsg ->
-        let menuCmd, menuExternal =
-            Menu.update menuMsg (Map.values state.Flowers) window
-
-        let newState =
-            match menuExternal with
-            | Menu.FileExternal fileExternal ->
-                match fileExternal with
-                | File.External.NewFile -> newFile state Seq.empty
-
-                | File.External.FileLoaded fileResult ->
-                    match fileResult with
-                    | Ok flowers -> newFile state flowers
-
-                    | Error fileResult ->
-                        Log.error $"Error loading flower file {fileResult}"
-                        state
-
-                | File.External.SavedFile -> state
-
-                | File.External.ErrorSavingFile fileError ->
-                    Log.error $"Error saving flower file {fileError}"
-                    state
-
-                | File.External.DoNothing -> state
-
-        newState, Cmd.map MenuMsg menuCmd
+        match menuMsg with
+        | Menu.FileMsg msg ->
+            match msg with
+            | File.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
+            | File.OpenFile -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
+            | File.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
 
     | FlowerPropertiesMsg msg ->
         match msg with
@@ -159,6 +190,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                       Flowers = Map.update id (Flower.setName newName) state.Flowers },
                 Cmd.none
             else
+                Log.error $"Ignoring name change because selected is {state.Selected} and id is {id}"
                 state, Cmd.none
 
         | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
@@ -209,7 +241,8 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                 match state.FlowerInteraction with
                 | Pressing pressing when
                     pressing.Id = flowerId
-                    && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared ->
+                    && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
+                    ->
                     Log.verbose $"Flower: Start Dragging {flowerId}"
 
                     let delta =
@@ -295,9 +328,10 @@ open Avalonia.Layout
 open Avalonia.FuncUI.DSL
 
 let iconDock (dispatch: Msg -> Unit) =
-    let buttons : IView list =
-        [ Icons.save Theme.colors.offWhite, Action.Save
-          Icons.load Theme.colors.offWhite, Action.Load
+    let buttons: IView list =
+        [ Icons.newFile Theme.colors.offWhite, Action.NewFile
+          Icons.save Theme.colors.offWhite, Action.SaveAsDialog
+          Icons.load Theme.colors.offWhite, Action.OpenFileDialog
           Icons.newIcon Theme.colors.offWhite, Action.NewFlower ]
         |> List.map
             (fun (icon, action) -> Form.imageButton icon (Event.handleEvent (Action action) >> dispatch) :> IView)
@@ -356,7 +390,8 @@ let view (state: State) (dispatch: Msg -> unit) =
     let selected =
         Option.bind (fun id -> selectedFlower id state.Flowers) state.Selected
 
-    let panels : IView list =
+    
+    let panels: IView list =
         [ View.withAttr (Menu.dock Dock.Top) (Menu.view (MenuMsg >> dispatch))
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (FlowerProperties.view selected (FlowerPropertiesMsg >> dispatch))

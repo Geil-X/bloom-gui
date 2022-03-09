@@ -17,6 +17,8 @@
         <Compile Include="Extensions\MapExtensions.fs" />
         <Compile Include="Extensions\ListExtensions.fs" />
         <Compile Include="Extensions\StringExtensions.fs" />
+        <Compile Include="Extensions\TaskExtensions.fs" />
+        <Compile Include="Extensions\OptionExtensions.fs" />
         <Compile Include="Color.fs" />
         <Compile Include="InputTypes.fs" />
         <Compile Include="Events.fs" />

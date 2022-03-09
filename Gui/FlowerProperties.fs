@@ -14,13 +14,18 @@ type Msg =
 
 
 let private nameView (flower: Flower.State) (dispatch: Msg -> Unit) =
+    Log.verbose $"Name view {flower.Id}"
+
     Form.formElement
         {| Name = "Name"
            Orientation = Orientation.Vertical
            Element =
                TextBox.create [
                    TextBox.text flower.Name
-                   TextBox.onTextChanged (fun newName -> ChangeName(flower.Id, newName) |> dispatch)
+                   TextBox.onTextChanged (
+                       (fun newName -> ChangeName(flower.Id, newName) |> dispatch),
+                       SubPatchOptions.OnChangeOf flower.Id
+                   )
                ] |}
 
 let private i2cAddressView (flower: Flower.State) (dispatch: Msg -> Unit) =
@@ -30,10 +35,12 @@ let private i2cAddressView (flower: Flower.State) (dispatch: Msg -> Unit) =
            Element =
                TextBox.create [
                    TextBox.text (string flower.I2cAddress)
-                   TextBox.onTextChanged
+                   TextBox.onTextChanged (
                        (fun newAddress ->
                            ChangeI2cAddress(flower.Id, newAddress)
-                           |> dispatch)
+                           |> dispatch),
+                       SubPatchOptions.OnChangeOf flower.Id
+                   )
                ] |}
 
 let private positionView (flower: Flower.State) =
