@@ -7,6 +7,7 @@ open Avalonia.Layout
 
 open Geometry
 open Gui.Widgets
+open Extensions
 
 type Msg =
     | ChangeName of Flower.Id * string
@@ -62,7 +63,10 @@ let private id (flower: Flower.State) =
     Form.formElement
         {| Name = "Id"
            Orientation = Orientation.Horizontal
-           Element = TextBlock.create [ TextBlock.text (string flower.Id) ] |}
+           Element =
+               TextBlock.create [
+                   TextBlock.text (Guid.shortName flower.Id)
+               ] |}
 
 let private selectedNone =
     Form.formElement

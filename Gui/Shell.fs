@@ -184,7 +184,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         match msg with
         | FlowerProperties.ChangeName (id, newName) ->
             if Option.contains id state.Selected then
-                Log.verbose $"Updated flower '{id}' with new name '{newName}'"
+                Log.verbose $"Updated flower '{Guid.shortName id}' with new name '{newName}'"
 
                 { state with
                       Flowers = Map.update id (Flower.setName newName) state.Flowers },
@@ -197,7 +197,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
             if Option.contains id state.Selected then
                 match String.parseUint i2cAddressString with
                 | Some i2cAddress ->
-                    Log.verbose $"Updated flower '{id}' with new I2C Address '{i2cAddress}'"
+                    Log.verbose $"Updated flower '{Guid.shortName id}' with new I2C Address '{i2cAddress}'"
 
                     { state with
                           Flowers = Map.update id (Flower.setI2cAddress i2cAddress) state.Flowers },
@@ -224,14 +224,14 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         | FlowerEvent flowerEvent ->
             match flowerEvent with
             | FlowerPointerEvent.OnEnter (flowerId, _) ->
-                Log.verbose $"Flower: Hovering {flowerId}"
+                Log.verbose $"Flower: Hovering {Guid.shortName flowerId}"
 
                 { state with
                       FlowerInteraction = Hovering flowerId },
                 Cmd.none
 
             | FlowerPointerEvent.OnLeave (flowerId, _) ->
-                Log.verbose $"Flower: Pointer Left {flowerId}"
+                Log.verbose $"Flower: Pointer Left {Guid.shortName flowerId}"
 
                 { state with
                       FlowerInteraction = NoInteraction },
@@ -243,7 +243,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                     pressing.Id = flowerId
                     && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
                     ->
-                    Log.verbose $"Flower: Start Dragging {flowerId}"
+                    Log.verbose $"Flower: Start Dragging {Guid.shortName flowerId}"
 
                     let delta =
                         pressing.InitialFlowerPosition
@@ -277,7 +277,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
                     match maybeFlower with
                     | Some pressed ->
-                        Log.verbose $"Flower: Pressed {pressed.Id}"
+                        Log.verbose $"Flower: Pressed {Guid.shortName pressed.Id}"
 
                         { state with
                               FlowerInteraction =
@@ -297,14 +297,14 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                 if InputTypes.isPrimary e.MouseButton then
                     match state.FlowerInteraction with
                     | Dragging _ ->
-                        Log.verbose $"Flower: Dragging -> Hovering {flowerId}"
+                        Log.verbose $"Flower: Dragging -> Hovering {Guid.shortName flowerId}"
 
                         { state with
                               FlowerInteraction = Hovering flowerId },
                         Cmd.none
 
                     | Pressing _ ->
-                        Log.verbose $"Flower: Selected {flowerId}"
+                        Log.verbose $"Flower: Selected {Guid.shortName flowerId}"
 
                         { state with
                               FlowerInteraction = Hovering flowerId

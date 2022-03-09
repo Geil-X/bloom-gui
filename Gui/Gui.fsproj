@@ -19,6 +19,7 @@
         <Compile Include="Extensions\StringExtensions.fs" />
         <Compile Include="Extensions\TaskExtensions.fs" />
         <Compile Include="Extensions\OptionExtensions.fs" />
+        <Compile Include="Extensions\GuidExtensions.fs" />
         <Compile Include="Color.fs" />
         <Compile Include="InputTypes.fs" />
         <Compile Include="Events.fs" />

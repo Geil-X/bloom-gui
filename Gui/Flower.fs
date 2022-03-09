@@ -11,7 +11,7 @@ open MBrace.FsPickler.Json
 open Gui
 open Extensions
 
-type Id = uint
+type Id = Guid
 
 type Attribute<'Unit, 'Coordinates> =
     // States
@@ -38,12 +38,8 @@ type State =
 
 // ---- Builders -----
 
-let mutable index = 0u
-
 let basic name =
-    index <- index + 1u
-
-    { Id = index
+    { Id = Guid.NewGuid()
       Name = name
       Position = Point2D.origin ()
       I2cAddress = 0u
@@ -121,6 +117,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         Events.pointerEnter Constants.CanvasId
                         >> Option.map (fun e -> enterMsg (flower.Id, e))
                         >> Option.defaultValue ()
+                        , SubPatchOptions.OnChangeOf flower.Id
                     )
                     |> Some
 
@@ -129,6 +126,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         Events.pointerLeave Constants.CanvasId
                         >> Option.map (fun e -> leaveMsg (flower.Id, e))
                         >> Option.defaultValue ()
+                        , SubPatchOptions.OnChangeOf flower.Id
                     )
                     |> Some
 
@@ -137,6 +135,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         Events.pointerMoved Constants.CanvasId
                         >> Option.map (fun e -> movedMsg (flower.Id, e))
                         >> Option.defaultValue ()
+                        , SubPatchOptions.OnChangeOf flower.Id
                     )
                     |> Some
 
@@ -145,6 +144,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         Events.pointerPressed Constants.CanvasId
                         >> Option.map (fun e -> pressedMsg (flower.Id, e))
                         >> Option.defaultValue ()
+                        , SubPatchOptions.OnChangeOf flower.Id
                     )
                     |> Some
 
@@ -153,6 +153,7 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
                         Events.pointerReleased Constants.CanvasId
                         >> Option.map (fun e -> releasedMsg (flower.Id, e))
                         >> Option.defaultValue ()
+                        , SubPatchOptions.OnChangeOf flower.Id
                     )
                     |> Some)
 
