@@ -6,17 +6,17 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 
 open Geometry
+open Gui.DataTypes
 open Gui.Widgets
 open Extensions
 
 type Msg =
     | ChangeName of Flower.Id * string
     | ChangeI2cAddress of Flower.Id * string
+    | ChangePercentage of Flower.Id * ClampedPercentage
 
 
 let private nameView (flower: Flower.State) (dispatch: Msg -> Unit) =
-    Log.verbose $"Name view {flower.Id}"
-
     Form.formElement
         {| Name = "Name"
            Orientation = Orientation.Vertical
@@ -41,6 +41,23 @@ let private i2cAddressView (flower: Flower.State) (dispatch: Msg -> Unit) =
                            ChangeI2cAddress(flower.Id, newAddress)
                            |> dispatch),
                        SubPatchOptions.OnChangeOf flower.Id
+                   )
+               ] |}
+
+let private openPercentageView (flower: Flower.State) (dispatch: Msg -> Unit) =
+    Form.formElement
+        {| Name = "Open Percentage"
+           Orientation = Orientation.Vertical
+           Element =
+               Slider.create [
+                   Slider.minimum 0.
+                   Slider.maximum 100.
+                   Slider.value (ClampedPercentage.inPercentage flower.OpenPercent)
+                   Slider.onValueChanged (
+                       (fun newPercent ->
+                           ChangePercentage(flower.Id, ClampedPercentage.percent newPercent)
+                           |> dispatch),
+                       SubPatchOptions.OnChangeOf(flower.Id)
                    )
                ] |}
 
@@ -80,6 +97,7 @@ let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
         | Some flower ->
             [ nameView flower dispatch
               i2cAddressView flower dispatch
+              openPercentageView flower dispatch
               positionView flower
               id flower ]
         | None -> [ selectedNone ]

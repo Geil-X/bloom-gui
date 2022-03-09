@@ -128,6 +128,12 @@ let lighten (n: float) (color: Color) : Color =
 
 let darken (n: float) : Color -> Color = lighten -n
 
+let saturate (n: float) (color: Color) : Color =
+    let ofHsla = toHsla color
+    hsla ofHsla.Hue (limit (ofHsla.Saturation + n)) ofHsla.Lightness ofHsla.Alpha
+
+let desaturate (n: float) : Color -> Color = saturate -n
+
 let fadeIn (n: float) (color: Color) : Color =
     let ofHsla = toHsla color
     hsla ofHsla.Hue ofHsla.Saturation ofHsla.Lightness (limit (ofHsla.Alpha + n))

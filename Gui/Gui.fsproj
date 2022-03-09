@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <Compile Include="DataTypes\ClampedPercentage.fs" />
         <Compile Include="Geometry\Draw.fs" />
         <Compile Include="Geometry\Vector2D.fs" />
         <Compile Include="Extensions\ViewExtensions.fs" />

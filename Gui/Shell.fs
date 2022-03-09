@@ -190,7 +190,6 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                       Flowers = Map.update id (Flower.setName newName) state.Flowers },
                 Cmd.none
             else
-                Log.error $"Ignoring name change because selected is {state.Selected} and id is {id}"
                 state, Cmd.none
 
         | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
@@ -207,6 +206,11 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                     state, Cmd.none
             else
                 state, Cmd.none
+
+        | FlowerProperties.ChangePercentage (id, percentage) ->
+            { state with
+                  Flowers = Map.update id (Flower.setOpenPercent percentage) state.Flowers },
+            Cmd.none
 
 
     | SimulationEvent event ->
@@ -342,7 +346,7 @@ let iconDock (dispatch: Msg -> Unit) =
     ]
 
 let drawFlower (state: State) (dispatch: FlowerPointerEvent -> Unit) (flower: Flower.State) : IView =
-    let flowerState (flower: Flower.State) : Flower.Attribute<Pixels, UserSpace> option =
+    let flowerState (flower: Flower.State) : Flower.Attribute option =
         match state.FlowerInteraction with
         | Hovering id when id = flower.Id -> Flower.hovered |> Some
         | Pressing pressing when pressing.Id = flower.Id -> Flower.pressed |> Some
@@ -390,7 +394,7 @@ let view (state: State) (dispatch: Msg -> unit) =
     let selected =
         Option.bind (fun id -> selectedFlower id state.Flowers) state.Selected
 
-    
+
     let panels: IView list =
         [ View.withAttr (Menu.dock Dock.Top) (Menu.view (MenuMsg >> dispatch))
           View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
