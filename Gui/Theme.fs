@@ -31,6 +31,12 @@ let palette =
        panelAccent = colors.lightGray
        canvasBackground = colors.gray
        shadowColor = colors.lightGray |}
+       
+let lighter = Color.lighten 0.075
+let lightest = Color.lighten 0.15
+let darker = Color.darken 0.075
+let darkest = Color.darken 0.15
+let fade = Color.fadeOut 0.15
 
 let window = {| height = 600.; width = 800. |}
 

@@ -47,7 +47,7 @@ let basic name =
       Name = name
       Position = Point2D.origin ()
       I2cAddress = 0u
-      Color = Colors.White
+      Color = Color.hex Theme.palette.primary
       Radius = Length.pixels 20. }
 
 // ---- Accessors ----
@@ -103,14 +103,18 @@ let onPointerMoved = Attribute.OnPointerMoved
 // ---- Drawing ----
 
 let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
+    let hovered () = Theme.lighter flower.Color |> string
+    let pressed () = Theme.lightest flower.Color |> string
+    let dragged () = Theme.fade flower.Color |> string
+
     let circleAttributes =
         List.map
             (fun attribute ->
                 match attribute with
-                | Hovered -> Ellipse.fill Theme.palette.primaryLight |> Some
-                | Pressed -> Ellipse.fill Theme.palette.primaryLightest |> Some
+                | Hovered -> hovered () |> Ellipse.fill |> Some
+                | Pressed -> pressed () |> Ellipse.fill |> Some
                 | Selected -> None
-                | Dragged -> (Ellipse.fill Theme.palette.primaryDark) |> Some
+                | Dragged -> dragged () |> Ellipse.fill |> Some
 
                 | OnPointerEnter enterMsg ->
                     Ellipse.onPointerEnter (
@@ -174,20 +178,20 @@ let draw (flower: State) (attributes: Attribute<'Unit, 'Coordinates> list) =
             |> Some
         else
             None
-            
+
     let name =
         TextBlock.create [
             TextBlock.text flower.Name
-            TextBlock.left (flower.Position.X.value() - 20.)
-            TextBlock.top (flower.Position.Y.value() - 35.)
+            TextBlock.left (flower.Position.X.value () - 20.)
+            TextBlock.top (flower.Position.Y.value () - 35.)
         ]
-            
+
     let circle =
         Draw.circle
             circle
             (circleAttributes
              @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
-                 Ellipse.fill Theme.palette.primary ])
+                 Ellipse.fill (string flower.Color) ])
 
     Canvas.create [
         Canvas.children [

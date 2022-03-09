@@ -11,6 +11,7 @@ type Hsla =
 
 // ---- Private Helpers ----
 
+let limit (n: float) = n |> min 1. |> max 0.
 let private byteToFloat (b: byte) = float b / 255.
 let private floatToByte (f: float) = f * 255. |> byte
 
@@ -118,3 +119,17 @@ let toHsla (color: Color) : Hsla =
       Saturation = s
       Lightness = l
       Alpha = a }
+
+// ---- Modifiers ----
+
+let lighten (n: float) (color: Color) : Color =
+    let ofHsla = toHsla color
+    hsla ofHsla.Hue ofHsla.Saturation (limit (ofHsla.Lightness + n)) ofHsla.Alpha
+
+let darken (n: float) : Color -> Color = lighten -n
+
+let fadeIn (n: float) (color: Color) : Color =
+    let ofHsla = toHsla color
+    hsla ofHsla.Hue ofHsla.Saturation ofHsla.Lightness (limit (ofHsla.Alpha + n))
+
+let fadeOut (n: float) : Color -> Color = fadeIn -n
