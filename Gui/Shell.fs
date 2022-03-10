@@ -396,8 +396,7 @@ let view (state: State) (dispatch: Msg -> unit) =
 
 
     let panels: IView list =
-        [ View.withAttr (Menu.dock Dock.Top) (Menu.view (MenuMsg >> dispatch))
-          View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
+        [ View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
           View.withAttr (StackPanel.dock Dock.Left) (FlowerProperties.view selected (FlowerPropertiesMsg >> dispatch))
           simulationSpace state (Msg.SimulationEvent >> dispatch) ]
 
@@ -415,14 +414,18 @@ type MainWindow() as this =
         base.Height <- Theme.window.height
         base.MinHeight <- Theme.window.height
         base.MinWidth <- Theme.window.width
+        base.Title <- Theme.program
         this.HasSystemDecorations <- true
 
-        //this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
-        //this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
+        // Can be turned on during debug
+        // this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
+        // this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
+
+        Menu.setMenu this
 
         let updateWithServices (msg: Msg) (state: State) = update msg state this
 
-
         Program.mkProgram init updateWithServices view
+        |> Program.withSubscription (Menu.subscription MenuMsg)
         |> Program.withHost this
         |> Program.run

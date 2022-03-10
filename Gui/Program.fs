@@ -13,6 +13,8 @@ type App() =
         this.Styles.Load "avares://Avalonia.Themes.Default/DefaultTheme.xaml"
         this.Styles.Load "avares://Avalonia.Themes.Default/Accents/BaseDark.xaml"
         this.Styles.Load "avares://Gui/Styles.xaml"
+        
+        this.Name <- Theme.program
 
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with

@@ -1,5 +1,6 @@
 module Gui.Theme
 
+let program = "Bloom"
 let title = "Bloom: Flower Simulation"
 
 /// Color palette is based off of the yellow color with a 150° tetradic color scheme
