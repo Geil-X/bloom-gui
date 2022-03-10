@@ -1,7 +1,14 @@
 module Gui.Theme
 
+open Avalonia.Controls
+open Extensions
+
 let program = "Bloom"
 let title = "Bloom: Flower Simulation"
+
+let icon: WindowIcon =
+    Bitmap.create "avares://Gui/Assets/Geil Logo 32.ico"
+    |> WindowIcon
 
 /// Color palette is based off of the yellow color with a 150° tetradic color scheme
 /// https://paletton.com/#uid=70I2m0krBw0hcHpmp-MvIrjzmlr
@@ -22,8 +29,7 @@ let colors =
        green = "#18AF6E" |}
 
 let palette =
-    {|
-       primaryDarkest = colors.darkerYellow
+    {| primaryDarkest = colors.darkerYellow
        primaryDark = colors.darkYellow
        primary = colors.yellow
        primaryLight = colors.lightYellow
@@ -32,7 +38,7 @@ let palette =
        panelAccent = colors.lightGray
        canvasBackground = colors.gray
        shadowColor = colors.lightGray |}
-       
+
 let lighter = Color.lighten 0.075
 let lightest = Color.lighten 0.15
 let darker = Color.darken 0.075

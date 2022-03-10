@@ -7,6 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <AvaloniaResource Include="**\*.xaml" />
+        <AvaloniaResource Include="Assets\*" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Compile Include="DataTypes\ClampedPercentage.fs" />
         <Compile Include="Geometry\Draw.fs" />
         <Compile Include="Geometry\Vector2D.fs" />
@@ -21,6 +26,7 @@
         <Compile Include="Extensions\TaskExtensions.fs" />
         <Compile Include="Extensions\OptionExtensions.fs" />
         <Compile Include="Extensions\GuidExtensions.fs" />
+        <Compile Include="Extensions\BitmapExtensions.fs" />
         <Compile Include="Color.fs" />
         <Compile Include="InputTypes.fs" />
         <Compile Include="Events.fs" />
@@ -37,7 +43,6 @@
         <Compile Include="Menu\Menu.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
-        <AvaloniaResource Include="**\*.xaml" />
     </ItemGroup>
     
     <ItemGroup>

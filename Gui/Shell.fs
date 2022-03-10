@@ -415,6 +415,7 @@ type MainWindow() as this =
         base.MinHeight <- Theme.window.height
         base.MinWidth <- Theme.window.width
         base.Title <- Theme.program
+        base.Icon <- Theme.icon
         this.HasSystemDecorations <- true
 
         // Can be turned on during debug
