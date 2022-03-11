@@ -6,6 +6,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Interactivity
 open Avalonia.Layout
 open Avalonia.Media
+open Avalonia.Styling
 
 open Gui
 open Utilities.Extensions
@@ -77,3 +78,23 @@ let imageButton (icon: IView<'a>) (onClick: RoutedEventArgs -> unit) : IView<But
          Button.margin Theme.spacing.small
          Button.onClick onClick
          Button.content icon ]
+
+let iconTextButton (icon: IView<'a>) (text: string) (onClick: RoutedEventArgs -> unit) : IView<Button> =
+    Button.create
+    <| [ Button.margin Theme.spacing.small
+         Button.onClick onClick
+         Button.content (
+             StackPanel.create [
+                 StackPanel.orientation Orientation.Horizontal
+                 StackPanel.spacing Theme.spacing.small
+                 StackPanel.children [
+                     icon
+                     TextBlock.create [
+                         TextBlock.fontSize Theme.font.h2
+                         TextBlock.text text
+                         TextBlock.verticalAlignment VerticalAlignment.Center
+                         TextBlock.horizontalAlignment HorizontalAlignment.Center
+                     ]
+                 ]
+             ]
+         ) ]

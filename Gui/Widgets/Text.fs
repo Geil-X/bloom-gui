@@ -11,7 +11,7 @@ let iconTitle icon name =
             TextBlock.fontSize Theme.font.h1
             TextBlock.verticalAlignment VerticalAlignment.Center
             TextBlock.text name
-            TextBlock.margin (Theme.spacing.small, 0., 0., 0.)
+            TextBlock.margin (Theme.spacing.medium, 0., 0., 0.)
         ]
 
     StackPanel.create [
@@ -19,5 +19,5 @@ let iconTitle icon name =
         StackPanel.horizontalAlignment HorizontalAlignment.Center
         StackPanel.orientation Orientation.Horizontal
         StackPanel.children [ icon; titleBlock ]
-        StackPanel.margin (0., Theme.spacing.medium)
+        StackPanel.margin (0., Theme.spacing.large)
     ]

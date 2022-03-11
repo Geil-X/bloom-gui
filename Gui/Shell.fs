@@ -217,13 +217,18 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                         state, Cmd.none
                 else
                     state, Cmd.none
-                    
+
         | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
             match flowerCommandsMsg with
             | FlowerCommands.ChangePercentage (id, percentage) ->
                 { state with
                       Flowers = Map.update id (Flower.setOpenPercent percentage) state.Flowers },
                 Cmd.none
+
+            | FlowerCommands.Home flowerId -> state, Cmd.none
+            | FlowerCommands.Open flowerId -> state, Cmd.none
+            | FlowerCommands.Close flowerId -> state, Cmd.none
+            | FlowerCommands.OpenTo flowerId -> state, Cmd.none
 
 
     | SimulationEvent event ->

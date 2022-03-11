@@ -9,7 +9,12 @@ open Gui.DataTypes
 open Gui.Widgets
 open Gui
 
-type Msg = ChangePercentage of Flower.Id * ClampedPercentage
+type Msg =
+    | ChangePercentage of Flower.Id * ClampedPercentage
+    | Home of Flower.Id
+    | Open of Flower.Id
+    | Close of Flower.Id
+    | OpenTo of Flower.Id
 
 let private openPercentageView (flower: Flower.State) (dispatch: Msg -> Unit) =
     Form.formElement
@@ -34,13 +39,22 @@ let private selectedNone =
            Orientation = Orientation.Horizontal
            Element = TextBlock.create [ TextBlock.text "None" ] |}
 
+let private commandButton name msg : IView =
+    Button.create [ Button.name name; Button.onClick msg ]
+
+let iconButton name icon msg dispatch =
+    Form.iconTextButton (icon Theme.colors.offWhite) name (fun _ -> dispatch msg)
+
 let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
     let children: IView list =
         match flowerOption with
         | Some flower ->
             [ Text.iconTitle (Icons.command Theme.colors.offWhite) "Commands"
-              openPercentageView flower dispatch
-               ]
+              iconButton "Home" Icons.home (Home flower.Id) dispatch
+              iconButton "Open" Icons.openIcon (Home flower.Id) dispatch
+              iconButton "Close" Icons.close (Home flower.Id) dispatch
+              iconButton "OpenTo" Icons.openTo (Home flower.Id) dispatch
+              openPercentageView flower dispatch ]
         | None -> [ selectedNone ]
 
     StackPanel.create [
