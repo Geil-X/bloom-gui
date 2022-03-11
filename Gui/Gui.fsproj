@@ -32,10 +32,11 @@
         <Compile Include="Events.fs" />
         <Compile Include="Theme.fs" />
         <Compile Include="Log.fs" />
+        <Compile Include="Types.fs" />
         <Compile Include="Widgets\Form.fs" />
         <Compile Include="Widgets\Icons.fs" />
         <Compile Include="Widgets\Dialogs.fs" />
-        <Compile Include="Types.fs" />
+        <Compile Include="Widgets\DockPanel.fs" />
         <Compile Include="Flower.fs" />
         <Compile Include="FlowerFile.fs" />
         <Compile Include="FlowerProperties.fs" />

@@ -394,13 +394,12 @@ let view (state: State) (dispatch: Msg -> unit) =
     let selected =
         Option.bind (fun id -> selectedFlower id state.Flowers) state.Selected
 
-
-    let panels: IView list =
-        [ View.withAttr (StackPanel.dock Dock.Top) (iconDock dispatch)
-          View.withAttr (StackPanel.dock Dock.Left) (FlowerProperties.view selected (FlowerPropertiesMsg >> dispatch))
-          simulationSpace state (Msg.SimulationEvent >> dispatch) ]
-
-    DockPanel.create [ DockPanel.children panels ]
+    DockPanel.create [ DockPanel.children 
+        [ DockPanel.child Dock.Top (iconDock dispatch)
+          DockPanel.child Dock.Left (FlowerProperties.view selected (FlowerPropertiesMsg >> dispatch))
+          simulationSpace state (Msg.SimulationEvent >> dispatch) 
+        ]
+    ]
 
 // ---- Main Window Creation ----
 
