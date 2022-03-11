@@ -13,7 +13,6 @@ open Extensions
 type Msg =
     | ChangeName of Flower.Id * string
     | ChangeI2cAddress of Flower.Id * string
-    | ChangePercentage of Flower.Id * ClampedPercentage
 
 
 let private nameView (flower: Flower.State) (dispatch: Msg -> Unit) =
@@ -41,23 +40,6 @@ let private i2cAddressView (flower: Flower.State) (dispatch: Msg -> Unit) =
                            ChangeI2cAddress(flower.Id, newAddress)
                            |> dispatch),
                        SubPatchOptions.OnChangeOf flower.Id
-                   )
-               ] |}
-
-let private openPercentageView (flower: Flower.State) (dispatch: Msg -> Unit) =
-    Form.formElement
-        {| Name = "Open Percentage"
-           Orientation = Orientation.Vertical
-           Element =
-               Slider.create [
-                   Slider.minimum 0.
-                   Slider.maximum 100.
-                   Slider.value (ClampedPercentage.inPercentage flower.OpenPercent)
-                   Slider.onValueChanged (
-                       (fun newPercent ->
-                           ChangePercentage(flower.Id, ClampedPercentage.percent newPercent)
-                           |> dispatch),
-                       SubPatchOptions.OnChangeOf(flower.Id)
                    )
                ] |}
 
@@ -92,17 +74,17 @@ let private selectedNone =
            Element = TextBlock.create [ TextBlock.text "None" ] |}
 
 let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
-    let properties: IView list =
+    let children: IView list =
         match flowerOption with
         | Some flower ->
-            [ nameView flower dispatch
+            [ Text.iconTitle (Icons.flower Theme.colors.offWhite) "Flower"
+              nameView flower dispatch
               i2cAddressView flower dispatch
-              openPercentageView flower dispatch
               positionView flower
               id flower ]
         | None -> [ selectedNone ]
 
     StackPanel.create [
-        StackPanel.children properties
+        StackPanel.children children
         StackPanel.minWidth 200.
     ]

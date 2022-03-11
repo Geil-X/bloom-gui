@@ -35,6 +35,7 @@ let palette =
        primaryLight = colors.lightYellow
        primaryLightest = colors.lighterYellow
        panelBackground = colors.darkGray
+       panelTitle = colors.gray
        panelAccent = colors.lightGray
        canvasBackground = colors.gray
        shadowColor = colors.lightGray |}
@@ -51,8 +52,6 @@ let window = {| height = 600.; width = 800. |}
 let font = {| h1 = 16.; h2 = 14.; normal = 12. |}
 
 let border = {| thickness = 1.; cornerRadius = 5. |}
-
-let creasePattern = {| maxLength = 500. |}
 
 let spacing =
     {| small = 4.

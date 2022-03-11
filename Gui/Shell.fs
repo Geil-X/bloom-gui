@@ -8,6 +8,7 @@ open Avalonia.FuncUI.Components.Hosts
 open Geometry
 open Gui
 open Gui.Menu
+open Gui.Panels
 open Gui.Widgets
 open Extensions
 
@@ -69,7 +70,8 @@ type SimulationEvent =
 
 
 type Msg =
-    | FlowerPropertiesMsg of FlowerProperties.Msg
+    | IconDockMsg of IconDock.Msg
+    | FlowerPanelMsg of FlowerPanel.Msg
     | Action of Action
     | SimulationEvent of SimulationEvent
     | MenuMsg of Menu.Msg
@@ -177,40 +179,51 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         | Menu.FileMsg msg ->
             match msg with
             | File.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
-            | File.OpenFile -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
             | File.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
+            | File.OpenFile -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
 
-    | FlowerPropertiesMsg msg ->
-        match msg with
-        | FlowerProperties.ChangeName (id, newName) ->
-            if Option.contains id state.Selected then
-                Log.verbose $"Updated flower '{Guid.shortName id}' with new name '{newName}'"
+    | IconDockMsg iconDockMsg ->
+        match iconDockMsg with
+        | IconDock.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
+        | IconDock.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
+        | IconDock.Open -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
+        | IconDock.NewFlower -> state, Cmd.ofMsg (Action.NewFlower |> Action)
 
-                { state with
-                      Flowers = Map.update id (Flower.setName newName) state.Flowers },
-                Cmd.none
-            else
-                state, Cmd.none
-
-        | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
-            if Option.contains id state.Selected then
-                match String.parseUint i2cAddressString with
-                | Some i2cAddress ->
-                    Log.verbose $"Updated flower '{Guid.shortName id}' with new I2C Address '{i2cAddress}'"
+    | FlowerPanelMsg flowerPanelMsg ->
+        match flowerPanelMsg with
+        | FlowerPanel.FlowerPropertiesMsg flowerPropertiesMsg ->
+            match flowerPropertiesMsg with
+            | FlowerProperties.ChangeName (id, newName) ->
+                if Option.contains id state.Selected then
+                    Log.verbose $"Updated flower '{Guid.shortName id}' with new name '{newName}'"
 
                     { state with
-                          Flowers = Map.update id (Flower.setI2cAddress i2cAddress) state.Flowers },
+                          Flowers = Map.update id (Flower.setName newName) state.Flowers },
                     Cmd.none
-                | None ->
-                    // Todo: handle invalid I2C Address
+                else
                     state, Cmd.none
-            else
-                state, Cmd.none
 
-        | FlowerProperties.ChangePercentage (id, percentage) ->
-            { state with
-                  Flowers = Map.update id (Flower.setOpenPercent percentage) state.Flowers },
-            Cmd.none
+            | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
+                if Option.contains id state.Selected then
+                    match String.parseUint i2cAddressString with
+                    | Some i2cAddress ->
+                        Log.verbose $"Updated flower '{Guid.shortName id}' with new I2C Address '{i2cAddress}'"
+
+                        { state with
+                              Flowers = Map.update id (Flower.setI2cAddress i2cAddress) state.Flowers },
+                        Cmd.none
+                    | None ->
+                        // Todo: handle invalid I2C Address
+                        state, Cmd.none
+                else
+                    state, Cmd.none
+                    
+        | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
+            match flowerCommandsMsg with
+            | FlowerCommands.ChangePercentage (id, percentage) ->
+                { state with
+                      Flowers = Map.update id (Flower.setOpenPercent percentage) state.Flowers },
+                Cmd.none
 
 
     | SimulationEvent event ->
@@ -328,22 +341,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 // ---- View Functions ----
 
 open Avalonia.FuncUI.Types
-open Avalonia.Layout
 open Avalonia.FuncUI.DSL
-
-let iconDock (dispatch: Msg -> Unit) =
-    let buttons: IView list =
-        [ Icons.newFile Theme.colors.offWhite, Action.NewFile
-          Icons.save Theme.colors.offWhite, Action.SaveAsDialog
-          Icons.load Theme.colors.offWhite, Action.OpenFileDialog
-          Icons.newIcon Theme.colors.offWhite, Action.NewFlower ]
-        |> List.map
-            (fun (icon, action) -> Form.imageButton icon (Event.handleEvent (Action action) >> dispatch) :> IView)
-
-    StackPanel.create [
-        StackPanel.orientation Orientation.Horizontal
-        StackPanel.children buttons
-    ]
 
 let drawFlower (state: State) (dispatch: FlowerPointerEvent -> Unit) (flower: Flower.State) : IView =
     let flowerState (flower: Flower.State) : Flower.Attribute option =
@@ -394,10 +392,11 @@ let view (state: State) (dispatch: Msg -> unit) =
     let selected =
         Option.bind (fun id -> selectedFlower id state.Flowers) state.Selected
 
-    DockPanel.create [ DockPanel.children 
-        [ DockPanel.child Dock.Top (iconDock dispatch)
-          DockPanel.child Dock.Left (FlowerProperties.view selected (FlowerPropertiesMsg >> dispatch))
-          simulationSpace state (Msg.SimulationEvent >> dispatch) 
+    DockPanel.create [
+        DockPanel.children [
+            DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
+            DockPanel.child Dock.Left (FlowerPanel.view selected (FlowerPanelMsg >> dispatch))
+            simulationSpace state (Msg.SimulationEvent >> dispatch)
         ]
     ]
 
@@ -413,7 +412,6 @@ type MainWindow() as this =
         base.Height <- Theme.window.height
         base.MinHeight <- Theme.window.height
         base.MinWidth <- Theme.window.width
-        base.Title <- Theme.program
         base.Icon <- Theme.icon
         this.HasSystemDecorations <- true
 

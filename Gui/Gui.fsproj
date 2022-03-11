@@ -9,6 +9,7 @@
     <ItemGroup>
         <AvaloniaResource Include="**\*.xaml" />
         <AvaloniaResource Include="Assets\*" />
+        <None Include="Assets\*" CopyToOutputDirectory="PreserveNewest" Link="Assets" />
     </ItemGroup>
 
     <ItemGroup>
@@ -37,9 +38,13 @@
         <Compile Include="Widgets\Icons.fs" />
         <Compile Include="Widgets\Dialogs.fs" />
         <Compile Include="Widgets\DockPanel.fs" />
+        <Compile Include="Widgets\Text.fs" />
         <Compile Include="Flower.fs" />
         <Compile Include="FlowerFile.fs" />
-        <Compile Include="FlowerProperties.fs" />
+        <Compile Include="Panels\FlowerProperties.fs" />
+        <Compile Include="Panels\FlowerCommands.fs" />
+        <Compile Include="Panels\FlowerPanel.fs" />
+        <Compile Include="Panels\IconDock.fs" />
         <Compile Include="Menu\File.fs" />
         <Compile Include="Menu\Menu.fs" />
         <Compile Include="Shell.fs" />
