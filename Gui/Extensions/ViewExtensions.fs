@@ -9,14 +9,14 @@ open System
 
 /// Add an attribute to an existing view
 let withAttr (attr: IAttr<'view>) (view: IView<'view>) =
-    { viewType = view.ViewType
-      attrs = attr :: view.Attrs }
+    { ViewType = view.ViewType
+      Attrs = attr :: view.Attrs }
     :> IView<'view>
 
 /// Add several attributes to an existing view
 let withAttrs (attrs: IAttr<'view> list) (view: IView<'view>) =
-    { viewType = view.ViewType
-      attrs = view.Attrs |> List.append attrs }
+    { ViewType = view.ViewType
+      Attrs = view.Attrs |> List.append attrs }
     :> IView<'view>
 
 /// Try to find a child control of a given name using breadth first search

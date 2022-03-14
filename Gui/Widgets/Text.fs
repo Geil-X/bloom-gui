@@ -1,11 +1,9 @@
 module Gui.Widgets.Text
 
-open System.Drawing
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
-open Avalonia.Media
 open Gui
 
 let iconTitle (icon: IView) (name: string) (color: string) =
@@ -13,7 +11,6 @@ let iconTitle (icon: IView) (name: string) (color: string) =
         TextBlock.create [
             TextBlock.classes ["h1"]
             TextBlock.fontSize Theme.font.h1
-            TextBlock.fontStyle FontStyle.Oblique
             TextBlock.foreground color
             TextBlock.verticalAlignment VerticalAlignment.Center
             TextBlock.text name
