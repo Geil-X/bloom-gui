@@ -421,8 +421,8 @@ type MainWindow() as this =
         base.Height <- Theme.window.height
         base.MinHeight <- Theme.window.height
         base.MinWidth <- Theme.window.width
-        base.Icon <- Theme.icon
-        this.HasSystemDecorations <- true
+        base.Icon <- Theme.icon ()
+        base.SystemDecorations <- SystemDecorations.Full
 
         // Can be turned on during debug
         // this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
