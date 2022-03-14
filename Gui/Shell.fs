@@ -92,6 +92,9 @@ let init () =
 let minMouseMovement = Length.pixels 10.
 let minMouseMovementSquared = Length.square minMouseMovement
 
+
+// ---- Flower Functions
+
 let selectedFlower id flowers : Flower.State option = Map.tryFind id flowers
 
 let newFile (state: State) (flowers: Flower.State seq) : State =
@@ -119,6 +122,14 @@ let addNewFlower (state: State) : State =
         |> Flower.setPosition (Point2D.pixels 100. 100.)
 
     addFlower flower state
+
+let updateFlower (id: Flower.Id) (property: string)  (f: 'a -> Flower.State -> Flower.State) (value: 'a) (state: State): State =
+    if Option.contains id state.Selected then
+        Log.verbose $"Updated flower '{Guid.shortName id}' with new {property} '{value}'"
+        { state with
+              Flowers = Map.update id (f value) state.Flowers }
+    else
+        state
 
 
 // ---- Update ----
@@ -194,41 +205,34 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         | FlowerPanel.FlowerPropertiesMsg flowerPropertiesMsg ->
             match flowerPropertiesMsg with
             | FlowerProperties.ChangeName (id, newName) ->
-                if Option.contains id state.Selected then
-                    Log.verbose $"Updated flower '{Guid.shortName id}' with new name '{newName}'"
-
-                    { state with
-                          Flowers = Map.update id (Flower.setName newName) state.Flowers },
-                    Cmd.none
-                else
-                    state, Cmd.none
+                updateFlower  id "Name" Flower.setName newName state, Cmd.none
 
             | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
-                if Option.contains id state.Selected then
                     match String.parseByte i2cAddressString with
                     | Some i2cAddress ->
-                        Log.verbose $"Updated flower '{Guid.shortName id}' with new I2C Address '{i2cAddress}'"
-
-                        { state with
-                              Flowers = Map.update id (Flower.setI2cAddress i2cAddress) state.Flowers },
-                        Cmd.none
+                        updateFlower id "I2C Address" Flower.setI2cAddress i2cAddress state, Cmd.none
+                        
                     | None ->
                         // Todo: handle invalid I2C Address
                         state, Cmd.none
-                else
-                    state, Cmd.none
 
         | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
             match flowerCommandsMsg with
             | FlowerCommands.ChangePercentage (id, percentage) ->
-                { state with
-                      Flowers = Map.update id (Flower.setOpenPercent percentage) state.Flowers },
-                Cmd.none
-
-            | FlowerCommands.Home flowerId -> state, Cmd.none
-            | FlowerCommands.Open flowerId -> state, Cmd.none
-            | FlowerCommands.Close flowerId -> state, Cmd.none
-            | FlowerCommands.OpenTo flowerId -> state, Cmd.none
+                updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
+                
+            | FlowerCommands.Home flowerId ->
+                Log.debug $"Sending 'Home' command to {Guid.shortName flowerId}"
+                state, Cmd.none
+            | FlowerCommands.Open flowerId -> 
+                Log.debug $"Sending 'Open' command to {Guid.shortName flowerId}"
+                state, Cmd.none
+            | FlowerCommands.Close flowerId -> 
+                Log.debug $"Sending 'Close' command to {Guid.shortName flowerId}"
+                state, Cmd.none
+            | FlowerCommands.OpenTo flowerId -> 
+                Log.debug $"Sending 'Open To' command to {Guid.shortName flowerId}"
+                state, Cmd.none
 
 
     | SimulationEvent event ->
