@@ -16,10 +16,13 @@ module ClampedPercentage =
     let oneHundred = percent 100.
 
 
-    // ---- Modifiers ----
+    // ---- Accessors ----
 
     /// Get the percentage out of 1
     let inDecimal (ClampedPercentage p: ClampedPercentage) = p
 
     /// Get the percentage out of 100
     let inPercentage (ClampedPercentage p: ClampedPercentage) = p * 100.
+
+    /// Get the percentage out of 255
+    let inByte (ClampedPercentage p: ClampedPercentage) = p * 255. |> byte

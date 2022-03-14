@@ -31,7 +31,7 @@ type Attribute =
 type State =
     { Id: Id
       Name: string
-      I2cAddress: uint
+      I2cAddress: I2cAddress
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       OpenPercent: ClampedPercentage
@@ -44,7 +44,7 @@ let basic name =
     { Id = Guid.NewGuid()
       Name = name
       Position = Point2D.origin ()
-      I2cAddress = 0u
+      I2cAddress = 0uy
       Color = Color.hex Theme.palette.primary
       OpenPercent = ClampedPercentage.zero
       Radius = Length.pixels 20. }

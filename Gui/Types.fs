@@ -1,5 +1,7 @@
 namespace Gui
 
+type I2cAddress = byte
+
 type Direction =
     | Left
     | Top

@@ -34,6 +34,7 @@
         <Compile Include="Theme.fs" />
         <Compile Include="Log.fs" />
         <Compile Include="Types.fs" />
+        <Compile Include="FlowerCommand.fs" />
         <Compile Include="Widgets\Form.fs" />
         <Compile Include="Widgets\Icons.fs" />
         <Compile Include="Widgets\Dialogs.fs" />
@@ -58,6 +59,7 @@
         <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.4.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.4.0" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.4.0" />
+        <PackageReference Include="System.IO.Ports" Version="6.0.0" />
     </ItemGroup>
 
     <ItemGroup>

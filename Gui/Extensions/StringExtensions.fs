@@ -9,9 +9,9 @@ let parseInt (s: string) =
     | _ -> None
     
 /// Try parsing a string into an integer. Will return None on failure
-let parseUint (s: string) =
+let parseByte (s: string) =
     try
-        Some(uint s)
+        Some(byte s)
     with
     | _ -> None
     

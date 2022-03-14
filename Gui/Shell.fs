@@ -205,7 +205,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
             | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
                 if Option.contains id state.Selected then
-                    match String.parseUint i2cAddressString with
+                    match String.parseByte i2cAddressString with
                     | Some i2cAddress ->
                         Log.verbose $"Updated flower '{Guid.shortName id}' with new I2C Address '{i2cAddress}'"
 
