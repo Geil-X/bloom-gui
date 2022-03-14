@@ -94,7 +94,7 @@ let private id (flowerOption: Flower.State option) =
 
 let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
     let children: IView list =
-        [ Text.iconTitle (Icons.flower Theme.colors.offWhite) "Flower"
+        [ Text.iconTitle (Icons.flower Theme.palette.primary) "Flower" Theme.palette.foreground
           nameView flowerOption dispatch
           i2cAddressView flowerOption dispatch
           positionView flowerOption

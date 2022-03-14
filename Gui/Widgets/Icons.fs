@@ -9,7 +9,7 @@ open Avalonia.Controls.Shapes
 
 // ---- Builders ----
 
-let private icon (data: string) (color: string) : IView<Canvas> =
+let private icon (data: string) (color: string) : IView =
     Canvas.create [
         Canvas.width 24.0
         Canvas.height 24.0

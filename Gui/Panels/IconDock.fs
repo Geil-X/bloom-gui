@@ -5,6 +5,7 @@ open Avalonia.Layout
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 
+open Avalonia.Styling
 open Extensions
 open Gui
 open Gui.Widgets
@@ -17,14 +18,19 @@ type Msg =
     | NewFlower
 
 let private iconButtons =
-    [ Icons.newFile Theme.colors.offWhite, NewFile
-      Icons.save Theme.colors.offWhite, SaveAs
-      Icons.load Theme.colors.offWhite, Open
-      Icons.newIcon Theme.colors.offWhite, NewFlower ]
+    [ Icons.newFile, NewFile
+      Icons.save, SaveAs
+      Icons.load, Open
+      Icons.newIcon, NewFlower ]
 
 let view (dispatch: Msg -> unit) =
-    let button (icon, msg) =
-        Form.imageButton icon (Event.handleEvent msg >> dispatch) :> IView
+    let button (icon: string -> IView, msg) : IView =
+        Button.create [
+            Button.padding Theme.spacing.small
+            Button.margin Theme.spacing.small
+            Button.onClick (Event.handleEvent msg >> dispatch)
+            Button.content (icon Theme.palette.primaryLightest)
+        ]
 
     let buttons: IView list = List.map button iconButtons
 

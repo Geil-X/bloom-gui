@@ -29,11 +29,32 @@ let colors =
        green = "#18AF6E" |}
 
 let palette =
-    {| primaryDarkest = colors.darkerYellow
-       primaryDark = colors.darkYellow
-       primary = colors.yellow
-       primaryLight = colors.lightYellow
-       primaryLightest = colors.lighterYellow
+    let darkest = Color.darken 0.2
+    let darken = Color.darken 0.1
+    let lighten = Color.lighten 0.1
+    let lightest = Color.lighten 0.2
+
+    let primary = Color.hex colors.yellow
+    let secondary = Color.hex colors.green
+    let tertiary = Color.hex colors.blue
+
+
+    {| foreground = colors.offWhite
+       primaryDarkest = darkest primary |> string
+       primaryDark = darken primary |> string
+       primary = primary |> string
+       primaryLight = lighten primary |> string
+       primaryLightest = lightest primary |> string
+       secondaryDarkest = darkest secondary |> string
+       secondaryDark = darken secondary |> string
+       secondary = secondary |> string
+       secondaryLight = lighten secondary |> string
+       secondaryLightest = lightest secondary |> string
+       tertiaryDarkest = darkest tertiary |> string
+       tertiaryDark = darken tertiary |> string
+       tertiary = tertiary |> string
+       tertiaryLight = lighten tertiary |> string
+       tertiaryLightest = lightest tertiary |> string
        panelBackground = colors.darkGray
        panelTitle = colors.gray
        panelAccent = colors.lightGray

@@ -49,12 +49,17 @@ let private openPercentageView (flowerOption: Flower.State option) (dispatch: Ms
 
 let iconButton name icon msg (flowerOption: Flower.State option) dispatch =
     match flowerOption with
-    | Some flower -> Form.iconTextButton (icon Theme.colors.offWhite) name (fun _ -> dispatch (msg flower.Id))
-    | None -> Form.iconTextButton (icon Theme.colors.offWhite) name (fun _ -> ())
+    | Some flower ->
+        Form.iconTextButton
+            (icon Theme.palette.secondary)
+            name
+            Theme.palette.foreground
+            (fun _ -> dispatch (msg flower.Id))
+    | None -> Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
 
 let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
     let children: IView list =
-        [ Text.iconTitle (Icons.command Theme.colors.offWhite) "Commands"
+        [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
           iconButton "Home" Icons.home Home flowerOption dispatch
           iconButton "Open" Icons.openIcon Open flowerOption dispatch
           iconButton "Close" Icons.close Close flowerOption dispatch

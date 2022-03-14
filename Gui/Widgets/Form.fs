@@ -6,7 +6,6 @@ open Avalonia.FuncUI.Types
 open Avalonia.Interactivity
 open Avalonia.Layout
 open Avalonia.Media
-open Avalonia.Styling
 
 open Gui
 open Utilities.Extensions
@@ -72,14 +71,15 @@ let dropdownSelection
                     ComboBox.onSelectedItemChanged (tryUnbox >> Option.iter state.OnSelected) ] |}
 
 
-let imageButton (icon: IView<'a>) (onClick: RoutedEventArgs -> unit) : IView<Button> =
+let imageButton (icon: IView) (color: string) (onClick: RoutedEventArgs -> unit) : IView<Button> =
     Button.create
     <| [ Button.padding Theme.spacing.small
          Button.margin Theme.spacing.small
+         Button.foreground color
          Button.onClick onClick
          Button.content icon ]
 
-let iconTextButton (icon: IView<'a>) (text: string) (onClick: RoutedEventArgs -> unit) : IView<Button> =
+let iconTextButton (icon: IView) (text: string) (color: string) (onClick: RoutedEventArgs -> unit) : IView<Button> =
     Button.create
     <| [ Button.margin Theme.spacing.small
          Button.onClick onClick
@@ -91,6 +91,7 @@ let iconTextButton (icon: IView<'a>) (text: string) (onClick: RoutedEventArgs ->
                      icon
                      TextBlock.create [
                          TextBlock.fontSize Theme.font.h2
+                         TextBlock.foreground color
                          TextBlock.text text
                          TextBlock.verticalAlignment VerticalAlignment.Center
                          TextBlock.horizontalAlignment HorizontalAlignment.Center
