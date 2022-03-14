@@ -1,13 +1,11 @@
 module Gui.FlowerCommand
 
-open System.IO
-
 open System.IO.Ports
 open System.Threading.Tasks
 open Gui.DataTypes
 
 
-type FlowerCommand =
+type Command =
     | Home
     | Open
     | Close
@@ -38,7 +36,7 @@ let openSerialPort (port: string) (baud: int) : Task<SerialPort> =
 
 let private packetSize = 2
 
-let private packet (command: FlowerCommand) : Packet =
+let private packet (command: Command) : Packet =
     match command with
     | Home -> [ byte CommandId.Home ]
     | Open -> [ byte CommandId.Open ]
@@ -47,5 +45,5 @@ let private packet (command: FlowerCommand) : Packet =
         [ byte CommandId.OpenTo
           ClampedPercentage.inByte clampedPercentage ]
 
-let sendCommand (serialPort: SerialPort) (address: I2cAddress) (command: FlowerCommand) : Task<unit> =
+let sendCommand (serialPort: SerialPort) (address: I2cAddress) (command: Command) : Task<unit> =
     task { serialPort.WriteLine(address :: packet command |> string) }

@@ -1,10 +1,11 @@
 module Gui.Panels.FlowerCommands
 
-open System
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
+open System
+open System.IO.Ports
 
 open Gui.DataTypes
 open Gui.Widgets
@@ -12,11 +13,31 @@ open Gui
 open Extensions
 
 type Msg =
+    | ChangePort of string
     | ChangePercentage of Flower.Id * ClampedPercentage
     | Home of Flower.Id
     | Open of Flower.Id
     | Close of Flower.Id
     | OpenTo of Flower.Id
+
+let private serialPortView (selected: string option) dispatch =
+    let ports = SerialPort.GetPortNames()
+
+
+    Form.formElement
+        {| Name = "Serial Port"
+           Orientation = Orientation.Vertical
+           Element =
+               ComboBox.create [
+                   ComboBox.dataItems ports
+                   ComboBox.onSelectedIndexChanged
+                       (fun index ->
+                           match Array.tryItem index ports with
+                           | Some port -> ChangePort port |> dispatch
+                           | None -> ())
+                   if Option.isSome selected then
+                       ComboBox.selectedItem selected.Value
+               ] |}
 
 let private openPercentageView (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
     let slider =
@@ -60,9 +81,10 @@ let iconButton name icon msg (flowerOption: Flower.State option) dispatch =
         Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
         |> View.withAttr (Button.isEnabled false)
 
-let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
+let view (flowerOption: Flower.State option) (port: string option) (dispatch: Msg -> Unit) =
     let children: IView list =
         [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
+          serialPortView port dispatch
           iconButton "Home" Icons.home Home flowerOption dispatch
           iconButton "Open" Icons.openIcon Open flowerOption dispatch
           iconButton "Close" Icons.close Close flowerOption dispatch

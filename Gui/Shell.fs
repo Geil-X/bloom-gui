@@ -19,7 +19,8 @@ type State =
     { CanvasSize: Size<Pixels>
       Flowers: Map<Flower.Id, Flower.State>
       FlowerInteraction: FlowerInteraction
-      Selected: Flower.Id option }
+      Selected: Flower.Id option
+      Port: string option }
 
 and FlowerInteraction =
     | Hovering of Flower.Id
@@ -83,7 +84,8 @@ let init () =
     { CanvasSize = Size.create Length.zero Length.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
-      Selected = None },
+      Selected = None
+      Port = None },
     Cmd.batch []
 
 
@@ -123,9 +125,16 @@ let addNewFlower (state: State) : State =
 
     addFlower flower state
 
-let updateFlower (id: Flower.Id) (property: string)  (f: 'a -> Flower.State -> Flower.State) (value: 'a) (state: State): State =
+let updateFlower
+    (id: Flower.Id)
+    (property: string)
+    (f: 'a -> Flower.State -> Flower.State)
+    (value: 'a)
+    (state: State)
+    : State =
     if Option.contains id state.Selected then
         Log.verbose $"Updated flower '{Guid.shortName id}' with new {property} '{value}'"
+
         { state with
               Flowers = Map.update id (f value) state.Flowers }
     else
@@ -204,33 +213,35 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         match flowerPanelMsg with
         | FlowerPanel.FlowerPropertiesMsg flowerPropertiesMsg ->
             match flowerPropertiesMsg with
-            | FlowerProperties.ChangeName (id, newName) ->
-                updateFlower  id "Name" Flower.setName newName state, Cmd.none
+            | FlowerProperties.ChangeName (id, newName) -> updateFlower id "Name" Flower.setName newName state, Cmd.none
 
             | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
-                    match String.parseByte i2cAddressString with
-                    | Some i2cAddress ->
-                        updateFlower id "I2C Address" Flower.setI2cAddress i2cAddress state, Cmd.none
-                        
-                    | None ->
-                        // Todo: handle invalid I2C Address
-                        state, Cmd.none
+                match String.parseByte i2cAddressString with
+                | Some i2cAddress -> updateFlower id "I2C Address" Flower.setI2cAddress i2cAddress state, Cmd.none
+
+                | None ->
+                    // Todo: handle invalid I2C Address
+                    state, Cmd.none
 
         | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
             match flowerCommandsMsg with
+            | FlowerCommands.ChangePort newPort ->
+                Log.debug $"Change serial port to {newPort}"
+                { state with Port = Some newPort }, Cmd.none
+                
             | FlowerCommands.ChangePercentage (id, percentage) ->
                 updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
-                
+
             | FlowerCommands.Home flowerId ->
                 Log.debug $"Sending 'Home' command to {Guid.shortName flowerId}"
                 state, Cmd.none
-            | FlowerCommands.Open flowerId -> 
+            | FlowerCommands.Open flowerId ->
                 Log.debug $"Sending 'Open' command to {Guid.shortName flowerId}"
                 state, Cmd.none
-            | FlowerCommands.Close flowerId -> 
+            | FlowerCommands.Close flowerId ->
                 Log.debug $"Sending 'Close' command to {Guid.shortName flowerId}"
                 state, Cmd.none
-            | FlowerCommands.OpenTo flowerId -> 
+            | FlowerCommands.OpenTo flowerId ->
                 Log.debug $"Sending 'Open To' command to {Guid.shortName flowerId}"
                 state, Cmd.none
 
@@ -404,7 +415,7 @@ let view (state: State) (dispatch: Msg -> unit) =
     DockPanel.create [
         DockPanel.children [
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
-            DockPanel.child Dock.Left (FlowerPanel.view selected (FlowerPanelMsg >> dispatch))
+            DockPanel.child Dock.Left (FlowerPanel.view selected state.Port (FlowerPanelMsg >> dispatch))
             simulationSpace state (Msg.SimulationEvent >> dispatch)
         ]
     ]
