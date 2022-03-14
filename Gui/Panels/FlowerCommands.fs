@@ -9,6 +9,7 @@ open Avalonia.Layout
 open Gui.DataTypes
 open Gui.Widgets
 open Gui
+open Extensions
 
 type Msg =
     | ChangePercentage of Flower.Id * ClampedPercentage
@@ -55,7 +56,9 @@ let iconButton name icon msg (flowerOption: Flower.State option) dispatch =
             name
             Theme.palette.foreground
             (fun _ -> dispatch (msg flower.Id))
-    | None -> Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
+    | None ->
+        Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
+        |> View.withAttr (Button.isEnabled false)
 
 let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
     let children: IView list =
