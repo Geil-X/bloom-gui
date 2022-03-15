@@ -1,6 +1,7 @@
 module Gui.Shell
 
 open Avalonia.Controls
+open Avalonia.Input
 open Elmish
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.Components.Hosts
@@ -58,8 +59,11 @@ type SimulationEvent =
 
 
 type Msg =
+    // Shell Messages
     | Action of Action
     | ActionError of ActionError
+    | KeyRelease of KeyEventArgs
+    // Msg Mapping
     | SimulationEvent of SimulationEvent
     | MenuMsg of Menu.Msg
     | IconDockMsg of IconDock.Msg
@@ -83,7 +87,7 @@ let minMouseMovement = Length.pixels 10.
 let minMouseMovementSquared = Length.square minMouseMovement
 
 
-// ---- Flower Functions
+// ---- Flower Functions ----
 
 let selectedFlower id flowers : Flower option = Map.tryFind id flowers
 
@@ -125,225 +129,271 @@ let updateFlower (id: Flower Id) (property: string) (f: 'a -> Flower -> Flower) 
 
 // ---- Update ----
 
-let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
+let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<Msg> =
+    match action with
+    // ---- File Actions ----
+
+    | Action.NewFile -> newFile state Seq.empty, Cmd.none
+
+    | Action.SaveAsDialog -> state, Cmd.OfTask.perform FlowerFile.saveFileDialog window (Action.SaveAs >> Action)
+
+
+    | Action.SaveAs path ->
+        state,
+        Cmd.OfTask.attempt
+            FlowerFile.writeFlowerFile
+            (path, Map.values state.Flowers)
+            (ActionError.ErrorSavingFile >> ActionError)
+
+
+    | Action.OpenFileDialog ->
+        state,
+        Cmd.OfTask.perform
+            FlowerFile.openFileDialog
+            window
+            (Option.split (Action.OpenFile >> Action) (ActionError.ErrorPickingFileToOpen |> ActionError))
+
+
+    | Action.OpenFile path ->
+        state,
+        Cmd.OfTask.either
+            FlowerFile.loadFlowerFile
+            path
+            (Action.FileOpened >> Action)
+            (ActionError.CouldNotOpenFile >> ActionError)
+
+    | Action.FileOpened flowers -> newFile state flowers, Cmd.none
+
+    // ---- Flower Actions ----
+
+    | Action.NewFlower -> addNewFlower state, Cmd.none
+
+    | Action.SelectFlower id -> { state with Selected = Some id }, Cmd.none
+
+    | Action.DeselectFlower -> { state with Selected = None }, Cmd.none
+
+    | Action.DeleteFlower ->
+        match state.Selected with
+        | Some id ->
+            { state with
+                  Flowers = Map.remove id state.Flowers
+                  Selected = None },
+            Cmd.none
+
+        | None -> state, Cmd.none
+
+
+let updateActionError (error: ActionError) (state: State) : State * Cmd<Msg> =
+    match error with
+    | ActionError.ErrorPickingSaveFile ->
+        Log.error "Could not pick file to save as"
+        state, Cmd.none
+
+    | ActionError.ErrorSavingFile exn ->
+        Log.error $"Could not save file {exn}"
+        state, Cmd.none
+
+    | ActionError.ErrorPickingFileToOpen ->
+        Log.error "Could not pick file to open"
+        state, Cmd.none
+
+    | ActionError.CouldNotOpenFile exn ->
+        Log.error $"Could not open file\n{exn}"
+        state, Cmd.none
+
+let handleKeyEvent (e: KeyEventArgs) (state: State) : State * Cmd<Msg> =
+    match e.Key with
+    | Key.Escape ->
+        e.Handled <- true
+        state, Cmd.ofMsg (Action Action.DeselectFlower)
+
+    | Key.Delete ->
+        e.Handled <- true
+        state, Cmd.ofMsg (Action Action.DeleteFlower)
+
+    | Key.Back ->
+        e.Handled <- true
+        state, Cmd.ofMsg (Action Action.DeleteFlower)
+
+    | _ -> state, Cmd.none
+
+
+let updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
-    | Action action ->
-        match action with
-        | Action.NewFile -> newFile state Seq.empty, Cmd.none
+    | Menu.FileMsg msg ->
+        match msg with
+        | File.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
+        | File.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
+        | File.OpenFile -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
 
-        | Action.SaveAsDialog -> state, Cmd.OfTask.perform FlowerFile.saveFileDialog window (Action.SaveAs >> Action)
+let updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg> =
+    match msg with
+    | IconDock.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
+    | IconDock.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
+    | IconDock.Open -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
+    | IconDock.NewFlower -> state, Cmd.ofMsg (Action.NewFlower |> Action)
 
+let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
+    match msg with
+    | FlowerPanel.FlowerPropertiesMsg flowerPropertiesMsg ->
+        match flowerPropertiesMsg with
+        | FlowerProperties.ChangeName (id, newName) -> updateFlower id "Name" Flower.setName newName state, Cmd.none
 
-        | Action.SaveAs path ->
-            state,
-            Cmd.OfTask.attempt
-                FlowerFile.writeFlowerFile
-                (path, Map.values state.Flowers)
-                (ActionError.ErrorSavingFile >> ActionError)
+        | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
+            match String.parseByte i2cAddressString with
+            | Some i2cAddress -> updateFlower id "I2C Address" Flower.setI2cAddress i2cAddress state, Cmd.none
 
+            | None ->
+                // Todo: handle invalid I2C Address
+                state, Cmd.none
 
-        | Action.OpenFileDialog ->
-            state,
-            Cmd.OfTask.perform
-                FlowerFile.openFileDialog
-                window
-                (Option.split (Action.OpenFile >> Action) (ActionError.ErrorPickingFileToOpen |> ActionError))
+    | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
+        match flowerCommandsMsg with
+        | FlowerCommands.ChangePort newPort ->
+            Log.debug $"Change serial port to {newPort}"
+            { state with Port = Some newPort }, Cmd.none
 
+        | FlowerCommands.ChangePercentage (id, percentage) ->
+            updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
 
-        | Action.OpenFile path ->
-            state,
-            Cmd.OfTask.either
-                FlowerFile.loadFlowerFile
-                path
-                (Action.FileOpened >> Action)
-                (ActionError.CouldNotOpenFile >> ActionError)
-
-        | Action.FileOpened flowers -> newFile state flowers, Cmd.none
-
-
-        | Action.NewFlower -> addNewFlower state, Cmd.none
-
-    | ActionError error ->
-        match error with
-        | ActionError.ErrorPickingSaveFile ->
-            Log.error "Could not pick file to save as"
+        | FlowerCommands.Home flowerId ->
+            Log.debug $"Sending 'Home' command to {Id.shortName flowerId}"
             state, Cmd.none
 
-        | ActionError.ErrorSavingFile exn ->
-            Log.error $"Could not save file {exn}"
+        | FlowerCommands.Open flowerId ->
+            Log.debug $"Sending 'Open' command to {Id.shortName flowerId}"
             state, Cmd.none
 
-        | ActionError.ErrorPickingFileToOpen ->
-            Log.error "Could not pick file to open"
+        | FlowerCommands.Close flowerId ->
+            Log.debug $"Sending 'Close' command to {Id.shortName flowerId}"
             state, Cmd.none
 
-        | ActionError.CouldNotOpenFile exn ->
-            Log.error $"Could not open file\n{exn}"
+        | FlowerCommands.OpenTo flowerId ->
+            Log.debug $"Sending 'Open To' command to {Id.shortName flowerId}"
             state, Cmd.none
 
+let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
+    match msg with
+    | BackgroundEvent backgroundEvent ->
+        match backgroundEvent with
+        | BackgroundEvent.OnReleased _ ->
+            Log.verbose "Background: Pointer Released"
 
-    | MenuMsg menuMsg ->
-        match menuMsg with
-        | Menu.FileMsg msg ->
-            match msg with
-            | File.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
-            | File.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
-            | File.OpenFile -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
+            { state with
+                  FlowerInteraction = NoInteraction
+                  Selected = None },
+            Cmd.none
 
-    | IconDockMsg iconDockMsg ->
-        match iconDockMsg with
-        | IconDock.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
-        | IconDock.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
-        | IconDock.Open -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
-        | IconDock.NewFlower -> state, Cmd.ofMsg (Action.NewFlower |> Action)
+    | FlowerEvent flowerEvent ->
+        match flowerEvent with
+        | FlowerPointerEvent.OnEnter (flowerId, _) ->
+            Log.verbose $"Flower: Hovering {Id.shortName flowerId}"
 
-    | FlowerPanelMsg flowerPanelMsg ->
-        match flowerPanelMsg with
-        | FlowerPanel.FlowerPropertiesMsg flowerPropertiesMsg ->
-            match flowerPropertiesMsg with
-            | FlowerProperties.ChangeName (id, newName) -> updateFlower id "Name" Flower.setName newName state, Cmd.none
+            { state with
+                  FlowerInteraction = Hovering flowerId },
+            Cmd.none
 
-            | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
-                match String.parseByte i2cAddressString with
-                | Some i2cAddress -> updateFlower id "I2C Address" Flower.setI2cAddress i2cAddress state, Cmd.none
+        | FlowerPointerEvent.OnLeave (flowerId, _) ->
+            Log.verbose $"Flower: Pointer Left {Id.shortName flowerId}"
+
+            { state with
+                  FlowerInteraction = NoInteraction },
+            Cmd.none
+
+        | FlowerPointerEvent.OnMoved (flowerId, e) ->
+            match state.FlowerInteraction with
+            | Pressing pressing when
+                pressing.Id = flowerId
+                && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
+                ->
+                Log.verbose $"Flower: Start Dragging {Id.shortName flowerId}"
+
+                let delta =
+                    pressing.InitialFlowerPosition
+                    - pressing.MousePressedLocation
+
+                let newPosition = e.Position + delta
+
+                { state with
+                      Flowers = Map.update pressing.Id (Flower.setPosition newPosition) state.Flowers
+                      FlowerInteraction =
+                          Dragging
+                              { Id = pressing.Id
+                                DraggingDelta = delta } },
+                Cmd.none
+
+            | Dragging draggingData ->
+                // Continue dragging
+                let newPosition = e.Position + draggingData.DraggingDelta
+
+                { state with
+                      Flowers = Map.update draggingData.Id (Flower.setPosition newPosition) state.Flowers },
+                Cmd.none
+
+            // Take no action
+            | _ -> state, Cmd.none
+
+
+        | FlowerPointerEvent.OnPressed (flowerId, e) ->
+            if InputTypes.isPrimary e.MouseButton then
+                let maybeFlower = selectedFlower flowerId state.Flowers
+
+                match maybeFlower with
+                | Some pressed ->
+                    Log.verbose $"Flower: Pressed {Id.shortName pressed.Id}"
+
+                    { state with
+                          FlowerInteraction =
+                              Pressing
+                                  { Id = flowerId
+                                    MousePressedLocation = e.Position
+                                    InitialFlowerPosition = pressed.Position } },
+                    Cmd.none
 
                 | None ->
-                    // Todo: handle invalid I2C Address
+                    Log.error "Could not find the flower that was pressed"
                     state, Cmd.none
-
-        | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
-            match flowerCommandsMsg with
-            | FlowerCommands.ChangePort newPort ->
-                Log.debug $"Change serial port to {newPort}"
-                { state with Port = Some newPort }, Cmd.none
-
-            | FlowerCommands.ChangePercentage (id, percentage) ->
-                updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
-
-            | FlowerCommands.Home flowerId ->
-                Log.debug $"Sending 'Home' command to {Id.shortName flowerId}"
-                state, Cmd.none
-            | FlowerCommands.Open flowerId ->
-                Log.debug $"Sending 'Open' command to {Id.shortName flowerId}"
-                state, Cmd.none
-            | FlowerCommands.Close flowerId ->
-                Log.debug $"Sending 'Close' command to {Id.shortName flowerId}"
-                state, Cmd.none
-            | FlowerCommands.OpenTo flowerId ->
-                Log.debug $"Sending 'Open To' command to {Id.shortName flowerId}"
+            else
                 state, Cmd.none
 
-
-    | SimulationEvent event ->
-        match event with
-        | BackgroundEvent backgroundEvent ->
-            match backgroundEvent with
-            | BackgroundEvent.OnReleased _ ->
-                Log.verbose "Background: Pointer Released"
-
-                { state with
-                      FlowerInteraction = NoInteraction
-                      Selected = None },
-                Cmd.none
-
-        | FlowerEvent flowerEvent ->
-            match flowerEvent with
-            | FlowerPointerEvent.OnEnter (flowerId, _) ->
-                Log.verbose $"Flower: Hovering {Id.shortName flowerId}"
-
-                { state with
-                      FlowerInteraction = Hovering flowerId },
-                Cmd.none
-
-            | FlowerPointerEvent.OnLeave (flowerId, _) ->
-                Log.verbose $"Flower: Pointer Left {Id.shortName flowerId}"
-
-                { state with
-                      FlowerInteraction = NoInteraction },
-                Cmd.none
-
-            | FlowerPointerEvent.OnMoved (flowerId, e) ->
+        | FlowerPointerEvent.OnReleased (flowerId, e) ->
+            if InputTypes.isPrimary e.MouseButton then
                 match state.FlowerInteraction with
-                | Pressing pressing when
-                    pressing.Id = flowerId
-                    && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
-                    ->
-                    Log.verbose $"Flower: Start Dragging {Id.shortName flowerId}"
-
-                    let delta =
-                        pressing.InitialFlowerPosition
-                        - pressing.MousePressedLocation
-
-                    let newPosition = e.Position + delta
+                | Dragging _ ->
+                    Log.verbose $"Flower: Dragging -> Hovering {Id.shortName flowerId}"
 
                     { state with
-                          Flowers = Map.update pressing.Id (Flower.setPosition newPosition) state.Flowers
-                          FlowerInteraction =
-                              Dragging
-                                  { Id = pressing.Id
-                                    DraggingDelta = delta } },
+                          FlowerInteraction = Hovering flowerId },
                     Cmd.none
 
-                | Dragging draggingData ->
-                    // Continue dragging
-                    let newPosition = e.Position + draggingData.DraggingDelta
+                | Pressing _ ->
+                    Log.verbose $"Flower: Selected {Id.shortName flowerId}"
 
                     { state with
-                          Flowers = Map.update draggingData.Id (Flower.setPosition newPosition) state.Flowers },
+                          FlowerInteraction = Hovering flowerId
+                          Selected = Some flowerId },
                     Cmd.none
 
-                // Take no action
-                | _ -> state, Cmd.none
 
-
-            | FlowerPointerEvent.OnPressed (flowerId, e) ->
-                if InputTypes.isPrimary e.MouseButton then
-                    let maybeFlower = selectedFlower flowerId state.Flowers
-
-                    match maybeFlower with
-                    | Some pressed ->
-                        Log.verbose $"Flower: Pressed {Id.shortName pressed.Id}"
-
-                        { state with
-                              FlowerInteraction =
-                                  Pressing
-                                      { Id = flowerId
-                                        MousePressedLocation = e.Position
-                                        InitialFlowerPosition = pressed.Position } },
-                        Cmd.none
-
-                    | None ->
-                        Log.error "Could not find the flower that was pressed"
-                        state, Cmd.none
-                else
+                | flowerEvent ->
+                    Log.warning $"Unhandled event {flowerEvent}"
                     state, Cmd.none
 
-            | FlowerPointerEvent.OnReleased (flowerId, e) ->
-                if InputTypes.isPrimary e.MouseButton then
-                    match state.FlowerInteraction with
-                    | Dragging _ ->
-                        Log.verbose $"Flower: Dragging -> Hovering {Id.shortName flowerId}"
+            // Non primary button pressed
+            else
+                state, Cmd.none
 
-                        { state with
-                              FlowerInteraction = Hovering flowerId },
-                        Cmd.none
-
-                    | Pressing _ ->
-                        Log.verbose $"Flower: Selected {Id.shortName flowerId}"
-
-                        { state with
-                              FlowerInteraction = Hovering flowerId
-                              Selected = Some flowerId },
-                        Cmd.none
-
-
-                    | flowerEvent ->
-                        Log.warning $"Unhandled event {flowerEvent}"
-                        state, Cmd.none
-
-                // Non primary button pressed
-                else
-                    state, Cmd.none
+let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
+    match msg with
+    // Shell Messages
+    | Action action -> updateAction action state window
+    | ActionError error -> updateActionError error state
+    | KeyRelease keyEvent -> handleKeyEvent keyEvent state
+    // Msg Mapping
+    | MenuMsg menuMsg -> updateMenu menuMsg state
+    | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
+    | FlowerPanelMsg flowerPanelMsg -> updateFlowerPanel flowerPanelMsg state
+    | SimulationEvent event -> updateSimulationEvent event state
 
 
 // ---- View Functions ----
@@ -401,6 +451,7 @@ let view (state: State) (dispatch: Msg -> unit) =
         Option.bind (fun id -> selectedFlower id state.Flowers) state.Selected
 
     DockPanel.create [
+        DockPanel.onKeyUp (KeyRelease >> dispatch)
         DockPanel.children [
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
             DockPanel.child Dock.Left (FlowerPanel.view selected state.Port (FlowerPanelMsg >> dispatch))
