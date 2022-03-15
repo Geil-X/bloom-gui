@@ -1,5 +1,6 @@
 module Gui.Shell
 
+open System
 open Avalonia.Controls
 open Avalonia.Input
 open Elmish
@@ -63,6 +64,7 @@ type Msg =
     | Action of Action
     | ActionError of ActionError
     | KeyRelease of KeyEventArgs
+
     // Msg Mapping
     | SimulationEvent of SimulationEvent
     | MenuMsg of Menu.Msg
@@ -190,8 +192,12 @@ let updateActionError (error: ActionError) (state: State) : State * Cmd<Msg> =
         state, Cmd.none
 
     | ActionError.ErrorSavingFile exn ->
-        Log.error $"Could not save file {exn}"
-        state, Cmd.none
+        match exn with
+        // No save file was selected, do not report an error on this exception
+        | :? AggregateException -> state, Cmd.none
+        | _ ->
+            Log.error $"Could not save file \n{exn}"
+            state, Cmd.none
 
     | ActionError.ErrorPickingFileToOpen ->
         Log.error "Could not pick file to open"
