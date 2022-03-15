@@ -21,7 +21,7 @@ let private iconButtons =
     [ Icons.newFile, NewFile
       Icons.save, SaveAs
       Icons.load, Open
-      Icons.newIcon, NewFlower ]
+      Icons.newFlower, NewFlower ]
 
 let view (dispatch: Msg -> unit) =
     let button (icon: string -> IView, msg) : IView =

@@ -39,11 +39,12 @@
         <Compile Include="DataTypes\Types.fs" />
         <Compile Include="InputTypes.fs" />
         <Compile Include="FlowerCommand.fs" />
-        <Compile Include="Widgets\Form.fs" />
-        <Compile Include="Widgets\Icons.fs" />
-        <Compile Include="Widgets\Dialogs.fs" />
-        <Compile Include="Widgets\DockPanel.fs" />
-        <Compile Include="Widgets\Text.fs" />
+        <Compile Include="Views\Form.fs" />
+        <Compile Include="Views\Icons.fs" />
+        <Compile Include="Views\Dialogs.fs" />
+        <Compile Include="Views\DockPanel.fs" />
+        <Compile Include="Views\Text.fs" />
+        <Compile Include="Views\StackPanel.fs" />
         <Compile Include="FlowerFile.fs" />
         <Compile Include="Panels\FlowerProperties.fs" />
         <Compile Include="Panels\FlowerCommands.fs" />
