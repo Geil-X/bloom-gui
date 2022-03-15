@@ -14,11 +14,11 @@ open Extensions
 
 type Msg =
     | ChangePort of string
-    | ChangePercentage of Flower.Id * ClampedPercentage
-    | Home of Flower.Id
-    | Open of Flower.Id
-    | Close of Flower.Id
-    | OpenTo of Flower.Id
+    | ChangePercentage of Flower Id * ClampedPercentage
+    | Home of Flower Id
+    | Open of Flower Id
+    | Close of Flower Id
+    | OpenTo of Flower Id
 
 let private serialPortView (selected: string option) dispatch =
     let ports = SerialPort.GetPortNames()
@@ -39,7 +39,7 @@ let private serialPortView (selected: string option) dispatch =
                        ComboBox.selectedItem selected.Value
                ] |}
 
-let private openPercentageView (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
+let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
     let slider =
         match flowerOption with
         | Some flower ->
@@ -69,7 +69,7 @@ let private openPercentageView (flowerOption: Flower.State option) (dispatch: Ms
            Orientation = Orientation.Vertical
            Element = slider |}
 
-let iconButton name icon msg (flowerOption: Flower.State option) dispatch =
+let iconButton name icon msg (flowerOption: Flower option) dispatch =
     match flowerOption with
     | Some flower ->
         Form.iconTextButton
@@ -81,7 +81,7 @@ let iconButton name icon msg (flowerOption: Flower.State option) dispatch =
         Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
         |> View.withAttr (Button.isEnabled false)
 
-let view (flowerOption: Flower.State option) (port: string option) (dispatch: Msg -> Unit) =
+let view (flowerOption: Flower option) (port: string option) (dispatch: Msg -> Unit) =
     let children: IView list =
         [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView port dispatch

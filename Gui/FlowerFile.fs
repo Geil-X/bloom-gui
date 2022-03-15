@@ -5,6 +5,7 @@ open System.IO
 open System.Threading.Tasks
 open Avalonia.Controls
 
+open Gui.DataTypes
 open Gui.Widgets
 open Extensions
 
@@ -36,7 +37,7 @@ let private readFile path (deserializer: StreamReader -> 'T) : Task<'T> =
 
 /// TODO: catch json deserialization errors
 // Note: Can throw an exception
-let loadFlowerFile path : Task<Flower.State seq> = readFile path Flower.deserialize
+let loadFlowerFile path : Task<Flower seq> = readFile path Flower.deserialize
 
 // Note: Can throw an exception
 let private writeFile path (serializer: StreamWriter -> 'T -> Unit) (data: 'T) : Task<unit> =
@@ -46,4 +47,4 @@ let private writeFile path (serializer: StreamWriter -> 'T -> Unit) (data: 'T) :
     }
 
 /// Note: Can throw an exception
-let writeFlowerFile (path, flowers: Flower.State seq) : Task<unit> = writeFile path Flower.serialize flowers
+let writeFlowerFile (path, flowers: Flower seq) : Task<unit> = writeFile path Flower.serialize flowers

@@ -6,12 +6,12 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 
 open Geometry
+open Gui.DataTypes
 open Gui.Widgets
-open Extensions
 
 type Msg =
-    | ChangeName of Flower.Id * string
-    | ChangeI2cAddress of Flower.Id * string
+    | ChangeName of Flower Id * string
+    | ChangeI2cAddress of Flower Id * string
 
 // ---- Helper Functions ----
 
@@ -21,7 +21,7 @@ let disabledTextBox =
 
 // ---- Form Elements ----
 
-let private nameView (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
+let private nameView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
     let nameTextBox =
         match flowerOption with
         | Some flower ->
@@ -40,7 +40,7 @@ let private nameView (flowerOption: Flower.State option) (dispatch: Msg -> Unit)
            Orientation = Orientation.Vertical
            Element = nameTextBox |}
 
-let private i2cAddressView (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
+let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
     let i2cTextBox =
         match flowerOption with
         | Some flower ->
@@ -58,7 +58,7 @@ let private i2cAddressView (flowerOption: Flower.State option) (dispatch: Msg ->
            Orientation = Orientation.Vertical
            Element = i2cTextBox |}
 
-let private positionView (flowerOption: Flower.State option) =
+let private positionView (flowerOption: Flower option) =
     let rounded l = (Length.roundTo 0 l).value ()
 
     let positionToString (position: Point2D<Pixels, UserSpace>) =
@@ -78,12 +78,12 @@ let private positionView (flowerOption: Flower.State option) =
            Orientation = Orientation.Horizontal
            Element = positionText |}
 
-let private id (flowerOption: Flower.State option) =
+let private id (flowerOption: Flower option) =
     let idText =
         match flowerOption with
         | Some flower ->
             TextBlock.create [
-                TextBlock.text (Guid.shortName flower.Id)
+                TextBlock.text (Id.shortName flower.Id)
             ]
         | None -> TextBlock.create [ TextBlock.text "0000000" ]
 
@@ -92,7 +92,7 @@ let private id (flowerOption: Flower.State option) =
            Orientation = Orientation.Horizontal
            Element = idText |}
 
-let view (flowerOption: Flower.State option) (dispatch: Msg -> Unit) =
+let view (flowerOption: Flower option) (dispatch: Msg -> Unit) =
     let children: IView list =
         [ Text.iconTitle (Icons.flower Theme.palette.primary) "Flower" Theme.palette.foreground
           nameView flowerOption dispatch
