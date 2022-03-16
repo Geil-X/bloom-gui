@@ -1,4 +1,4 @@
-module Gui.Color
+module Extensions.Color
 
 open Avalonia.Media
 

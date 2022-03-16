@@ -86,6 +86,7 @@ let iconTextButton (icon: IView) (text: string) (color: string) (onClick: Routed
          Button.content (
              StackPanel.create [
                  StackPanel.orientation Orientation.Horizontal
+                 StackPanel.horizontalAlignment HorizontalAlignment.Left
                  StackPanel.spacing Theme.spacing.small
                  StackPanel.children [
                      icon
@@ -94,7 +95,6 @@ let iconTextButton (icon: IView) (text: string) (color: string) (onClick: Routed
                          TextBlock.foreground color
                          TextBlock.text text
                          TextBlock.verticalAlignment VerticalAlignment.Center
-                         TextBlock.horizontalAlignment HorizontalAlignment.Center
                      ]
                  ]
              ]

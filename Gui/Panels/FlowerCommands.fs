@@ -19,6 +19,10 @@ type Msg =
     | Open of Flower Id
     | Close of Flower Id
     | OpenTo of Flower Id
+    | Speed of Flower Id
+    | ChangeSpeed of Flower Id * uint
+    | Acceleration of Flower Id
+    | ChangeAcceleration of Flower Id * uint
 
 let private serialPortView (selected: string option) dispatch =
     let ports = SerialPort.GetPortNames()
@@ -39,6 +43,7 @@ let private serialPortView (selected: string option) dispatch =
                        ComboBox.selectedItem selected.Value
                ] |}
 
+
 let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
     let slider =
         match flowerOption with
@@ -57,7 +62,7 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> U
 
         | None ->
             Slider.create [
-                Slider.value 0
+                Slider.value 0.
                 Slider.minimum 0.
                 Slider.maximum 100.
                 Slider.isEnabled false
@@ -66,6 +71,64 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> U
 
     Form.formElement
         {| Name = "Open Percentage"
+           Orientation = Orientation.Vertical
+           Element = slider |}
+
+let private speedView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+    let slider =
+        match flowerOption with
+        | Some flower ->
+            Slider.create [
+                Slider.minimum 0.
+                Slider.maximum 10000.
+                Slider.value (float flower.Speed)
+                Slider.onValueChanged (
+                    (fun newSpeed -> ChangeSpeed(flower.Id, uint newSpeed) |> dispatch),
+                    SubPatchOptions.OnChangeOf flower.Id
+                )
+            ]
+
+        | None ->
+            Slider.create [
+                Slider.value 0.
+                Slider.minimum 0.
+                Slider.maximum 10000.
+                Slider.isEnabled false
+                Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
+            ]
+
+    Form.formElement
+        {| Name = "Speed"
+           Orientation = Orientation.Vertical
+           Element = slider |}
+
+let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+    let slider =
+        match flowerOption with
+        | Some flower ->
+            Slider.create [
+                Slider.minimum 0.
+                Slider.maximum 5000.
+                Slider.value (float flower.Acceleration)
+                Slider.onValueChanged (
+                    (fun newAcceleration ->
+                        ChangeAcceleration(flower.Id, uint newAcceleration)
+                        |> dispatch),
+                    SubPatchOptions.OnChangeOf flower.Id
+                )
+            ]
+
+        | None ->
+            Slider.create [
+                Slider.value 0.
+                Slider.minimum 0.
+                Slider.maximum 5000.
+                Slider.isEnabled false
+                Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
+            ]
+
+    Form.formElement
+        {| Name = "Acceleration"
            Orientation = Orientation.Vertical
            Element = slider |}
 
@@ -82,14 +145,18 @@ let iconButton name icon msg (flowerOption: Flower option) dispatch =
         |> View.withAttr (Button.isEnabled false)
 
 let view (flowerOption: Flower option) (port: string option) (dispatch: Msg -> Unit) =
-    let children: IView list =
+    let children : IView list =
         [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView port dispatch
           iconButton "Home" Icons.home Home flowerOption dispatch
           iconButton "Open" Icons.openIcon Open flowerOption dispatch
           iconButton "Close" Icons.close Close flowerOption dispatch
-          iconButton "OpenTo" Icons.openTo OpenTo flowerOption dispatch
-          openPercentageView flowerOption dispatch ]
+          iconButton "Open To" Icons.openTo OpenTo flowerOption dispatch
+          openPercentageView flowerOption dispatch
+          iconButton "Set Speed" Icons.speed Speed flowerOption dispatch
+          speedView flowerOption dispatch
+          iconButton "Set Acceleration" Icons.acceleration Acceleration flowerOption dispatch
+          accelerationView flowerOption dispatch ]
 
     StackPanel.create [
         StackPanel.children children

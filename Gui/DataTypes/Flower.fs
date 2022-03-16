@@ -14,6 +14,8 @@ type Flower =
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       OpenPercent: ClampedPercentage
+      Speed: uint
+      Acceleration: uint
       Radius: Length<Pixels> }
 
 
@@ -56,6 +58,8 @@ module Flower =
           I2cAddress = 0uy
           Color = Color.hex Theme.palette.primary
           OpenPercent = ClampedPercentage.zero
+          Speed = 5000u
+          Acceleration = 1000u
           Radius = Length.pixels 20. }
 
     // ---- Accessors ----
@@ -73,6 +77,8 @@ module Flower =
     let setColor color flower : Flower = { flower with Color = color }
     let setPosition position flower : Flower = { flower with Position = position }
     let setOpenPercent percent flower : Flower = { flower with OpenPercent = percent }
+    let setSpeed speed flower : Flower = { flower with Speed = speed }
+    let setAcceleration acceleration flower : Flower = { flower with Acceleration = acceleration }
 
 
     // ---- Queries ----

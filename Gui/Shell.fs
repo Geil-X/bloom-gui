@@ -259,9 +259,6 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
             Log.debug $"Change serial port to {newPort}"
             { state with Port = Some newPort }, Cmd.none
 
-        | FlowerCommands.ChangePercentage (id, percentage) ->
-            updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
-
         | FlowerCommands.Home flowerId ->
             Log.debug $"Sending 'Home' command to {Id.shortName flowerId}"
             state, Cmd.none
@@ -277,6 +274,24 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
         | FlowerCommands.OpenTo flowerId ->
             Log.debug $"Sending 'Open To' command to {Id.shortName flowerId}"
             state, Cmd.none
+            
+        | FlowerCommands.ChangePercentage (id, percentage) ->
+            updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
+            
+        | FlowerCommands.Speed flowerId ->
+            Log.debug $"Sending 'Speed' command to {Id.shortName flowerId}"
+            state, Cmd.none
+            
+        | FlowerCommands.ChangeSpeed (id, speed) ->
+            updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
+            
+        | FlowerCommands.Acceleration flowerId ->
+            Log.debug $"Sending 'Acceleration' command to {Id.shortName flowerId}"
+            state, Cmd.none
+            
+        | FlowerCommands.ChangeAcceleration (id, acceleration) ->
+            updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
+            
 
 let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
     match msg with

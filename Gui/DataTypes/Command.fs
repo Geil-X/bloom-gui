@@ -1,4 +1,4 @@
-module Gui.FlowerCommand
+module Gui.Command
 
 open System.IO.Ports
 open System.Threading.Tasks

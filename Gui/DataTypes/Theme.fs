@@ -66,7 +66,7 @@ let darker = Color.darken 0.075
 let darkest = Color.darken 0.15
 let fade = Color.fadeOut 0.15
 
-let window = {| height = 600.; width = 800. |}
+let window = {| height = 800.; width = 1200. |}
 
 
 let font = {| h1 = 16.; h2 = 14.; normal = 12. |}
