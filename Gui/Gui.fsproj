@@ -30,6 +30,7 @@
         <Compile Include="Extensions\TaskExtensions.fs" />
         <Compile Include="Extensions\OptionExtensions.fs" />
         <Compile Include="Extensions\BitmapExtensions.fs" />
+        <Compile Include="Extensions\NumericExtensions.fs" />
         <Compile Include="DataTypes\Log.fs" />
         <Compile Include="DataTypes\Coordinates.fs" />
         <Compile Include="DataTypes\Constants.fs" />
@@ -40,8 +41,8 @@
         <Compile Include="DataTypes\Events.fs" />
         <Compile Include="DataTypes\Flower.fs" />
         <Compile Include="DataTypes\Types.fs" />
+        <Compile Include="DataTypes\FlowerCommand.fs" />
         <Compile Include="InputTypes.fs" />
-        <Compile Include="FlowerCommand.fs" />
         <Compile Include="Views\Form.fs" />
         <Compile Include="Views\Icons.fs" />
         <Compile Include="Views\Dialogs.fs" />
