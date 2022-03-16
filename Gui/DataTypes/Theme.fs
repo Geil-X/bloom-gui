@@ -4,9 +4,10 @@ open Avalonia.Controls
 open Extensions
 
 let program = "Bloom"
-let title = "Bloom: Flower Simulation"
+let title = "Bloom"
 
-let icon (): WindowIcon = WindowIcon "Assets/icon.ico"
+let icon (): WindowIcon =
+    WindowIcon "Assets/icon.ico"
 
 /// Color palette is based off of the yellow color with a 150° tetradic color scheme
 /// https://paletton.com/#uid=70I2m0krBw0hcHpmp-MvIrjzmlr

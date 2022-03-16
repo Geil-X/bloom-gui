@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="0.1">
+    <dict>
+        <!--    Bundle Configuration    -->
+
+
+        <!-- Categorization -->
+
+        <key>CFBundlePackageType</key>
+        <string>APPL</string>
+
+        <key>LSApplicationCategoryType</key>
+        <string>public.app-category.developer-tools</string>
+
+        <!-- Identification -->
+
+        <key>CFBundleIdentifier</key>
+        <string>com.example.apple-samplecode.ShapeEdit</string>
+
+        <!-- Naming -->
+
+        <key>CFBundleName</key>
+        <string>Bloom</string>
+
+        <!-- Bundle Version-->
+
+        <key>CFBundleVersion</key>
+        <string>0.1</string>
+
+        <key>CFBundleShortVersionString</key>
+        <string>MAJOR.MINOR</string>
+
+        <!-- Operating System Version -->
+
+        <key>LSMinimumSystemVersion</key>
+        <string>12.2.1</string>
+
+        <!-- Localization -->
+
+        <key>CFBundleDevelopmentRegion</key>
+        <string>en</string>
+
+
+        <!--    User Interface    -->
+
+        <!-- Icons -->
+
+        <key>CFBundleIconFile</key>
+        <string>icon.icns</string>
+
+        <key>CFBundleIconName</key>
+        <string>Bloom</string>
+        
+        <key>NSHighResolutionCapable</key>
+        <true/>
+
+        <!-- Styling -->
+
+        <key>UIUserInterfaceStyle</key>
+        <string>Dark</string>
+
+        <!-- Status -->
+
+        <key>UIStatesBarStyle</key>
+        <string>UIStatusBarStyleBlackTranslucent</string>
+
+        <key>UIStatusBarTintParameters</key>
+        <dict>
+            <key>UINavigationBar</key>
+            <dict>
+                <key>Style</key>
+                <string>UIBarStyleDefault</string>
+                <key>Translucent</key>
+                <false/>
+            </dict>
+        </dict>
+
+
+        <!--    App Execution    -->
+
+        <!-- Launch -->
+
+        <key>CFBundleExecutable</key>
+        <string>$(EXECUTABLE_NAME)</string>
+
+        <!-- File Types -->
+
+        <key>CFBundleDocumentTypes</key>
+        <array>
+            <dict>
+
+                <key>CFBundleTypeIconFile</key>
+                <string>Assets/icon.icns</string>
+
+                <key>CFBundleTypeName</key>
+                <string>Bloom Save File</string>
+
+                <key>CFBundleTypeRole</key>
+                <string>Editor</string>
+
+                <key>LSHandlerRank</key>
+                <string>Owner</string>
+
+                <key>LSItemContentTypes</key>
+                <dict>
+                    <key>public.filename-extension</key>
+                    <array>
+                        <string>bloom</string>
+                    </array>
+                </dict>
+            </dict>
+        </array>
+
+        <key>UTExportedTypeDeclarations</key>
+        <array>
+            <dict>
+                <key>UTTypeConformsTo</key>
+                <array>
+                    <string>public.content</string>
+                    <string>public.data</string>
+                    <string>public.item</string>
+                </array>
+
+                <key>UTTypeDescription</key>
+                <string>Bloom Save File</string>
+
+                <key>UTTypeSize64IconFile</key>
+                <string>Assets/icon.png</string>
+
+                <key>UTTypeTagSpecification</key>
+                <dict>
+                    <key>public.filename-extension</key>
+                    <array>
+                        <string>bloom</string>
+                    </array>
+                </dict>
+            </dict>
+        </array>
+
+    </dict>
+</plist>

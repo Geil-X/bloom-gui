@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 64.000003 63.999997"
+   version="1.1"
+   id="svg832"
+   width="64"
+   height="64"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs826">
+    <style
+       id="style824">.cls-1{stroke:#000;stroke-miterlimit:10;}</style>
+  </defs>
+  <g
+     id="Layer_2"
+     data-name="Layer 2"
+     transform="matrix(0.37713694,0,0,0.37713694,6.3255152,8.367094e-4)">
+    <g
+       id="Isolation_Mode"
+       data-name="Isolation Mode">
+      <path
+         class="cls-1"
+         d="m 57.18,1.83 c 0,0 -45.68,31.17 -55.39,83 -5.63,30 7.14,67.91 39.46,79.88 31.46,11.66 65,0.4 85.66,-31.09 17,-25.94 6.15,-66.93 -6.68,-83.47 -39.35,-50.72 -68.54,8.39 -53,42 16.09,34.94 51.3,36.9 51.3,36.9 0,0 -10.56,23.76 -40.7,6.73 C 55.46,123.21 43.72,95.39 40,78.67 31.48,41.06 57.18,1.83 57.18,1.83 Z"
+         id="path828" />
+    </g>
+  </g>
+</svg>
