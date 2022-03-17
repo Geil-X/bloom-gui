@@ -24,7 +24,7 @@ type Msg =
     | Acceleration of Flower Id
     | ChangeAcceleration of Flower Id * uint
 
-let private serialPortView (selected: string option) dispatch =
+let private serialPortView (serialPortOption: SerialPort option) dispatch =
     let ports = SerialPort.GetPortNames()
 
 
@@ -39,8 +39,8 @@ let private serialPortView (selected: string option) dispatch =
                            match Array.tryItem index ports with
                            | Some port -> ChangePort port |> dispatch
                            | None -> ())
-                   if Option.isSome selected then
-                       ComboBox.selectedItem selected.Value
+                   if Option.isSome serialPortOption then
+                       ComboBox.selectedItem serialPortOption.Value.PortName
                ] |}
 
 
@@ -145,10 +145,10 @@ let private iconButton name icon msg (flowerOption: Flower option) dispatch =
         Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
         |> View.withAttr (Button.isEnabled false)
 
-let view (flowerOption: Flower option) (port: string option) (dispatch: Msg -> Unit) =
+let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> Unit) =
     let children: IView list =
         [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
-          serialPortView port dispatch
+          serialPortView serialPort dispatch
           iconButton "Home" Icons.home Home flowerOption dispatch
           iconButton "Open" Icons.openIcon Open flowerOption dispatch
           iconButton "Close" Icons.close Close flowerOption dispatch

@@ -28,8 +28,9 @@ type CommandId =
 
 type internal Packet = byte list
 
-let openSerialPort (port: string) (baud: int) : Task<SerialPort> =
+let openSerialPort (port: string) : Task<SerialPort> =
     task {
+        let baud = 115200
         let port =
             new SerialPort(port, baud, Parity.None, 8, StopBits.One)
 

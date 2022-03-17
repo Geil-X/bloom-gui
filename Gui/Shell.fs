@@ -1,6 +1,7 @@
 module Gui.Shell
 
 open System
+open System.IO.Ports
 open Avalonia.Controls
 open Avalonia.Input
 open Elmish
@@ -23,7 +24,7 @@ type State =
       Flowers: Map<Flower Id, Flower>
       FlowerInteraction: FlowerInteraction
       Selected: Flower Id option
-      Port: string option }
+      SerialPort: SerialPort option }
 
 and FlowerInteraction =
     | Hovering of Flower Id
@@ -64,6 +65,7 @@ type Msg =
     | Action of Action
     | ActionError of ActionError
     | KeyRelease of KeyEventArgs
+    | SerialPortOpened of SerialPort
 
     // Msg Mapping
     | SimulationEvent of SimulationEvent
@@ -79,7 +81,7 @@ let init () =
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
       Selected = None
-      Port = None },
+      SerialPort = None },
     Cmd.batch []
 
 
@@ -256,8 +258,8 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
     | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
         match flowerCommandsMsg with
         | FlowerCommands.ChangePort newPort ->
-            Log.debug $"Change serial port to {newPort}"
-            { state with Port = Some newPort }, Cmd.none
+            Log.verbose $"Selected serial port '{newPort}'"
+            state, Cmd.OfTask.perform Command.openSerialPort newPort SerialPortOpened
 
         | FlowerCommands.Home flowerId ->
             Log.debug $"Sending 'Home' command to {Id.shortName flowerId}"
@@ -274,24 +276,23 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
         | FlowerCommands.OpenTo flowerId ->
             Log.debug $"Sending 'Open To' command to {Id.shortName flowerId}"
             state, Cmd.none
-            
+
         | FlowerCommands.ChangePercentage (id, percentage) ->
             updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
-            
+
         | FlowerCommands.Speed flowerId ->
             Log.debug $"Sending 'Speed' command to {Id.shortName flowerId}"
             state, Cmd.none
-            
-        | FlowerCommands.ChangeSpeed (id, speed) ->
-            updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
-            
+
+        | FlowerCommands.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
+
         | FlowerCommands.Acceleration flowerId ->
             Log.debug $"Sending 'Acceleration' command to {Id.shortName flowerId}"
             state, Cmd.none
-            
+
         | FlowerCommands.ChangeAcceleration (id, acceleration) ->
             updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
-            
+
 
 let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -410,6 +411,12 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | Action action -> updateAction action state window
     | ActionError error -> updateActionError error state
     | KeyRelease keyEvent -> handleKeyEvent keyEvent state
+    | SerialPortOpened serialPort ->
+        Log.debug $"Connected to serial port '{serialPort.PortName}'"
+        { state with
+              SerialPort = Some serialPort },
+        Cmd.none
+        
     // Msg Mapping
     | MenuMsg menuMsg -> updateMenu menuMsg state
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
@@ -475,7 +482,7 @@ let view (state: State) (dispatch: Msg -> unit) =
         DockPanel.onKeyUp (KeyRelease >> dispatch)
         DockPanel.children [
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
-            DockPanel.child Dock.Left (FlowerPanel.view selected state.Port (FlowerPanelMsg >> dispatch))
+            DockPanel.child Dock.Left (FlowerPanel.view selected state.SerialPort (FlowerPanelMsg >> dispatch))
             simulationSpace state (Msg.SimulationEvent >> dispatch)
         ]
     ]
