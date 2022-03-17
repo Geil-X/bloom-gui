@@ -57,25 +57,39 @@ let private sliderView (properties: SliderProperties) =
         match properties.FlowerId with
         | Some flowerId ->
             Slider.create [
+                Slider.width 140
                 Slider.minimum properties.Min
                 Slider.maximum properties.Max
                 Slider.value properties.Value
                 Slider.onValueChanged (properties.OnChanged flowerId, SubPatchOptions.OnChangeOf flowerId)
+                Slider.dock Dock.Left
             ]
 
         | None ->
             Slider.create [
+                Slider.width 140
                 Slider.value properties.Value
                 Slider.minimum properties.Min
                 Slider.maximum properties.Max
                 Slider.isEnabled false
                 Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
+                Slider.dock Dock.Left
             ]
+
+    let textInput =
+        TextBlock.create [
+            TextBlock.text (properties.Value |> int |> string)
+            TextBlock.dock Dock.Right
+            TextBlock.margin (Theme.spacing.small, 0.)
+        ]
 
     Form.formElement
         {| Name = properties.Name
            Orientation = Orientation.Vertical
-           Element = slider |}
+           Element =
+               DockPanel.create [
+                   StackPanel.children [ slider; textInput ]
+               ] |}
 
 
 let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
@@ -98,12 +112,10 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
           Value =
               Option.map Flower.speed flowerOption
               |> Option.defaultValue 0u
-              |> float 
+              |> float
           Min = 0.
           Max = 10000.
-          OnChanged =
-              (fun flowerId newSpeed ->
-                  ChangeSpeed(flowerId, uint newSpeed) |> dispatch)
+          OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, uint newSpeed) |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
@@ -112,14 +124,15 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> Uni
           Value =
               Option.map Flower.acceleration flowerOption
               |> Option.defaultValue 0u
-              |> float 
+              |> float
           Min = 0.
           Max = 5000.
           OnChanged =
               (fun flowerId newAcceleration ->
-                  ChangeAcceleration(flowerId, uint newAcceleration) |> dispatch)
+                  ChangeAcceleration(flowerId, uint newAcceleration)
+                  |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
-        
+
 let private iconButton name icon msg (flowerOption: Flower option) dispatch =
     match flowerOption with
     | Some flower ->
