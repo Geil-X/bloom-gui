@@ -7,16 +7,30 @@ type ClampedPercentage = ClampedPercentage of float
 
 module ClampedPercentage =
 
+    // ---- Constants ----
+
+    [<Literal>]
+    let minimum = 0.
+
+    [<Literal>]
+    let maxPercentage = 100.
+
+    [<Literal>]
+    let maxDecimal = 1.
+
     // ---- Builders ----
 
 
     let decimal (n: float) : ClampedPercentage =
-        n |> max 0. |> min 1. |> ClampedPercentage
+        n
+        |> max minimum
+        |> min maxDecimal
+        |> ClampedPercentage
 
-    let percent (n: float) : ClampedPercentage = n / 100. |> decimal
+    let percent (n: float) : ClampedPercentage = n / maxPercentage |> decimal
 
-    let zero = percent 0.
-    let oneHundred = percent 100.
+    let zero = percent minimum
+    let oneHundred = percent maxPercentage
 
 
     // ---- Accessors ----
@@ -25,7 +39,7 @@ module ClampedPercentage =
     let inDecimal (ClampedPercentage p: ClampedPercentage) = p
 
     /// Get the percentage out of 100
-    let inPercentage (ClampedPercentage p: ClampedPercentage) = p * 100.
+    let inPercentage (ClampedPercentage p: ClampedPercentage) = p * maxPercentage
 
     /// Get the percentage as a range from 0 to 255. This spreads out a
     /// percentage over the whole range of an 8 bit unsigned number.

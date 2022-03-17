@@ -31,7 +31,7 @@ module Flower =
     open Gui
     open Extensions
 
-    type Id = Guid
+    type Id = Flower Id
 
     type Attribute =
         // Flowers
@@ -69,6 +69,8 @@ module Flower =
     let color flower = flower.Color
     let position flower = flower.Position
     let openPercent flower = flower.OpenPercent
+    let speed flower = flower.Speed
+    let acceleration flower = flower.Acceleration
 
     // ---- Modifiers ----
 

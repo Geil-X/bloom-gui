@@ -44,95 +44,83 @@ let private serialPortView (selected: string option) dispatch =
                ] |}
 
 
-let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+type SliderProperties =
+    { Name: string
+      Value: float
+      Min: float
+      Max: float
+      OnChanged: Flower.Id -> float -> unit
+      FlowerId: Flower.Id option }
+
+let private sliderView (properties: SliderProperties) =
     let slider =
-        match flowerOption with
-        | Some flower ->
+        match properties.FlowerId with
+        | Some flowerId ->
             Slider.create [
-                Slider.minimum 0.
-                Slider.maximum 100.
-                Slider.value (ClampedPercentage.inPercentage flower.OpenPercent)
-                Slider.onValueChanged (
-                    (fun newPercent ->
-                        ChangePercentage(flower.Id, ClampedPercentage.percent newPercent)
-                        |> dispatch),
-                    SubPatchOptions.OnChangeOf flower.Id
-                )
+                Slider.minimum properties.Min
+                Slider.maximum properties.Max
+                Slider.value properties.Value
+                Slider.onValueChanged (properties.OnChanged flowerId, SubPatchOptions.OnChangeOf flowerId)
             ]
 
         | None ->
             Slider.create [
-                Slider.value 0.
-                Slider.minimum 0.
-                Slider.maximum 100.
+                Slider.value properties.Value
+                Slider.minimum properties.Min
+                Slider.maximum properties.Max
                 Slider.isEnabled false
                 Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
             ]
 
     Form.formElement
-        {| Name = "Open Percentage"
+        {| Name = properties.Name
            Orientation = Orientation.Vertical
            Element = slider |}
+
+
+let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+    sliderView
+        { Name = "Open Percentage"
+          Value =
+              Option.map (fun flower -> ClampedPercentage.inPercentage flower.OpenPercent) flowerOption
+              |> Option.defaultValue ClampedPercentage.minimum
+          Min = ClampedPercentage.minimum
+          Max = ClampedPercentage.maxPercentage
+          OnChanged =
+              (fun flowerId newPercent ->
+                  ChangePercentage(flowerId, ClampedPercentage.percent newPercent)
+                  |> dispatch)
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private speedView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
-    let slider =
-        match flowerOption with
-        | Some flower ->
-            Slider.create [
-                Slider.minimum 0.
-                Slider.maximum 10000.
-                Slider.value (float flower.Speed)
-                Slider.onValueChanged (
-                    (fun newSpeed -> ChangeSpeed(flower.Id, uint newSpeed) |> dispatch),
-                    SubPatchOptions.OnChangeOf flower.Id
-                )
-            ]
-
-        | None ->
-            Slider.create [
-                Slider.value 0.
-                Slider.minimum 0.
-                Slider.maximum 10000.
-                Slider.isEnabled false
-                Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
-            ]
-
-    Form.formElement
-        {| Name = "Speed"
-           Orientation = Orientation.Vertical
-           Element = slider |}
+    sliderView
+        { Name = "Speed"
+          Value =
+              Option.map Flower.speed flowerOption
+              |> Option.defaultValue 0u
+              |> float 
+          Min = 0.
+          Max = 10000.
+          OnChanged =
+              (fun flowerId newSpeed ->
+                  ChangeSpeed(flowerId, uint newSpeed) |> dispatch)
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
-    let slider =
-        match flowerOption with
-        | Some flower ->
-            Slider.create [
-                Slider.minimum 0.
-                Slider.maximum 5000.
-                Slider.value (float flower.Acceleration)
-                Slider.onValueChanged (
-                    (fun newAcceleration ->
-                        ChangeAcceleration(flower.Id, uint newAcceleration)
-                        |> dispatch),
-                    SubPatchOptions.OnChangeOf flower.Id
-                )
-            ]
-
-        | None ->
-            Slider.create [
-                Slider.value 0.
-                Slider.minimum 0.
-                Slider.maximum 5000.
-                Slider.isEnabled false
-                Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
-            ]
-
-    Form.formElement
-        {| Name = "Acceleration"
-           Orientation = Orientation.Vertical
-           Element = slider |}
-
-let iconButton name icon msg (flowerOption: Flower option) dispatch =
+    sliderView
+        { Name = "Acceleration"
+          Value =
+              Option.map Flower.acceleration flowerOption
+              |> Option.defaultValue 0u
+              |> float 
+          Min = 0.
+          Max = 5000.
+          OnChanged =
+              (fun flowerId newAcceleration ->
+                  ChangeAcceleration(flowerId, uint newAcceleration) |> dispatch)
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+        
+let private iconButton name icon msg (flowerOption: Flower option) dispatch =
     match flowerOption with
     | Some flower ->
         Form.iconTextButton
@@ -145,7 +133,7 @@ let iconButton name icon msg (flowerOption: Flower option) dispatch =
         |> View.withAttr (Button.isEnabled false)
 
 let view (flowerOption: Flower option) (port: string option) (dispatch: Msg -> Unit) =
-    let children : IView list =
+    let children: IView list =
         [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView port dispatch
           iconButton "Home" Icons.home Home flowerOption dispatch
