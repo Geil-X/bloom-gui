@@ -15,14 +15,9 @@ open Extensions
 type Msg =
     | ChangePort of string
     | ChangePercentage of Flower Id * ClampedPercentage
-    | Home of Flower Id
-    | Open of Flower Id
-    | Close of Flower Id
-    | OpenTo of Flower Id
-    | Speed of Flower Id
     | ChangeSpeed of Flower Id * uint
-    | Acceleration of Flower Id
     | ChangeAcceleration of Flower Id * uint
+    | SendCommand of Command
 
 let private serialPortView (serialPortOption: SerialPort option) dispatch =
     let ports = SerialPort.GetPortNames()
@@ -133,14 +128,14 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> Uni
                   |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
-let private iconButton name icon msg (flowerOption: Flower option) dispatch =
+let private iconButton name icon (onClick: Flower -> Command) (flowerOption: Flower option) dispatch =
     match flowerOption with
     | Some flower ->
         Form.iconTextButton
             (icon Theme.palette.secondary)
             name
             Theme.palette.foreground
-            (fun _ -> dispatch (msg flower.Id))
+            (fun _ -> onClick flower |> SendCommand |> dispatch)
     | None ->
         Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
         |> View.withAttr (Button.isEnabled false)
@@ -149,14 +144,14 @@ let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch
     let children: IView list =
         [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView serialPort dispatch
-          iconButton "Home" Icons.home Home flowerOption dispatch
-          iconButton "Open" Icons.openIcon Open flowerOption dispatch
-          iconButton "Close" Icons.close Close flowerOption dispatch
-          iconButton "Open To" Icons.openTo OpenTo flowerOption dispatch
+          iconButton "Home" Icons.home (fun _ -> Home) flowerOption dispatch
+          iconButton "Open" Icons.openIcon (fun _ -> Open) flowerOption dispatch
+          iconButton "Close" Icons.close (fun _ -> Close) flowerOption dispatch
+          iconButton "Open To" Icons.openTo (Flower.openPercent >> OpenTo) flowerOption dispatch
           openPercentageView flowerOption dispatch
-          iconButton "Set Speed" Icons.speed Speed flowerOption dispatch
+          iconButton "Set Speed" Icons.speed (Flower.speed >> Speed) flowerOption dispatch
           speedView flowerOption dispatch
-          iconButton "Set Acceleration" Icons.acceleration Acceleration flowerOption dispatch
+          iconButton "Set Acceleration" Icons.acceleration (Flower.acceleration >> Acceleration) flowerOption dispatch
           accelerationView flowerOption dispatch ]
 
     StackPanel.create [
