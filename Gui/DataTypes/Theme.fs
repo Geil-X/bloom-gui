@@ -16,22 +16,22 @@ let colors =
        gray = "#303030"
        lightGray = "#393939"
        lighterGray = "#828282"
-       lightOffWhite = "#f0f0f0"
-       offWhite = "#e6e6e6"
-       darkerYellow = "#AB6200"
-       darkYellow = "#DA7E02"
+       lightOffWhite = "#F0F0F0"
+       offWhite = "#E6E6E6"
        yellow = "#FFA123"
-       lightYellow = "#E4AE67"
-       lighterYellow = "#FFC476"
-       blue = "#206BA4"
-       lightBlue = "#3D7FB2"
-       green = "#18AF6E" |}
+       blue = "#2375B3"
+       green = "#18AF6E"
+       red = "#FF6223"
+       |}
 
 let palette =
+    
     let darkest = Color.darken 0.2
     let darken = Color.darken 0.1
     let lighten = Color.lighten 0.1
     let lightest = Color.lighten 0.2
+    
+    let foreground = Color.hex colors.offWhite
 
     let primary = Color.hex colors.yellow
     let secondary = Color.hex colors.green
@@ -39,6 +39,7 @@ let palette =
 
 
     {| foreground = colors.offWhite
+       foregroundFaded = darken foreground |> string
        primaryDarkest = darkest primary |> string
        primaryDark = darken primary |> string
        primary = primary |> string
@@ -54,6 +55,10 @@ let palette =
        tertiary = tertiary |> string
        tertiaryLight = lighten tertiary |> string
        tertiaryLightest = lightest tertiary |> string
+       success = colors.green
+       warning = colors.yellow
+       danger = colors.red
+       info = colors.blue
        panelBackground = colors.darkGray
        panelTitle = colors.gray
        panelAccent = colors.lightGray

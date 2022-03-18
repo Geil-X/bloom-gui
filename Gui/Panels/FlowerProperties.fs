@@ -21,7 +21,7 @@ let disabledTextBox =
 
 // ---- Form Elements ----
 
-let private nameView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+let private nameView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     let nameTextBox =
         match flowerOption with
         | Some flower ->
@@ -40,7 +40,7 @@ let private nameView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
            Orientation = Orientation.Vertical
            Element = nameTextBox |}
 
-let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     let i2cTextBox =
         match flowerOption with
         | Some flower ->
@@ -92,9 +92,9 @@ let private id (flowerOption: Flower option) =
            Orientation = Orientation.Horizontal
            Element = idText |}
 
-let view (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+let view (flowerOption: Flower option) (dispatch: Msg -> unit) =
     let children: IView list =
-        [ Text.iconTitle (Icons.flower Theme.palette.primary) "Flower" Theme.palette.foreground
+        [ Text.iconTitle (Icon.flower Icon.large Theme.palette.primary) "Flower" Theme.palette.foreground
           nameView flowerOption dispatch
           i2cAddressView flowerOption dispatch
           positionView flowerOption

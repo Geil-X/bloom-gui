@@ -22,22 +22,42 @@ type Msg =
 let private serialPortView (serialPortOption: SerialPort option) dispatch =
     let ports = SerialPort.GetPortNames()
 
+    let portState =
+        match serialPortOption with
+        | Some serialPort ->
+            if serialPort.IsOpen then
+                Icon.connected Icon.small Theme.palette.success
+
+            else
+                Icon.connection Icon.small Theme.palette.danger
+
+        | None -> Icon.connection Icon.small Theme.palette.info
+        |> View.withAttrs [
+            Viewbox.dock Dock.Left
+            Viewbox.margin (0., 0., Theme.spacing.small, 0.)
+           ]
+
+
+    let dropdown =
+        ComboBox.create [
+            ComboBox.dataItems ports
+            ComboBox.dock Dock.Right
+            ComboBox.onSelectedIndexChanged
+                (fun index ->
+                    match Array.tryItem index ports with
+                    | Some port -> ChangePort port |> dispatch
+                    | None -> ())
+            if Option.isSome serialPortOption then
+                ComboBox.selectedItem serialPortOption.Value.PortName
+        ]
 
     Form.formElement
         {| Name = "Serial Port"
            Orientation = Orientation.Vertical
            Element =
-               ComboBox.create [
-                   ComboBox.dataItems ports
-                   ComboBox.onSelectedIndexChanged
-                       (fun index ->
-                           match Array.tryItem index ports with
-                           | Some port -> ChangePort port |> dispatch
-                           | None -> ())
-                   if Option.isSome serialPortOption then
-                       ComboBox.selectedItem serialPortOption.Value.PortName
+               DockPanel.create [
+                   DockPanel.children [ portState; dropdown ]
                ] |}
-
 
 type SliderProperties =
     { Name: string
@@ -87,7 +107,7 @@ let private sliderView (properties: SliderProperties) =
                ] |}
 
 
-let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Open Percentage"
           Value =
@@ -101,7 +121,7 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> U
                   |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
-let private speedView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Speed"
           Value =
@@ -113,7 +133,7 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
           OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, uint newSpeed) |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
-let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> Unit) =
+let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Acceleration"
           Value =
@@ -132,26 +152,26 @@ let private iconButton name icon (onClick: Flower -> Command) (flowerOption: Flo
     match flowerOption with
     | Some flower ->
         Form.iconTextButton
-            (icon Theme.palette.secondary)
+            (icon Icon.medium Theme.palette.info)
             name
             Theme.palette.foreground
             (fun _ -> onClick flower |> SendCommand |> dispatch)
     | None ->
-        Form.iconTextButton (icon Theme.palette.secondary) name Theme.palette.foreground (fun _ -> ())
+        Form.iconTextButton (icon Icon.medium Theme.palette.info) name Theme.palette.foreground (fun _ -> ())
         |> View.withAttr (Button.isEnabled false)
 
-let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> Unit) =
+let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
     let children: IView list =
-        [ Text.iconTitle (Icons.command Theme.palette.primary) "Commands" Theme.palette.foreground
+        [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView serialPort dispatch
-          iconButton "Home" Icons.home (fun _ -> Home) flowerOption dispatch
-          iconButton "Open" Icons.openIcon (fun _ -> Open) flowerOption dispatch
-          iconButton "Close" Icons.close (fun _ -> Close) flowerOption dispatch
-          iconButton "Open To" Icons.openTo (Flower.openPercent >> OpenTo) flowerOption dispatch
+          iconButton "Home" Icon.home (fun _ -> Home) flowerOption dispatch
+          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption dispatch
+          iconButton "Close" Icon.close (fun _ -> Close) flowerOption dispatch
+          iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption dispatch
           openPercentageView flowerOption dispatch
-          iconButton "Set Speed" Icons.speed (Flower.speed >> Speed) flowerOption dispatch
+          iconButton "Set Speed" Icon.speed (Flower.speed >> Speed) flowerOption dispatch
           speedView flowerOption dispatch
-          iconButton "Set Acceleration" Icons.acceleration (Flower.acceleration >> Acceleration) flowerOption dispatch
+          iconButton "Set Acceleration" Icon.acceleration (Flower.acceleration >> Acceleration) flowerOption dispatch
           accelerationView flowerOption dispatch ]
 
     StackPanel.create [

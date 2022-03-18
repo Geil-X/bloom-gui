@@ -40,7 +40,7 @@ let private readFile path (deserializer: StreamReader -> 'T) : Task<'T> =
 let loadFlowerFile path : Task<Flower seq> = readFile path Flower.deserialize
 
 // Note: Can throw an exception
-let private writeFile path (serializer: StreamWriter -> 'T -> Unit) (data: 'T) : Task<unit> =
+let private writeFile path (serializer: StreamWriter -> 'T -> unit) (data: 'T) : Task<unit> =
     task {
         use writer = new StreamWriter(File.OpenWrite(path))
         serializer writer data

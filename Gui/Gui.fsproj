@@ -42,9 +42,10 @@
         <Compile Include="DataTypes\Flower.fs" />
         <Compile Include="DataTypes\Command.fs" />
         <Compile Include="DataTypes\Types.fs" />
+        <Compile Include="DataTypes\Timer.fs" />
         <Compile Include="InputTypes.fs" />
         <Compile Include="Views\Form.fs" />
-        <Compile Include="Views\Icons.fs" />
+        <Compile Include="Views\Icon.fs" />
         <Compile Include="Views\Dialogs.fs" />
         <Compile Include="Views\DockPanel.fs" />
         <Compile Include="Views\Text.fs" />

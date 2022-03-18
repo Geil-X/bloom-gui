@@ -18,18 +18,18 @@ type Msg =
     | NewFlower
 
 let private iconButtons =
-    [ Icons.newFile, NewFile
-      Icons.save, SaveAs
-      Icons.load, Open
-      Icons.newFlower, NewFlower ]
+    [ Icon.newFile, NewFile
+      Icon.save, SaveAs
+      Icon.load, Open
+      Icon.newFlower, NewFlower ]
 
 let view (dispatch: Msg -> unit) =
-    let button (icon: string -> IView, msg) : IView =
+    let button (icon: Icon.Size -> string -> IView<Viewbox>, msg) : IView =
         Button.create [
             Button.padding Theme.spacing.small
             Button.margin Theme.spacing.small
             Button.onClick (Event.handleEvent msg >> dispatch)
-            Button.content (icon Theme.palette.primaryLightest)
+            Button.content (icon Icon.large Theme.palette.primaryLightest)
         ]
 
     let buttons: IView list = List.map button iconButtons

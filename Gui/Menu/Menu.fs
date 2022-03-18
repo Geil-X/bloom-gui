@@ -28,8 +28,8 @@ let nativeMenu: NativeMenu =
 
     menu
 
-let subscription (conv: Msg -> 'Msg) (state: 'State) =
-    let sub (dispatch: 'Msg -> Unit) =
+let subscription (conv: Msg -> 'Msg) (_: 'State) =
+    let sub (dispatch: 'Msg -> unit) =
         let fileMsgs = List.map snd File.menuItems
 
         List.iter

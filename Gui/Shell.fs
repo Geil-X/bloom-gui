@@ -59,15 +59,14 @@ type SimulationEvent =
     | BackgroundEvent of BackgroundEvent
     | FlowerEvent of FlowerPointerEvent
 
-
 type Msg =
     // Shell Messages
     | Action of Action
     | ActionError of ActionError
-    | KeyRelease of KeyEventArgs
     | SerialPortOpened of SerialPort
     | SendCommand of Command
     | CouldNotSendCommand of exn
+    | SerialPortReceivedData of string
 
     // Msg Mapping
     | SimulationEvent of SimulationEvent
@@ -134,6 +133,18 @@ let updateFlower (id: Flower Id) (property: string) (f: 'a -> Flower -> Flower) 
 
 
 // ---- Update ----
+
+let keyUpHandler (window: Window) _ =
+    let sub dispatch =
+        window.KeyUp.Add
+            (fun eventArgs ->
+                match eventArgs.Key with
+                | Key.Escape -> Action.DeselectFlower |> Action |> dispatch
+                | Key.Delete -> Action.DeleteFlower |> Action |> dispatch
+                | Key.Back -> Action.DeleteFlower |> Action |> dispatch
+                | _ -> ())
+
+    Cmd.ofSub sub
 
 let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<Msg> =
     match action with
@@ -211,22 +222,6 @@ let updateActionError (error: ActionError) (state: State) : State * Cmd<Msg> =
         Log.error $"Could not open file\n{exn}"
         state, Cmd.none
 
-let handleKeyEvent (e: KeyEventArgs) (state: State) : State * Cmd<Msg> =
-    match e.Key with
-    | Key.Escape ->
-        e.Handled <- true
-        state, Cmd.ofMsg (Action Action.DeselectFlower)
-
-    | Key.Delete ->
-        e.Handled <- true
-        state, Cmd.ofMsg (Action Action.DeleteFlower)
-
-    | Key.Back ->
-        e.Handled <- true
-        state, Cmd.ofMsg (Action Action.DeleteFlower)
-
-    | _ -> state, Cmd.none
-
 
 let updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -249,7 +244,7 @@ let sendCommand (command: Command) (state: State) : Cmd<Msg> =
 
     match state.SerialPort, selectedFlowerOption with
     | Some serialPort, Some flower ->
-        Log.debug $"Sending command through serial port {command}"
+        Log.debug $"Sending command through serial port '{command}'"
         Cmd.OfTask.attempt (Command.sendCommand serialPort flower.I2cAddress) command CouldNotSendCommand
 
     | None, Some _ ->
@@ -412,16 +407,19 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     // Shell Messages
     | Action action -> updateAction action state window
     | ActionError error -> updateActionError error state
-    | KeyRelease keyEvent -> handleKeyEvent keyEvent state
 
     | SerialPortOpened serialPort ->
         Log.debug $"Connected to serial port '{serialPort.PortName}'"
 
         { state with
               SerialPort = Some serialPort },
-        Cmd.none
+        Command.onReceived serialPort SerialPortReceivedData
 
     | SendCommand command -> state, sendCommand command state
+
+    | SerialPortReceivedData str ->
+        Log.info $"Received message over serial\n{str}"
+        state, Cmd.none
 
     | CouldNotSendCommand exn ->
         Log.error $"Could not send command over the serial port\n{exn}"
@@ -439,7 +437,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 open Avalonia.FuncUI.Types
 open Avalonia.FuncUI.DSL
 
-let drawFlower (state: State) (dispatch: FlowerPointerEvent -> Unit) (flower: Flower) : IView =
+let drawFlower (state: State) (dispatch: FlowerPointerEvent -> unit) (flower: Flower) : IView =
     let flowerState (flower: Flower) : Flower.Attribute option =
         match state.FlowerInteraction with
         | Hovering id when id = flower.Id -> Flower.hovered |> Some
@@ -489,7 +487,6 @@ let view (state: State) (dispatch: Msg -> unit) =
         Option.bind (fun id -> getFlower id state.Flowers) state.Selected
 
     DockPanel.create [
-        DockPanel.onKeyUp (KeyRelease >> dispatch)
         DockPanel.children [
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
             DockPanel.child Dock.Left (FlowerPanel.view selected state.SerialPort (FlowerPanelMsg >> dispatch))
@@ -522,5 +519,6 @@ type MainWindow() as this =
 
         Program.mkProgram init updateWithServices view
         |> Program.withSubscription (Menu.subscription MenuMsg)
+        |> Program.withSubscription (keyUpHandler this)
         |> Program.withHost this
         |> Program.run

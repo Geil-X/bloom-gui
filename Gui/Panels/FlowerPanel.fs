@@ -12,7 +12,7 @@ type Msg =
     | FlowerPropertiesMsg of FlowerProperties.Msg
     | FlowerCommandsMsg of FlowerCommands.Msg
 
-let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> Unit) =
+let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
     StackPanel.create [
         StackPanel.children [
             FlowerProperties.view flowerOption (FlowerPropertiesMsg >> dispatch)

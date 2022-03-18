@@ -15,6 +15,7 @@ module Command =
     open System.IO.Ports
     open System.Threading.Tasks
 
+    open Elmish
     open Gui.DataTypes
     open Extensions
 
@@ -46,6 +47,15 @@ module Command =
 
             return port
         }
+
+    let onReceived (serialPort: SerialPort) (msg: string -> 'Msg) : Cmd<'Msg> =
+        let receiveData () = serialPort.ReadExisting() |> msg
+
+        let sub (dispatch: 'Msg -> unit) =
+            let receivedEvent = serialPort.DataReceived
+            receivedEvent.AddHandler(fun _ _ -> receiveData () |> dispatch)
+
+        Cmd.ofSub sub
 
     let private packetSize = 3
 
