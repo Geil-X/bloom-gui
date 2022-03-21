@@ -12,10 +12,11 @@ type Command =
 
 module Command =
 
+    open Elmish
     open System.IO.Ports
+    open System.Text
     open System.Threading.Tasks
 
-    open Elmish
     open Gui.DataTypes
     open Extensions
 
@@ -29,52 +30,61 @@ module Command =
         | Speed = 6uy
         | Acceleration = 7uy
 
-    type internal Packet = byte list
+    type internal Packet = byte array
 
     let openSerialPort (port: string) : Task<SerialPort> =
         task {
             let baud = 115200
 
-            let port =
+            let serialPort =
                 new SerialPort(port, baud, Parity.None, 8, StopBits.One)
 
-            port.DtrEnable <- true
-            port.RtsEnable <- true
-            port.ReadTimeout <- 250 //ms
-            port.ReadTimeout <- 250 //ms
+            serialPort.DtrEnable <- true
+            serialPort.RtsEnable <- true
+            serialPort.ReadTimeout <- 250 //ms
+            serialPort.ReadTimeout <- 250 //ms
 
-            port.Open()
+            serialPort.Open()
 
-            return port
+            return serialPort
+        }
+
+    let closeSerialPort (serialPort: SerialPort) : Task<SerialPort> =
+        task {
+            serialPort.Close()
+            return serialPort
         }
 
     let onReceived (serialPort: SerialPort) (msg: string -> 'Msg) : Cmd<'Msg> =
-        let receiveData () = serialPort.ReadExisting() |> msg
-
         let sub (dispatch: 'Msg -> unit) =
+            let handler _ _ =
+                let serialString = serialPort.ReadExisting().Trim()
+
+                if serialString <> "" then
+                    dispatch (msg serialString)
+                else
+                    ()
+
             let receivedEvent = serialPort.DataReceived
-            receivedEvent.AddHandler(fun _ _ -> receiveData () |> dispatch)
+            receivedEvent.AddHandler handler
 
         Cmd.ofSub sub
 
-    let private packetSize = 3
-
-    let private packet (command: Command) : Packet =
-        match command with
-        | NoCommand -> [ byte CommandId.NoCommand; 0uy; 0uy ]
-        | Setup -> [ byte CommandId.Setup; 0uy; 0uy ]
-        | Home -> [ byte CommandId.Home; 0uy; 0uy ]
-        | Open -> [ byte CommandId.Open; 0uy; 0uy ]
-        | Close -> [ byte CommandId.Close; 0uy; 0uy ]
-        | OpenTo percentage ->
-            byte CommandId.OpenTo
-            :: ClampedPercentage.toBytes16 percentage
-        | Speed speed ->
-            byte CommandId.Speed
-            :: (uint16 speed |> UInt16.inBytes)
-        | Acceleration acceleration ->
-            byte CommandId.Acceleration
-            :: (uint16 acceleration |> UInt16.inBytes)
-
     let sendCommand (serialPort: SerialPort) (address: I2cAddress) (command: Command) : Task<unit> =
-        task { serialPort.WriteLine(address :: packet command |> string) }
+        let packet: Packet =
+            match command with
+            | NoCommand -> [| byte CommandId.NoCommand; 0uy; 0uy |]
+            | Setup -> [| byte CommandId.Setup; 0uy; 0uy |]
+            | Home -> [| byte CommandId.Home; 0uy; 0uy |]
+            | Open -> [| byte CommandId.Open; 0uy; 0uy |]
+            | Close -> [| byte CommandId.Close; 0uy; 0uy |]
+            | OpenTo percentage -> Array.append [| byte CommandId.OpenTo |] (ClampedPercentage.toBytes16 percentage)
+            | Speed speed -> Array.append [| byte CommandId.Speed |] (uint16 speed |> UInt16.inBytes)
+            | Acceleration acceleration ->
+                Array.append [| byte CommandId.Acceleration |] (uint16 acceleration |> UInt16.inBytes)
+            |> Array.append [| byte address |]
+
+        packet |> Seq.iter (printf "%d ")
+        printfn ""
+
+        task { serialPort.Write(Encoding.ASCII.GetString packet) }

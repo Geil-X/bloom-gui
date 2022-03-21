@@ -64,6 +64,7 @@ type Msg =
     | Action of Action
     | ActionError of ActionError
     | SerialPortOpened of SerialPort
+    | SerialPortClosed of SerialPort
     | SendCommand of Command
     | CouldNotSendCommand of exn
     | SerialPortReceivedData of string
@@ -277,8 +278,19 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
     | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
         match flowerCommandsMsg with
         | FlowerCommands.ChangePort newPort ->
-            Log.verbose $"Selected serial port '{newPort}'"
-            state, Cmd.OfTask.perform Command.openSerialPort newPort SerialPortOpened
+            match state.SerialPort with
+            | Some serialPort ->
+                Log.verbose $"Changing from serial port '{serialPort.PortName}' to '{newPort}'"
+
+                state,
+                Cmd.batch [
+                    Cmd.OfTask.perform Command.closeSerialPort serialPort SerialPortClosed
+                    Cmd.OfTask.perform Command.openSerialPort newPort SerialPortOpened
+                ]
+
+            | None ->
+                Log.verbose $"Selected serial port '{newPort}'"
+                state, Cmd.OfTask.perform Command.openSerialPort newPort SerialPortOpened
 
         | FlowerCommands.ChangePercentage (id, percentage) ->
             updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
@@ -414,6 +426,10 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         { state with
               SerialPort = Some serialPort },
         Command.onReceived serialPort SerialPortReceivedData
+
+    | SerialPortClosed serialPort ->
+        Log.verbose $"Closed serial port '{serialPort.PortName}'"
+        state, Cmd.none
 
     | SendCommand command -> state, sendCommand command state
 
