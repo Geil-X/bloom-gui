@@ -84,7 +84,4 @@ module Command =
                 Array.append [| byte CommandId.Acceleration |] (uint16 acceleration |> UInt16.inBytes)
             |> Array.append [| byte address |]
 
-        packet |> Seq.iter (printf "%d ")
-        printfn ""
-
         task { serialPort.Write(Encoding.ASCII.GetString packet) }
