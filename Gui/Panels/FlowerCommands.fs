@@ -18,7 +18,7 @@ type Msg =
     | ChangeSpeed of Flower Id * uint
     | ChangeAcceleration of Flower Id * uint
     | SendCommand of Command
-    
+
 [<Literal>]
 let noPort = "No Serial Port"
 
@@ -157,9 +157,16 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> uni
                   |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
-let private iconButton name icon (onClick: Flower -> Command) (flowerOption: Flower option) dispatch =
-    match flowerOption with
-    | Some flower ->
+let private iconButton
+    name
+    icon
+    (onClick: Flower -> Command)
+    (flowerOption: Flower option)
+    (serialPortOption: SerialPort option)
+    dispatch
+    =
+    match flowerOption, serialPortOption with
+    | Some flower, Some serialPort when serialPort.IsOpen ->
         Form.iconTextButton
             (icon Icon.medium Theme.palette.info)
             name
@@ -168,7 +175,7 @@ let private iconButton name icon (onClick: Flower -> Command) (flowerOption: Flo
             (SubPatchOptions.OnChangeOf
                 {| Id = flower.Id
                    Command = onClick flower |})
-    | None ->
+    | _ ->
         Form.iconTextButton
             (icon Icon.medium Theme.palette.info)
             name
@@ -181,14 +188,20 @@ let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView serialPort dispatch
-          iconButton "Home" Icon.home (fun _ -> Home) flowerOption dispatch
-          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption dispatch
-          iconButton "Close" Icon.close (fun _ -> Close) flowerOption dispatch
-          iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption dispatch
+          iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
+          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption serialPort dispatch
+          iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch
+          iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption serialPort dispatch
           openPercentageView flowerOption dispatch
-          iconButton "Set Speed" Icon.speed (Flower.speed >> Speed) flowerOption dispatch
+          iconButton "Set Speed" Icon.speed (Flower.speed >> Speed) flowerOption serialPort dispatch
           speedView flowerOption dispatch
-          iconButton "Set Acceleration" Icon.acceleration (Flower.acceleration >> Acceleration) flowerOption dispatch
+          iconButton
+              "Set Acceleration"
+              Icon.acceleration
+              (Flower.acceleration >> Acceleration)
+              flowerOption
+              serialPort
+              dispatch
           accelerationView flowerOption dispatch ]
 
     StackPanel.create [
