@@ -32,7 +32,7 @@ module Command =
 
     type internal Packet = byte array
 
-    let openSerialPort (port: string) : Task<SerialPort> =
+    let connectToSerialPort (port: string) : Task<SerialPort> =
         task {
             let baud = 115200
 
@@ -46,6 +46,12 @@ module Command =
 
             serialPort.Open()
 
+            return serialPort
+        }
+
+    let openSerialport (serialPort: SerialPort) : Task<SerialPort> =
+        task {
+            serialPort.Open()
             return serialPort
         }
 

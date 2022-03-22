@@ -24,7 +24,8 @@ type State =
       Flowers: Map<Flower Id, Flower>
       FlowerInteraction: FlowerInteraction
       Selected: Flower Id option
-      SerialPort: SerialPort option }
+      SerialPort: SerialPort option
+      Rerender: int }
 
 and FlowerInteraction =
     | Hovering of Flower Id
@@ -68,6 +69,7 @@ type Msg =
     | SendCommand of Command
     | CouldNotSendCommand of exn
     | SerialPortReceivedData of string
+    | RerenderView
 
     // Msg Mapping
     | SimulationEvent of SimulationEvent
@@ -83,7 +85,8 @@ let init () =
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
       Selected = None
-      SerialPort = None },
+      SerialPort = None
+      Rerender = 0 },
     Cmd.batch []
 
 
@@ -281,7 +284,7 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
             | Some serialPort when newPort = FlowerCommands.noPort ->
                 Log.verbose $"Disconnecting from serial port '{serialPort.PortName}'"
 
-                state,
+                { state with SerialPort = None },
                 Cmd.batch [
                     Cmd.OfTask.perform Command.closeSerialPort serialPort SerialPortClosed
                 ]
@@ -292,24 +295,30 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
                 state,
                 Cmd.batch [
                     Cmd.OfTask.perform Command.closeSerialPort serialPort SerialPortClosed
-                    Cmd.OfTask.perform Command.openSerialPort newPort SerialPortOpened
+                    Cmd.OfTask.perform Command.connectToSerialPort newPort SerialPortOpened
                 ]
 
-            | None when newPort = FlowerCommands.noPort -> state, Cmd.none
+            | None when newPort = FlowerCommands.noPort -> { state with SerialPort = None }, Cmd.none
 
             | None ->
                 Log.verbose $"Selected serial port '{newPort}'"
-                state, Cmd.OfTask.perform Command.openSerialPort newPort SerialPortOpened
+                state, Cmd.OfTask.perform Command.connectToSerialPort newPort SerialPortOpened
 
-        | FlowerCommands.ChangePercentage (id, percentage) ->
+        | FlowerCommands.OpenSerialPort serialPort ->
+            state, Cmd.OfTask.perform Command.openSerialport serialPort SerialPortClosed
+
+        | FlowerCommands.CloseSerialPort serialPort ->
+            state, Cmd.OfTask.perform Command.closeSerialPort serialPort SerialPortClosed
+
+        | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
             updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
 
-        | FlowerCommands.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
+        | FlowerCommands.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
 
-        | FlowerCommands.ChangeAcceleration (id, acceleration) ->
+        | FlowerCommands.Msg.ChangeAcceleration (id, acceleration) ->
             updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
 
-        | FlowerCommands.SendCommand command -> state, Cmd.ofMsg (SendCommand command)
+        | FlowerCommands.Msg.SendCommand command -> state, Cmd.ofMsg (SendCommand command)
 
 
 let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
@@ -434,11 +443,14 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
         { state with
               SerialPort = Some serialPort },
-        Command.onReceived serialPort SerialPortReceivedData
+        Cmd.batch [
+            Command.onReceived serialPort SerialPortReceivedData
+            Cmd.ofMsg RerenderView
+        ]
 
     | SerialPortClosed serialPort ->
         Log.verbose $"Closed serial port '{serialPort.PortName}'"
-        state, Cmd.none
+        state, Cmd.ofMsg RerenderView
 
     | SendCommand command -> state, sendCommand command state
 
@@ -449,6 +461,11 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | CouldNotSendCommand exn ->
         Log.error $"Could not send command over the serial port{Environment.NewLine}{exn}"
         state, Cmd.none
+
+    | RerenderView ->
+        { state with
+              Rerender = state.Rerender + 1 },
+        Cmd.none
 
     // Msg Mapping
     | MenuMsg menuMsg -> updateMenu menuMsg state

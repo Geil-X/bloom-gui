@@ -26,20 +26,21 @@ let colors =
 
 let palette =
     
+    // Color Operations
     let darkest = Color.darken 0.2
     let darken = Color.darken 0.1
     let lighten = Color.lighten 0.1
     let lightest = Color.lighten 0.2
+    let fade = Color.fadeOut 0.5
     
+    // Base Colors
     let foreground = Color.hex colors.offWhite
-
     let primary = Color.hex colors.yellow
     let secondary = Color.hex colors.green
     let tertiary = Color.hex colors.blue
 
-
     {| foreground = colors.offWhite
-       foregroundFaded = darken foreground |> string
+       foregroundFaded = fade foreground |> string
        primaryDarkest = darkest primary |> string
        primaryDark = darken primary |> string
        primary = primary |> string
