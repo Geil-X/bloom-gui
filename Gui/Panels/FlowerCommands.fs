@@ -18,9 +18,13 @@ type Msg =
     | ChangeSpeed of Flower Id * uint
     | ChangeAcceleration of Flower Id * uint
     | SendCommand of Command
+    
+[<Literal>]
+let noPort = "No Serial Port"
 
 let private serialPortView (serialPortOption: SerialPort option) dispatch =
-    let ports = SerialPort.GetPortNames()
+    let ports =
+        Array.append [| noPort |] (SerialPort.GetPortNames())
 
     let portState =
         match serialPortOption with
@@ -37,11 +41,16 @@ let private serialPortView (serialPortOption: SerialPort option) dispatch =
             Viewbox.margin (0., 0., Theme.spacing.small, 0.)
            ]
 
+    let selected =
+        serialPortOption
+        |> Option.map (fun serialPort -> serialPort.PortName)
+        |> Option.defaultValue noPort
 
     let dropdown =
         ComboBox.create [
             ComboBox.dataItems ports
             ComboBox.dock Dock.Right
+            ComboBox.selectedItem selected
             ComboBox.onSelectedIndexChanged
                 (fun index ->
                     match Array.tryItem index ports with
@@ -156,8 +165,16 @@ let private iconButton name icon (onClick: Flower -> Command) (flowerOption: Flo
             name
             Theme.palette.foreground
             (fun _ -> onClick flower |> SendCommand |> dispatch)
+            (SubPatchOptions.OnChangeOf
+                {| Id = flower.Id
+                   Command = onClick flower |})
     | None ->
-        Form.iconTextButton (icon Icon.medium Theme.palette.info) name Theme.palette.foreground (fun _ -> ())
+        Form.iconTextButton
+            (icon Icon.medium Theme.palette.info)
+            name
+            Theme.palette.foreground
+            (fun _ -> ())
+            SubPatchOptions.Never
         |> View.withAttr (Button.isEnabled false)
 
 let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =

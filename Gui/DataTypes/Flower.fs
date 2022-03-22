@@ -50,12 +50,16 @@ module Flower =
 
 
     // ---- Builders -----
+    
+    let mutable private initialI2cAddress = 6uy
 
     let basic name =
+        initialI2cAddress <- initialI2cAddress + 1uy
+        
         { Id = Id.create ()
           Name = name
           Position = Point2D.origin ()
-          I2cAddress = 0uy
+          I2cAddress = initialI2cAddress
           Color = Color.hex Theme.palette.primary
           OpenPercent = ClampedPercentage.zero
           Speed = 5000u

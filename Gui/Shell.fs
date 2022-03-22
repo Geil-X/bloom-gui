@@ -142,7 +142,6 @@ let keyUpHandler (window: Window) _ =
                 match eventArgs.Key with
                 | Key.Escape -> Action.DeselectFlower |> Action |> dispatch
                 | Key.Delete -> Action.DeleteFlower |> Action |> dispatch
-                | Key.Back -> Action.DeleteFlower |> Action |> dispatch
                 | _ -> ())
 
     Cmd.ofSub sub
@@ -279,6 +278,14 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
         match flowerCommandsMsg with
         | FlowerCommands.ChangePort newPort ->
             match state.SerialPort with
+            | Some serialPort when newPort = FlowerCommands.noPort ->
+                Log.verbose $"Disconnecting from serial port '{serialPort.PortName}'"
+
+                state,
+                Cmd.batch [
+                    Cmd.OfTask.perform Command.closeSerialPort serialPort SerialPortClosed
+                ]
+
             | Some serialPort ->
                 Log.verbose $"Changing from serial port '{serialPort.PortName}' to '{newPort}'"
 
@@ -287,6 +294,8 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
                     Cmd.OfTask.perform Command.closeSerialPort serialPort SerialPortClosed
                     Cmd.OfTask.perform Command.openSerialPort newPort SerialPortOpened
                 ]
+
+            | None when newPort = FlowerCommands.noPort -> state, Cmd.none
 
             | None ->
                 Log.verbose $"Selected serial port '{newPort}'"
@@ -434,11 +443,11 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | SendCommand command -> state, sendCommand command state
 
     | SerialPortReceivedData str ->
-        Log.info $"Received message over serial\n{str}"
+        Log.info $"Received message over serial{Environment.NewLine}{str}"
         state, Cmd.none
 
     | CouldNotSendCommand exn ->
-        Log.error $"Could not send command over the serial port\n{exn}"
+        Log.error $"Could not send command over the serial port{Environment.NewLine}{exn}"
         state, Cmd.none
 
     // Msg Mapping

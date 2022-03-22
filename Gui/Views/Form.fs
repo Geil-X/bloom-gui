@@ -79,10 +79,16 @@ let imageButton (icon: IView) (color: string) (onClick: RoutedEventArgs -> unit)
          Button.onClick onClick
          Button.content icon ]
 
-let iconTextButton (icon: IView) (text: string) (color: string) (onClick: RoutedEventArgs -> unit) : IView<Button> =
+let iconTextButton
+    (icon: IView)
+    (text: string)
+    (color: string)
+    (onClick: RoutedEventArgs -> unit)
+    (subPatch: SubPatchOptions)
+    : IView<Button> =
     Button.create
     <| [ Button.margin Theme.spacing.small
-         Button.onClick onClick
+         Button.onClick (onClick, subPatch)
          Button.content (
              StackPanel.create [
                  StackPanel.orientation Orientation.Horizontal
