@@ -16,6 +16,7 @@ type Msg =
     | ChangePort of string
     | ChangePercentage of Flower Id * ClampedPercentage
     | ChangeSpeed of Flower Id * uint
+    | OpenSerialPortsDropdown
     | OpenSerialPort of SerialPort
     | CloseSerialPort of SerialPort
     | ChangeAcceleration of Flower Id * uint
@@ -24,9 +25,8 @@ type Msg =
 [<Literal>]
 let noPort = "No Serial Port"
 
-let private serialPortView (serialPortOption: SerialPort option) dispatch =
-    let ports =
-        Array.append [| noPort |] (SerialPort.GetPortNames())
+let private serialPortView (serialPorts: string list) (serialPortOption: SerialPort option) dispatch =
+    let ports = noPort :: serialPorts |> Array.ofList
 
     let portIcon =
         Icon.connection Icon.small Theme.palette.info
@@ -83,6 +83,7 @@ let private serialPortView (serialPortOption: SerialPort option) dispatch =
             ComboBox.dataItems ports
             ComboBox.dock Dock.Left
             ComboBox.selectedItem selected
+            ComboBox.onPointerEnter (fun _ -> dispatch OpenSerialPortsDropdown)
             ComboBox.onSelectedIndexChanged
                 (fun index ->
                     match Array.tryItem index ports with
@@ -214,10 +215,10 @@ let private iconButton
             SubPatchOptions.Never
         |> View.withAttr (Button.isEnabled false)
 
-let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
+let view (flowerOption: Flower option) (serialPorts: string list) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
-          serialPortView serialPort dispatch
+          serialPortView serialPorts serialPort dispatch
           iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
           iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption serialPort dispatch
           iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch

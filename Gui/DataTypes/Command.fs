@@ -48,6 +48,11 @@ module Command =
 
             return serialPort
         }
+        
+    let getSerialPorts () : Task<string list> =
+        task {
+            return SerialPort.GetPortNames() |> List.ofArray
+        }
 
     let openSerialport (serialPort: SerialPort) : Task<SerialPort> =
         task {

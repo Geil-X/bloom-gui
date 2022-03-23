@@ -25,6 +25,7 @@ type State =
       FlowerInteraction: FlowerInteraction
       Selected: Flower Id option
       SerialPort: SerialPort option
+      SerialPorts: string list
       Rerender: int }
 
 and FlowerInteraction =
@@ -69,6 +70,8 @@ type Msg =
     | SendCommand of Command
     | CouldNotSendCommand of exn
     | SerialPortReceivedData of string
+    | RefreshSerialPorts
+    | GotSerialPorts of string list
     | RerenderView
 
     // Msg Mapping
@@ -86,9 +89,9 @@ let init () =
       FlowerInteraction = NoInteraction
       Selected = None
       SerialPort = None
+      SerialPorts = []
       Rerender = 0 },
-    Cmd.batch []
-
+    Cmd.ofMsg RefreshSerialPorts
 
 // ---- Update helper functions -----
 
@@ -310,6 +313,8 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
         | FlowerCommands.CloseSerialPort serialPort ->
             state, Cmd.OfTask.perform Command.closeSerialPort serialPort SerialPortClosed
 
+        | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg RefreshSerialPorts
+
         | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
             updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
 
@@ -462,6 +467,10 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         Log.error $"Could not send command over the serial port{Environment.NewLine}{exn}"
         state, Cmd.none
 
+    | RefreshSerialPorts -> state, Cmd.OfTask.perform Command.getSerialPorts () GotSerialPorts
+
+    | GotSerialPorts serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none
+
     | RerenderView ->
         { state with
               Rerender = state.Rerender + 1 },
@@ -531,7 +540,9 @@ let view (state: State) (dispatch: Msg -> unit) =
     DockPanel.create [
         DockPanel.children [
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
-            DockPanel.child Dock.Left (FlowerPanel.view selected state.SerialPort (FlowerPanelMsg >> dispatch))
+            DockPanel.child
+                Dock.Left
+                (FlowerPanel.view selected state.SerialPorts state.SerialPort (FlowerPanelMsg >> dispatch))
             simulationSpace state (Msg.SimulationEvent >> dispatch)
         ]
     ]
