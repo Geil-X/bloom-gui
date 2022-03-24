@@ -84,11 +84,7 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
             ComboBox.dock Dock.Left
             ComboBox.selectedItem selected
             ComboBox.onPointerEnter (fun _ -> dispatch OpenSerialPortsDropdown)
-            ComboBox.onSelectedIndexChanged
-                (fun index ->
-                    match Array.tryItem index ports with
-                    | Some port -> ChangePort port |> dispatch
-                    | None -> ())
+            ComboBox.onSelectedItemChanged(fun port -> ChangePort (port :?> string) |> dispatch)
         ]
 
     Form.formElement
@@ -215,7 +211,12 @@ let private iconButton
             SubPatchOptions.Never
         |> View.withAttr (Button.isEnabled false)
 
-let view (flowerOption: Flower option) (serialPorts: string list) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
+let view
+    (flowerOption: Flower option)
+    (serialPorts: string list)
+    (serialPort: SerialPort option)
+    (dispatch: Msg -> unit)
+    =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView serialPorts serialPort dispatch

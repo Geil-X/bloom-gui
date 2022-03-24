@@ -18,7 +18,7 @@ let levelToString level =
     | Fatal -> "Fatal  "
 
 /// The current log level.
-let mutable private currentLogLevel = Debug
+let mutable LogLevel = Debug
 
 /// The interface loggers need to implement.
 type ILogger =
@@ -28,7 +28,7 @@ type ILogger =
 let ConsoleLogger =
     { new ILogger with
         member _.Log (level: Level) (format: Printf.StringFormat<'a, unit>) : unit =
-            if level >= currentLogLevel then
+            if level >= LogLevel then
                 Printf.kprintf (printfn "[%s] %s" (levelToString level)) format
                 |> ignore }
 

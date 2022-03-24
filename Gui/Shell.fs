@@ -301,7 +301,7 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
                     Cmd.OfTask.perform Command.connectToSerialPort newPort SerialPortOpened
                 ]
 
-            | None when newPort = FlowerCommands.noPort -> { state with SerialPort = None }, Cmd.none
+            | None when newPort = FlowerCommands.noPort || String.IsNullOrEmpty newPort -> { state with SerialPort = None }, Cmd.none
 
             | None ->
                 Log.verbose $"Selected serial port '{newPort}'"
