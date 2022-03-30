@@ -51,7 +51,9 @@ module Flower =
 
     // ---- Builders -----
     
-    let mutable private initialI2cAddress = 6uy
+    /// The first 8 Addresses are reserved so the starting address must be the
+    /// 9th address.
+    let mutable private initialI2cAddress = 7uy
 
     let basic name =
         initialI2cAddress <- initialI2cAddress + 1uy
