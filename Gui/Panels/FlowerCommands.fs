@@ -21,6 +21,14 @@ type Msg =
     | ChangeAcceleration of Flower Id * uint
     | SendCommand of Command
 
+let presets =
+    {| speedEmpty = 0u
+       minSpeed = 0.
+       maxSpeed = 65000.
+       accelerationEmpty = 0u
+       minAcceleration = 0.
+       maxAcceleration = 10000. |}
+
 [<Literal>]
 let noPort = "No Serial Port"
 
@@ -165,10 +173,10 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
         { Name = "Speed"
           Value =
               Option.map Flower.speed flowerOption
-              |> Option.defaultValue 0u
+              |> Option.defaultValue presets.speedEmpty
               |> float
-          Min = 0.
-          Max = 10000.
+          Min = presets.minSpeed
+          Max = presets.maxSpeed
           OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, uint newSpeed) |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
@@ -177,10 +185,10 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> uni
         { Name = "Acceleration"
           Value =
               Option.map Flower.acceleration flowerOption
-              |> Option.defaultValue 0u
+              |> Option.defaultValue presets.accelerationEmpty
               |> float
-          Min = 0.
-          Max = 5000.
+          Min = presets.minAcceleration
+          Max = presets.maxAcceleration
           OnChanged =
               (fun flowerId newAcceleration ->
                   ChangeAcceleration(flowerId, uint newAcceleration)

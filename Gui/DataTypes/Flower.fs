@@ -51,7 +51,7 @@ module Flower =
 
     // ---- Builders -----
     
-    let mutable private initialI2cAddress = 6uy
+    let mutable private initialI2cAddress = 7uy
 
     let basic name =
         initialI2cAddress <- initialI2cAddress + 1uy

@@ -14,7 +14,6 @@ module Command =
 
     open Elmish
     open System.IO.Ports
-    open System.Text
     open System.Threading.Tasks
 
     open Gui.DataTypes
@@ -90,4 +89,4 @@ module Command =
                 Array.append [| byte CommandId.Acceleration |] (uint16 acceleration |> UInt16.inBytes)
             |> Array.append [| byte address |]
 
-        task { serialPort.Write(Encoding.ASCII.GetString packet) }
+        task { serialPort.Write(packet, 0, packet.Length) }
