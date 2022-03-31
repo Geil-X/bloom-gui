@@ -47,7 +47,8 @@ module ClampedPercentage =
 
     /// Get the percentage as a range from 0 to 65536. This spreads out a
     /// percentage over the whole range of an 16 bit unsigned number.
-    let toBytes16 (ClampedPercentage p: ClampedPercentage): Byte array =
-        p * float UInt16.MaxValue
-        |> uint16
-        |> UInt16.inBytes
+    let toUint16 (ClampedPercentage p: ClampedPercentage) : uint16 = p * float UInt16.MaxValue |> uint16
+
+    /// Get the percentage as a range from 0 to 65536. This spreads out a
+    /// percentage over the whole range of an 16 bit unsigned number.
+    let toBytes16 (p: ClampedPercentage) : Byte array = toUint16 p |> UInt16.inBytes
