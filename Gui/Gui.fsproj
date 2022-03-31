@@ -50,8 +50,6 @@
         <Compile Include="Views\DockPanel.fs" />
         <Compile Include="Views\Text.fs" />
         <Compile Include="Views\StackPanel.fs" />
-        <Compile Include="Views\Styles.fs" />
-        <Compile Include="Views\SimpleTheme.fs" />
         <Compile Include="FlowerFile.fs" />
         <Compile Include="Panels\FlowerProperties.fs" />
         <Compile Include="Panels\FlowerCommands.fs" />
@@ -76,10 +74,6 @@
 
     <ItemGroup>
         <EmbeddedResource Remove=".template.config\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\AvaloniaStyles\AvaloniaStyles.csproj" />
     </ItemGroup>
 
 </Project>
