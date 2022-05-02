@@ -31,8 +31,9 @@ let view (dispatch: Msg -> unit) =
             Button.onClick (Event.handleEvent msg >> dispatch)
             Button.content (icon Icon.large Theme.palette.primaryLightest)
         ]
+        :> IView
 
-    let buttons: IView list = List.map button iconButtons
+    let buttons : IView list = List.map button iconButtons
 
     StackPanel.create [
         StackPanel.orientation Orientation.Horizontal

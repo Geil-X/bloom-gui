@@ -53,6 +53,7 @@
         <Compile Include="FlowerFile.fs" />
         <Compile Include="Panels\FlowerProperties.fs" />
         <Compile Include="Panels\FlowerCommands.fs" />
+        <Compile Include="Panels\Choreographies.fs" />
         <Compile Include="Panels\FlowerPanel.fs" />
         <Compile Include="Panels\IconDock.fs" />
         <Compile Include="Menu\File.fs" />
