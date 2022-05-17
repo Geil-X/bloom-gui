@@ -8,7 +8,7 @@ open System
 open System.IO.Ports
 
 open Gui.DataTypes
-open Gui.Widgets
+open Gui.Views
 open Gui
 open Extensions
 

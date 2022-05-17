@@ -13,11 +13,15 @@ open Gui
 open Gui.DataTypes
 open Gui.Menu
 open Gui.Panels
-open Gui.Widgets
+open Gui.Views
 open Extensions
 
 
 // ---- States ----
+
+type Tab =
+    | Simulation
+    | Inputs
 
 type State =
     { CanvasSize: Size<Pixels>
@@ -26,7 +30,9 @@ type State =
       Selected: Flower Id option
       SerialPort: SerialPort option
       SerialPorts: string list
-      Rerender: int }
+      Rerender: int
+      Tab : Tab
+      }
 
 and FlowerInteraction =
     | Hovering of Flower Id
@@ -85,7 +91,9 @@ let init () : State * Cmd<Msg> =
       Selected = None
       SerialPort = None
       SerialPorts = []
-      Rerender = 0 },
+      Rerender = 0
+      Tab = Simulation
+      },
     Cmd.ofMsg (Action.RefreshSerialPorts |> Action)
 
 // ---- Update helper functions -----
@@ -558,10 +566,10 @@ let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
     :> IView
 
 
-let view (state: State) (dispatch: Msg -> unit) =
+let simulationView (state: State) (dispatch: Msg -> unit) =
     let selected =
         Option.bind (fun id -> getFlower id state.Flowers) state.Selected
-
+        
     DockPanel.create [
         DockPanel.children [
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
@@ -575,7 +583,24 @@ let view (state: State) (dispatch: Msg -> unit) =
             simulationSpace state (Msg.SimulationEvent >> dispatch)
         ]
     ]
-
+    
+let inputsView (state: State) (dispatch: Msg -> unit) =
+    DockPanel.create []
+    
+let view (state: State) (dispatch: Msg -> unit) =
+    TabControl.create [
+            TabControl.viewItems [
+                TabItem.create [
+                    TabItem.header "Simulation"
+                    TabItem.content  (simulationView state dispatch)
+                ]
+                TabItem.create [
+                    TabItem.header "Inputs"
+                    TabItem.content  (inputsView state dispatch)
+                ]
+            ]
+        ]
+    
 // ---- Main Window Creation ----
 
 

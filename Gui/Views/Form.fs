@@ -1,4 +1,4 @@
-module Gui.Widgets.Form
+module Gui.Views.Form
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL

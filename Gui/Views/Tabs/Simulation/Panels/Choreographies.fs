@@ -5,7 +5,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 
 open Gui
-open Gui.Widgets
+open Gui.Views
 open Utilities.Extensions
 
 type Msg = Action of Action

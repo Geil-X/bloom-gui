@@ -8,7 +8,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Styling
 open Extensions
 open Gui
-open Gui.Widgets
+open Gui.Views
 
 
 type Msg =
