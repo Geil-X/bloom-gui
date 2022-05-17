@@ -1,9 +1,8 @@
 module Tests.Gen
 
 open System
+open Extensions
 open FsCheck
-
-open Gui
 
 /// Generates a random number from [0.0, 1.0]
 let rand =

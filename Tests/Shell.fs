@@ -1,11 +1,12 @@
 module Tests.Shell
 
 open Avalonia.Input
+open Gui.DataTypes
 open NUnit.Framework
 open Geometry
 
-open Gui
 open Extensions
+open Gui
 open Gui.Shell
 
 [<SetUp>]
