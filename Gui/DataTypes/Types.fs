@@ -3,6 +3,22 @@ namespace Gui
 open System.IO.Ports
 open Gui.DataTypes
 
+// ---- Generic Types ----------------------------------------------------------
+
+[<RequireQualifiedAccess>]
+type Choreography =
+    | None
+    | OpenClose
+
+[<RequireQualifiedAccess>]
+type Direction =
+    | Left
+    | Top
+    | Right
+    | Bottom
+
+// ---- Actions ----------------------------------------------------------------
+
 type Action =
     // File Actions
     | NewFile
@@ -19,7 +35,8 @@ type Action =
     | DeselectFlower
     | DeleteFlower
     | SendCommand of Command
-    
+    | SelectChoreography of Choreography
+
 [<RequireQualifiedAccess>]
 type ActionResult =
     | SerialPortOpened of SerialPort
@@ -34,10 +51,3 @@ type ActionError =
     | ErrorPickingFileToOpen
     | CouldNotOpenFile of exn
     | CouldNotSendCommand of exn
-
-[<RequireQualifiedAccess>]
-type Direction =
-    | Left
-    | Top
-    | Right
-    | Bottom

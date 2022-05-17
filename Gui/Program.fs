@@ -13,6 +13,7 @@ type App() =
         this.Styles.Load "avares://Avalonia.Themes.Default/DefaultTheme.xaml"
         this.Styles.Load "avares://Avalonia.Themes.Default/Accents/BaseDark.xaml"
         this.Styles.Load "avares://Gui/Styles.xaml"
+//        this.Styles.Add(FluentTheme(baseUri = null, Mode = FluentThemeMode.Dark))
 
         this.Name <- Theme.program
         

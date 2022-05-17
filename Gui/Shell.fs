@@ -376,7 +376,7 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
 
 let updateChoreographies (msg: Choreographies.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
-    | Choreographies.SelectChoreography -> state, Cmd.none
+    | Choreographies.Action action -> state, Cmd.ofMsg (Action action)
 
 let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
     match msg with
