@@ -102,13 +102,6 @@
                 <key>LSHandlerRank</key>
                 <string>Owner</string>
 
-                <key>LSItemContentTypes</key>
-                <dict>
-                    <key>public.filename-extension</key>
-                    <array>
-                        <string>bloom</string>
-                    </array>
-                </dict>
             </dict>
         </array>
 

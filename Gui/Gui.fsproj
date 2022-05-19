@@ -44,26 +44,27 @@
         <Compile Include="DataTypes\Command.fs" />
         <Compile Include="DataTypes\Types.fs" />
         <Compile Include="DataTypes\Timer.fs" />
-        <Compile Include="InputTypes.fs" />
+        <Compile Include="DataTypes\InputTypes.fs" />
         <Compile Include="Views\Form.fs" />
         <Compile Include="Views\Icon.fs" />
         <Compile Include="Views\Dialogs.fs" />
         <Compile Include="Views\DockPanel.fs" />
         <Compile Include="Views\Text.fs" />
         <Compile Include="Views\StackPanel.fs" />
-        <Compile Include="FlowerFile.fs" />
-        <Compile Include="Panels\FlowerProperties.fs" />
-        <Compile Include="Panels\FlowerCommands.fs" />
-        <Compile Include="Panels\FlowerPanel.fs" />
-        <Compile Include="Panels\IconDock.fs" />
+        <Compile Include="Views\Tabs\Simulation\Panels\FlowerProperties.fs" />
+        <Compile Include="Views\Tabs\Simulation\Panels\FlowerCommands.fs" />
+        <Compile Include="Views\Tabs\Simulation\Panels\Choreographies.fs" />
+        <Compile Include="Views\Tabs\Simulation\Panels\FlowerPanel.fs" />
+        <Compile Include="Views\Tabs\Simulation\Panels\IconDock.fs" />
         <Compile Include="Menu\File.fs" />
         <Compile Include="Menu\Menu.fs" />
+        <Compile Include="FlowerFile.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
     
     <ItemGroup>
-        <PackageReference Include="Avalonia.Desktop" Version="0.10.0-rc1" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.12" />
         <PackageReference Include="Avalonia.Svg.Skia" Version="0.10.12" />
         <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
         <PackageReference Include="Fsharp.Geometry" Version="0.1.22" />

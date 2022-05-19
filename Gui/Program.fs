@@ -13,8 +13,11 @@ type App() =
         this.Styles.Load "avares://Avalonia.Themes.Default/DefaultTheme.xaml"
         this.Styles.Load "avares://Avalonia.Themes.Default/Accents/BaseDark.xaml"
         this.Styles.Load "avares://Gui/Styles.xaml"
-        
+//        this.Styles.Add(FluentTheme(baseUri = null, Mode = FluentThemeMode.Dark))
+
         this.Name <- Theme.program
+        
+        Log.LogLevel <- Log.Verbose
 
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
@@ -26,7 +29,8 @@ module Program =
 
     [<EntryPoint>]
     let main (args: string []) =
-        AppBuilder.Configure<App>()
+        AppBuilder
+            .Configure<App>()
             .UsePlatformDetect()
             .UseSkia()
             .StartWithClassicDesktopLifetime(args)

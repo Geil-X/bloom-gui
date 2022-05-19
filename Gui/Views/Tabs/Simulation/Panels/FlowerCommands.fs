@@ -8,7 +8,7 @@ open System
 open System.IO.Ports
 
 open Gui.DataTypes
-open Gui.Widgets
+open Gui.Views
 open Gui
 open Extensions
 
@@ -16,39 +16,83 @@ type Msg =
     | ChangePort of string
     | ChangePercentage of Flower Id * ClampedPercentage
     | ChangeSpeed of Flower Id * uint
+    | OpenSerialPortsDropdown
+    | OpenSerialPort of SerialPort
+    | CloseSerialPort of SerialPort
     | ChangeAcceleration of Flower Id * uint
     | SendCommand of Command
 
-let private serialPortView (serialPortOption: SerialPort option) dispatch =
-    let ports = SerialPort.GetPortNames()
+let presets =
+    {| speedEmpty = 0u
+       minSpeed = 0.
+       maxSpeed = 65000.
+       accelerationEmpty = 0u
+       minAcceleration = 0.
+       maxAcceleration = 10000. |}
 
-    let portState =
+[<Literal>]
+let noPort = "No Serial Port"
+
+let private serialPortView (serialPorts: string list) (serialPortOption: SerialPort option) dispatch =
+    let ports = noPort :: serialPorts |> Array.ofList
+
+    let portIcon =
+        Icon.connection Icon.small Theme.palette.info
+        |> View.withAttr (Viewbox.dock Dock.Left)
+
+    let connectionStatus =
         match serialPortOption with
-        | Some serialPort ->
-            if serialPort.IsOpen then
+        | Some serialPort when serialPort.IsOpen ->
+            let icon =
                 Icon.connected Icon.small Theme.palette.success
 
-            else
-                Icon.connection Icon.small Theme.palette.danger
+            Button.create [
+                Button.onClick (
+                    (fun _ -> CloseSerialPort serialPort |> dispatch),
+                    SubPatchOptions.OnChangeOf serialPort.PortName
+                )
+                Button.content icon
+            ]
 
-        | None -> Icon.connection Icon.small Theme.palette.info
+        | Some serialPort ->
+            let icon =
+                Icon.disconnected Icon.small Theme.palette.danger
+
+            Button.create [
+                Button.onClick (
+                    (fun _ -> OpenSerialPort serialPort |> dispatch),
+                    SubPatchOptions.OnChangeOf serialPort.PortName
+                )
+                Button.content icon
+            ]
+
+        | None ->
+            let icon =
+                Icon.connected Icon.small Theme.palette.foregroundFaded
+
+            Button.create [
+                Button.content icon
+                Button.isEnabled false
+            ]
+
         |> View.withAttrs [
-            Viewbox.dock Dock.Left
-            Viewbox.margin (0., 0., Theme.spacing.small, 0.)
+            Viewbox.dock Dock.Right
+            Viewbox.width 24.
            ]
 
+    let selected =
+        serialPortOption
+        |> Option.map (fun serialPort -> serialPort.PortName)
+        |> Option.defaultValue noPort
 
     let dropdown =
         ComboBox.create [
+            ComboBox.margin (Theme.spacing.small, 0.)
             ComboBox.dataItems ports
-            ComboBox.dock Dock.Right
-            ComboBox.onSelectedIndexChanged
-                (fun index ->
-                    match Array.tryItem index ports with
-                    | Some port -> ChangePort port |> dispatch
-                    | None -> ())
-            if Option.isSome serialPortOption then
-                ComboBox.selectedItem serialPortOption.Value.PortName
+            ComboBox.dock Dock.Left
+            ComboBox.selectedItem selected
+            ComboBox.onPointerEnter (fun _ -> dispatch OpenSerialPortsDropdown)
+            ComboBox.onSelectedItemChanged(fun port -> ChangePort (port :?> string) |> dispatch)
         ]
 
     Form.formElement
@@ -56,7 +100,7 @@ let private serialPortView (serialPortOption: SerialPort option) dispatch =
            Orientation = Orientation.Vertical
            Element =
                DockPanel.create [
-                   DockPanel.children [ portState; dropdown ]
+                   DockPanel.children [ portIcon; connectionStatus; dropdown ]
                ] |}
 
 type SliderProperties =
@@ -126,10 +170,10 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
         { Name = "Speed"
           Value =
               Option.map Flower.speed flowerOption
-              |> Option.defaultValue 0u
+              |> Option.defaultValue presets.speedEmpty
               |> float
-          Min = 0.
-          Max = 10000.
+          Min = presets.minSpeed
+          Max = presets.maxSpeed
           OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, uint newSpeed) |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
@@ -138,40 +182,66 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> uni
         { Name = "Acceleration"
           Value =
               Option.map Flower.acceleration flowerOption
-              |> Option.defaultValue 0u
+              |> Option.defaultValue presets.accelerationEmpty
               |> float
-          Min = 0.
-          Max = 5000.
+          Min = presets.minAcceleration
+          Max = presets.maxAcceleration
           OnChanged =
               (fun flowerId newAcceleration ->
                   ChangeAcceleration(flowerId, uint newAcceleration)
                   |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
-let private iconButton name icon (onClick: Flower -> Command) (flowerOption: Flower option) dispatch =
-    match flowerOption with
-    | Some flower ->
+let private iconButton
+    name
+    icon
+    (onClick: Flower -> Command)
+    (flowerOption: Flower option)
+    (serialPortOption: SerialPort option)
+    dispatch
+    =
+    match flowerOption, serialPortOption with
+    | Some flower, Some serialPort when serialPort.IsOpen ->
         Form.iconTextButton
             (icon Icon.medium Theme.palette.info)
             name
             Theme.palette.foreground
             (fun _ -> onClick flower |> SendCommand |> dispatch)
-    | None ->
-        Form.iconTextButton (icon Icon.medium Theme.palette.info) name Theme.palette.foreground (fun _ -> ())
+            (SubPatchOptions.OnChangeOf
+                {| Id = flower.Id
+                   Command = onClick flower |})
+    | _ ->
+        Form.iconTextButton
+            (icon Icon.medium Theme.palette.info)
+            name
+            Theme.palette.foreground
+            (fun _ -> ())
+            SubPatchOptions.Never
         |> View.withAttr (Button.isEnabled false)
 
-let view (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
+let view
+    (flowerOption: Flower option)
+    (serialPorts: string list)
+    (serialPort: SerialPort option)
+    (dispatch: Msg -> unit)
+    =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
-          serialPortView serialPort dispatch
-          iconButton "Home" Icon.home (fun _ -> Home) flowerOption dispatch
-          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption dispatch
-          iconButton "Close" Icon.close (fun _ -> Close) flowerOption dispatch
-          iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption dispatch
+          serialPortView serialPorts serialPort dispatch
+          iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
+          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption serialPort dispatch
+          iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch
+          iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption serialPort dispatch
           openPercentageView flowerOption dispatch
-          iconButton "Set Speed" Icon.speed (Flower.speed >> Speed) flowerOption dispatch
+          iconButton "Set Speed" Icon.speed (Flower.speed >> Speed) flowerOption serialPort dispatch
           speedView flowerOption dispatch
-          iconButton "Set Acceleration" Icon.acceleration (Flower.acceleration >> Acceleration) flowerOption dispatch
+          iconButton
+              "Set Acceleration"
+              Icon.acceleration
+              (Flower.acceleration >> Acceleration)
+              flowerOption
+              serialPort
+              dispatch
           accelerationView flowerOption dispatch ]
 
     StackPanel.create [

@@ -3,7 +3,8 @@ module Tests.Color
 open Avalonia.Media
 open NUnit.Framework
 open FsCheck.NUnit
-open Gui
+
+open Extensions
 
 
 [<SetUp>]

@@ -1,4 +1,4 @@
-module Gui.Widgets.Dialogs
+module Gui.Views.Dialogs
 
 open System
 open System.Threading.Tasks

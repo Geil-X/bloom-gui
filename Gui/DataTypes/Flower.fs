@@ -50,12 +50,18 @@ module Flower =
 
 
     // ---- Builders -----
+    
+    /// The first 8 Addresses are reserved so the starting address must be the
+    /// 9th address.
+    let mutable private initialI2cAddress = 7uy
 
     let basic name =
+        initialI2cAddress <- initialI2cAddress + 1uy
+        
         { Id = Id.create ()
           Name = name
           Position = Point2D.origin ()
-          I2cAddress = 0uy
+          I2cAddress = initialI2cAddress
           Color = Color.hex Theme.palette.primary
           OpenPercent = ClampedPercentage.zero
           Speed = 5000u

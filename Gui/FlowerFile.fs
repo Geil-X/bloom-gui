@@ -6,7 +6,7 @@ open System.Threading.Tasks
 open Avalonia.Controls
 
 open Gui.DataTypes
-open Gui.Widgets
+open Gui.Views
 open Extensions
 
 type FileError = exn

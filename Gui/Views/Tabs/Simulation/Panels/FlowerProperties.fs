@@ -7,7 +7,7 @@ open Avalonia.Layout
 
 open Geometry
 open Gui.DataTypes
-open Gui.Widgets
+open Gui.Views
 
 type Msg =
     | ChangeName of Flower Id * string
