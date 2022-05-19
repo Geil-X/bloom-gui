@@ -14,6 +14,7 @@ open Gui.DataTypes
 open Gui.Menu
 open Gui.Panels
 open Gui.Views
+open Gui.Views.Tabs
 open Extensions
 
 
@@ -188,6 +189,7 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
 
     | Action.NewFile -> newFile state Seq.empty, Cmd.none
 
+    
     | Action.SaveAsDialog -> state, Cmd.OfTask.perform FlowerFile.saveFileDialog window (Action.SaveAs >> Action)
 
 
@@ -217,7 +219,7 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
 
     | Action.FileOpened flowers -> newFile state flowers, Cmd.none
 
-    | RefreshSerialPorts ->
+    | Action.RefreshSerialPorts ->
         state, Cmd.OfTask.perform Command.getSerialPorts () (ActionResult.GotSerialPorts >> ActionResult)
 
     // ---- Flower Actions ----
@@ -239,6 +241,8 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
         | None -> state, Cmd.none
 
     | Action.SendCommand command -> state, sendCommand command state
+    
+    | Action.SelectChoreography _ -> state, Cmd.none
 
 let updateActionResult (result: ActionResult) (state: State) : State * Cmd<Msg> =
     match result with
@@ -584,9 +588,6 @@ let simulationView (state: State) (dispatch: Msg -> unit) =
         ]
     ]
     
-let inputsView (state: State) (dispatch: Msg -> unit) =
-    DockPanel.create []
-    
 let view (state: State) (dispatch: Msg -> unit) =
     TabControl.create [
             TabControl.viewItems [
@@ -596,7 +597,7 @@ let view (state: State) (dispatch: Msg -> unit) =
                 ]
                 TabItem.create [
                     TabItem.header "Inputs"
-                    TabItem.content  (inputsView state dispatch)
+                    TabItem.content  (Inputs.view)
                 ]
             ]
         ]

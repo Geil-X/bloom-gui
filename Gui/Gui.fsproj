@@ -44,6 +44,8 @@
         <Compile Include="DataTypes\Types.fs" />
         <Compile Include="DataTypes\Timer.fs" />
         <Compile Include="DataTypes\InputTypes.fs" />
+        <Compile Include="DataTypes\Video.fs" />
+        <Compile Include="Views\DSL\VideoView.fs" />
         <Compile Include="Views\Form.fs" />
         <Compile Include="Views\Icon.fs" />
         <Compile Include="Views\Dialogs.fs" />
@@ -55,6 +57,7 @@
         <Compile Include="Views\Tabs\Simulation\Panels\Choreographies.fs" />
         <Compile Include="Views\Tabs\Simulation\Panels\FlowerPanel.fs" />
         <Compile Include="Views\Tabs\Simulation\Panels\IconDock.fs" />
+        <Compile Include="Views\Tabs\Inputs.fs" />
         <Compile Include="Menu\File.fs" />
         <Compile Include="Menu\Menu.fs" />
         <Compile Include="FlowerFile.fs" />
@@ -70,6 +73,7 @@
         <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.0-beta" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.0-beta" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.0-beta" />
+        <PackageReference Include="LibVLCSharp.Avalonia" Version="3.6.6" />
         <PackageReference Include="System.IO.Ports" Version="6.0.0" />
     </ItemGroup>
 

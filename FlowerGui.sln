@@ -6,6 +6,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 	dotnet.yml = .github/workflows/dotnet.yml
+	README.md = README.md
 EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{2E227CBB-13D0-41DC-883E-3A318214FAF0}"
