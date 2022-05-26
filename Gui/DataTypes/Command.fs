@@ -1,14 +1,5 @@
 namespace Gui.DataTypes
 
-type Command =
-    | NoCommand
-    | Setup
-    | Home
-    | Open
-    | Close
-    | OpenTo of ClampedPercentage
-    | Speed of uint
-    | Acceleration of uint
 
 module Command =
 

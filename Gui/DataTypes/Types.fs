@@ -1,9 +1,22 @@
 namespace Gui
 
 open System.IO.Ports
+open Avalonia.Media
+open Geometry
 open Gui.DataTypes
 
+// ---- Constants --------------------------------------------------------------
+
+
+type UserSpace = UserSpace
+
+module Constants =
+    [<Literal>]
+    let CanvasId = "Canvas"
+
 // ---- Generic Types ----------------------------------------------------------
+
+type I2cAddress = byte
 
 [<RequireQualifiedAccess>]
 type Choreography =
@@ -16,7 +29,30 @@ type Direction =
     | Top
     | Right
     | Bottom
+    
+// ---- Flower Types -----------------------------------------------------------
 
+type Flower =
+    { Id: Flower Id
+      Name: string
+      I2cAddress: I2cAddress
+      Position: Point2D<Pixels, UserSpace>
+      Color: Color
+      OpenPercent: ClampedPercentage
+      Speed: uint
+      Acceleration: uint
+      Radius: Length<Pixels> }
+    
+type Command =
+    | NoCommand
+    | Setup
+    | Home
+    | Open
+    | Close
+    | OpenTo of ClampedPercentage
+    | Speed of uint
+    | Acceleration of uint
+    
 // ---- Actions ----------------------------------------------------------------
 
 type Action =

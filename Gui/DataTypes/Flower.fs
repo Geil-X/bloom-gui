@@ -1,24 +1,8 @@
 namespace Gui.DataTypes
 
-open Avalonia.Media
 open Geometry
 
 open Gui.DataTypes
-
-type I2cAddress = byte
-
-type Flower =
-    { Id: Flower Id
-      Name: string
-      I2cAddress: I2cAddress
-      Position: Point2D<Pixels, UserSpace>
-      Color: Color
-      OpenPercent: ClampedPercentage
-      Speed: uint
-      Acceleration: uint
-      Radius: Length<Pixels> }
-
-
 
 module Flower =
 
