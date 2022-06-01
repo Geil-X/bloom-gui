@@ -56,5 +56,5 @@ module ClampedPercentage =
     let toBytes16 (p: ClampedPercentage) : Byte [] = toUint16 p |> UInt16.inBytes
     
     let fromBytes (first: byte) (second: byte) : ClampedPercentage =
-        float (UInt16.fromBytes [| first; second |]) / float UInt16.MaxValue
+        float (UInt16.fromBytes first second)  / float UInt16.MaxValue
         |> decimal

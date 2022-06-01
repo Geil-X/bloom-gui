@@ -92,7 +92,7 @@ type Action =
 type ActionResult =
     | SerialPortOpened of SerialPort
     | SerialPortClosed of SerialPort
-    | SerialPortReceivedData of string
+    | SerialPortReceivedData of Packet
     | GotSerialPorts of string list
 
 [<RequireQualifiedAccess>]

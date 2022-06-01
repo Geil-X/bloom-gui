@@ -14,6 +14,7 @@ open Gui.DataTypes
 open Gui.Menu
 open Gui.Panels
 open Gui.Views
+open Gui.Generics
 open Extensions
 
 
@@ -218,7 +219,7 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
     | Action.FileOpened flowers -> newFile state flowers, Cmd.none
 
     | RefreshSerialPorts ->
-        state, Cmd.OfTask.perform Command.getSerialPorts () (ActionResult.GotSerialPorts >> ActionResult)
+        state, Cmd.OfTask.perform SerialPort.getPorts () (ActionResult.GotSerialPorts >> ActionResult)
 
     // ---- Flower Actions ----
 
@@ -248,10 +249,10 @@ let updateActionResult (result: ActionResult) (state: State) : State * Cmd<Msg> 
         { state with
               SerialPort = Some serialPort },
         Cmd.batch [
-            Command.onReceived
-                serialPort
+            SerialPort.onReceived
                 (ActionResult.SerialPortReceivedData
                  >> ActionResult)
+                serialPort
             Cmd.ofMsg RerenderView
         ]
 
@@ -334,7 +335,7 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
                 { state with SerialPort = None },
                 Cmd.batch [
                     Cmd.OfTask.perform
-                        Command.closeSerialPort
+                        SerialPort.closePort
                         serialPort
                         (ActionResult.SerialPortClosed >> ActionResult)
                 ]
@@ -345,11 +346,11 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
                 state,
                 Cmd.batch [
                     Cmd.OfTask.perform
-                        Command.closeSerialPort
+                        SerialPort.closePort
                         serialPort
                         (ActionResult.SerialPortClosed >> ActionResult)
                     Cmd.OfTask.perform
-                        Command.connectToSerialPort
+                        SerialPort.connectAndOpen
                         newPort
                         (ActionResult.SerialPortOpened >> ActionResult)
                 ]
@@ -362,13 +363,13 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
                 Log.verbose $"Selected serial port '{newPort}'"
 
                 state,
-                Cmd.OfTask.perform Command.connectToSerialPort newPort (ActionResult.SerialPortOpened >> ActionResult)
+                Cmd.OfTask.perform SerialPort.connect newPort (ActionResult.SerialPortOpened >> ActionResult)
 
         | FlowerCommands.OpenSerialPort serialPort ->
-            state, Cmd.OfTask.perform Command.openSerialport serialPort (ActionResult.SerialPortClosed >> ActionResult)
+            state, Cmd.OfTask.perform SerialPort.openPort serialPort (ActionResult.SerialPortClosed >> ActionResult)
 
         | FlowerCommands.CloseSerialPort serialPort ->
-            state, Cmd.OfTask.perform Command.closeSerialPort serialPort (ActionResult.SerialPortClosed >> ActionResult)
+            state, Cmd.OfTask.perform SerialPort.closePort serialPort (ActionResult.SerialPortClosed >> ActionResult)
 
         | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg (Action.RefreshSerialPorts |> Action)
 

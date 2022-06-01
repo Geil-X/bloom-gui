@@ -15,18 +15,18 @@ open Extensions
 type Msg =
     | ChangePort of string
     | ChangePercentage of Flower Id * ClampedPercentage
-    | ChangeSpeed of Flower Id * uint
+    | ChangeSpeed of Flower Id * int
     | OpenSerialPortsDropdown
     | OpenSerialPort of SerialPort
     | CloseSerialPort of SerialPort
-    | ChangeAcceleration of Flower Id * uint
+    | ChangeAcceleration of Flower Id * int
     | SendCommand of Command
 
 let presets =
-    {| speedEmpty = 0u
+    {| speedEmpty = 0
        minSpeed = 0.
-       maxSpeed = 65000.
-       accelerationEmpty = 0u
+       maxSpeed = 65000
+       accelerationEmpty = 0
        minAcceleration = 0.
        maxAcceleration = 10000. |}
 
@@ -92,7 +92,7 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
             ComboBox.dock Dock.Left
             ComboBox.selectedItem selected
             ComboBox.onPointerEnter (fun _ -> dispatch OpenSerialPortsDropdown)
-            ComboBox.onSelectedItemChanged(fun port -> ChangePort (port :?> string) |> dispatch)
+            ComboBox.onSelectedItemChanged (fun port -> ChangePort(port :?> string) |> dispatch)
         ]
 
     Form.formElement
@@ -116,7 +116,7 @@ let private sliderView (properties: SliderProperties) =
         match properties.FlowerId with
         | Some flowerId ->
             Slider.create [
-                Slider.width 140
+                Slider.width 140.
                 Slider.minimum properties.Min
                 Slider.maximum properties.Max
                 Slider.value properties.Value
@@ -126,7 +126,7 @@ let private sliderView (properties: SliderProperties) =
 
         | None ->
             Slider.create [
-                Slider.width 140
+                Slider.width 140.
                 Slider.value properties.Value
                 Slider.minimum properties.Min
                 Slider.maximum properties.Max
@@ -173,8 +173,8 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
               |> Option.defaultValue presets.speedEmpty
               |> float
           Min = presets.minSpeed
-          Max = presets.maxSpeed
-          OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, uint newSpeed) |> dispatch)
+          Max = float presets.maxSpeed
+          OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, int newSpeed) |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> unit) =
@@ -188,7 +188,7 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> uni
           Max = presets.maxAcceleration
           OnChanged =
               (fun flowerId newAcceleration ->
-                  ChangeAcceleration(flowerId, uint newAcceleration)
+                  ChangeAcceleration(flowerId, int newAcceleration)
                   |> dispatch)
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
@@ -225,7 +225,7 @@ let view
     (serialPort: SerialPort option)
     (dispatch: Msg -> unit)
     =
-    let children: IView list =
+    let children : IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView serialPorts serialPort dispatch
           iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
@@ -233,12 +233,12 @@ let view
           iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch
           iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption serialPort dispatch
           openPercentageView flowerOption dispatch
-          iconButton "Set Speed" Icon.speed (Flower.speed >> Speed) flowerOption serialPort dispatch
+          iconButton "Set Speed" Icon.speed (Flower.speed >> uint >> Speed) flowerOption serialPort dispatch
           speedView flowerOption dispatch
           iconButton
               "Set Acceleration"
               Icon.acceleration
-              (Flower.acceleration >> Acceleration)
+              (Flower.acceleration >> uint >> Acceleration)
               flowerOption
               serialPort
               dispatch

@@ -1,5 +1,6 @@
 namespace Gui.DataTypes
 
+open Avalonia.Media
 open Geometry
 
 open Gui.DataTypes
@@ -34,33 +35,33 @@ module Flower =
 
 
     // ---- Builders -----
-    
+
     /// The first 8 Addresses are reserved so the starting address must be the
     /// 9th address.
     let mutable private initialI2cAddress = 7uy
 
-    let basic name =
+    let basic name : Flower =
         initialI2cAddress <- initialI2cAddress + 1uy
-        
+
         { Id = Id.create ()
           Name = name
           Position = Point2D.origin ()
           I2cAddress = initialI2cAddress
           Color = Color.hex Theme.palette.primary
           OpenPercent = ClampedPercentage.zero
-          Speed = 5000u
-          Acceleration = 1000u
+          Speed = 5000
+          Acceleration = 1000
           Radius = Length.pixels 20. }
 
     // ---- Accessors ----
 
-    let name flower = flower.Position
-    let i2cAddress flower = flower.I2cAddress
-    let color flower = flower.Color
-    let position flower = flower.Position
-    let openPercent flower = flower.OpenPercent
-    let speed flower = flower.Speed
-    let acceleration flower = flower.Acceleration
+    let name (flower: Flower) : string = flower.Name
+    let i2cAddress (flower: Flower) : I2cAddress = flower.I2cAddress
+    let color (flower: Flower) : Color = flower.Color
+    let position (flower: Flower) : Point2D<Pixels, UserSpace> = flower.Position
+    let openPercent (flower: Flower) : ClampedPercentage = flower.OpenPercent
+    let speed (flower: Flower) : Speed = flower.Speed
+    let acceleration (flower: Flower) : Acceleration = flower.Acceleration
 
     // ---- Modifiers ----
 
@@ -70,7 +71,10 @@ module Flower =
     let setPosition position flower : Flower = { flower with Position = position }
     let setOpenPercent percent flower : Flower = { flower with OpenPercent = percent }
     let setSpeed speed flower : Flower = { flower with Speed = speed }
-    let setAcceleration acceleration flower : Flower = { flower with Acceleration = acceleration }
+
+    let setAcceleration acceleration flower : Flower =
+        { flower with
+              Acceleration = acceleration }
 
 
     // ---- Queries ----

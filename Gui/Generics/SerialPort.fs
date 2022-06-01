@@ -7,8 +7,10 @@ module SerialPort =
     open System.IO.Ports
     open System.Threading.Tasks
     open System.Text
+    
+    open Extensions
 
-    let connectToSerialPort (port: string) : Task<SerialPort> =
+    let connect (port: string) : Task<SerialPort> =
         task {
             let baud = 115200
 
@@ -33,6 +35,10 @@ module SerialPort =
             serialPort.Open()
             return serialPort
         }
+        
+    let connectAndOpen (port: string): Task<SerialPort> =
+        connect port
+        |> Task.bind openPort
 
     let closePort (serialPort: SerialPort) : Task<SerialPort> =
         task {
@@ -42,7 +48,7 @@ module SerialPort =
 
     let onReceived (msg: Packet -> 'Msg) (serialPort: SerialPort) : Cmd<'Msg> =
         let sub (dispatch: 'Msg -> unit) =
-            let handler _ _ =
+            let handler _ _ : unit =
                 let serialString = serialPort.ReadExisting().Trim()
 
                 if serialString <> "" then
