@@ -16,6 +16,10 @@ module Constants =
 
 // ---- Generic Types ----------------------------------------------------------
 
+type Speed = int
+
+type Acceleration = int
+
 type I2cAddress = byte
 
 [<RequireQualifiedAccess>]
@@ -29,8 +33,12 @@ type Direction =
     | Top
     | Right
     | Bottom
-    
+
 // ---- Flower Types -----------------------------------------------------------
+
+type Time = int
+
+type Packet = byte []
 
 type Flower =
     { Id: Flower Id
@@ -39,10 +47,17 @@ type Flower =
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       OpenPercent: ClampedPercentage
-      Speed: uint
-      Acceleration: uint
+      Speed: Speed
+      Acceleration: Acceleration
       Radius: Length<Pixels> }
-    
+
+type Response =
+    { Time: Time
+      Position: ClampedPercentage
+      Target: ClampedPercentage
+      Acceleration: Acceleration
+      MaxSpeed: Speed }
+
 type Command =
     | NoCommand
     | Setup
@@ -52,7 +67,7 @@ type Command =
     | OpenTo of ClampedPercentage
     | Speed of uint
     | Acceleration of uint
-    
+
 // ---- Actions ----------------------------------------------------------------
 
 type Action =

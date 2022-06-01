@@ -3,10 +3,10 @@ namespace Gui.DataTypes
 
 module Command =
 
-    open Elmish
     open System.IO.Ports
     open System.Threading.Tasks
 
+    open Gui
     open Gui.DataTypes
     open Extensions
 
@@ -19,57 +19,6 @@ module Command =
         | OpenTo = 5uy
         | Speed = 6uy
         | Acceleration = 7uy
-
-    type internal Packet = byte array
-
-    let connectToSerialPort (port: string) : Task<SerialPort> =
-        task {
-            let baud = 115200
-
-            let serialPort =
-                new SerialPort(port, baud, Parity.None, 8, StopBits.One)
-
-            serialPort.DtrEnable <- true
-            serialPort.RtsEnable <- true
-            serialPort.ReadTimeout <- 250 //ms
-            serialPort.ReadTimeout <- 250 //ms
-
-            serialPort.Open()
-
-            return serialPort
-        }
-        
-    let getSerialPorts () : Task<string list> =
-        task {
-            return SerialPort.GetPortNames() |> List.ofArray
-        }
-
-    let openSerialport (serialPort: SerialPort) : Task<SerialPort> =
-        task {
-            serialPort.Open()
-            return serialPort
-        }
-
-    let closeSerialPort (serialPort: SerialPort) : Task<SerialPort> =
-        task {
-            serialPort.Close()
-            return serialPort
-        }
-
-    let onReceived (serialPort: SerialPort) (msg: string -> 'Msg) : Cmd<'Msg> =
-        let sub (dispatch: 'Msg -> unit) =
-            let handler _ _ =
-                let serialString = serialPort.ReadExisting().Trim()
-
-                if serialString <> "" then
-                    dispatch (msg serialString)
-                else
-                    ()
-
-            let receivedEvent = serialPort.DataReceived
-            receivedEvent.AddHandler handler
-
-        Cmd.ofSub sub
 
     let sendCommand (serialPort: SerialPort) (address: I2cAddress) (command: Command) : Task<unit> =
         let packet: Packet =
