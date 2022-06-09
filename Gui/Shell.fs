@@ -5,8 +5,6 @@ open System.IO.Ports
 open Avalonia.Controls
 open Avalonia.Input
 open Elmish
-open Avalonia.FuncUI.Elmish
-open Avalonia.FuncUI.Components.Hosts
 
 open Geometry
 open Gui
@@ -217,7 +215,9 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
             (ActionError.CouldNotOpenFile >> ActionError)
 
     | Action.FileOpened flowers -> newFile state flowers, Cmd.none
-
+    
+    | Action.SelectChoreography _ -> state, Cmd.none
+    
     | RefreshSerialPorts ->
         state, Cmd.OfTask.perform SerialPort.getPorts () (ActionResult.GotSerialPorts >> ActionResult)
 
@@ -605,28 +605,3 @@ let view (state: State) (dispatch: Msg -> unit) =
 // ---- Main Window Creation ----
 
 
-type MainWindow() as this =
-    inherit HostWindow()
-
-    do
-        base.Title <- Theme.title
-        base.Width <- Theme.window.width
-        base.Height <- Theme.window.height
-        base.MinHeight <- Theme.window.height
-        base.MinWidth <- Theme.window.width
-        base.Icon <- Theme.icon ()
-        base.SystemDecorations <- SystemDecorations.Full
-
-        // Can be turned on during debug
-        // this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
-        // this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
-
-        Menu.setMenu this
-
-        let updateWithServices (msg: Msg) (state: State) = update msg state this
-
-        Program.mkProgram init updateWithServices view
-        |> Program.withSubscription (Menu.subscription MenuMsg)
-        |> Program.withSubscription (keyUpHandler this)
-        |> Program.withHost this
-        |> Program.run

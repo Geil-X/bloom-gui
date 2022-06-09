@@ -6,6 +6,7 @@ open Avalonia.FuncUI.Types
 
 open Gui
 open Gui.Views
+open Gui.Views.Components
 open Utilities.Extensions
 
 type Msg = Action of Action
@@ -26,7 +27,10 @@ let choreographies dispatch =
 
 
 let view (dispatch: Msg -> unit) =
-    let children : IView list = [ title; choreographies dispatch ]
+    let children : IView list =
+        [ title
+          choreographies dispatch
+          RadialSlider.create [] ]
 
     StackPanel.create [
         StackPanel.children children

@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Include="Avalonia\FuncUI\DSL\Arc.fs" />
         <Compile Include="Geometry\Draw.fs" />
         <Compile Include="Geometry\Vector2D.fs" />
         <Compile Include="Extensions\ViewExtensions.fs" />
@@ -50,6 +51,7 @@
         <Compile Include="Views\DockPanel.fs" />
         <Compile Include="Views\Text.fs" />
         <Compile Include="Views\StackPanel.fs" />
+        <Compile Include="Views\Components\RadialSlider.fs" />
         <Compile Include="Views\Tabs\Simulation\Panels\FlowerProperties.fs" />
         <Compile Include="Views\Tabs\Simulation\Panels\FlowerCommands.fs" />
         <Compile Include="Views\Tabs\Simulation\Panels\Choreographies.fs" />
@@ -63,13 +65,13 @@
     </ItemGroup>
     
     <ItemGroup>
-        <PackageReference Include="Avalonia.Desktop" Version="0.10.12" />
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
         <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
         <PackageReference Include="Fsharp.Geometry" Version="0.1.22" />
         <PackageReference Include="FsPickler.Json" Version="5.3.2" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.0-beta" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.0-beta" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.0-beta" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.1" />
         <PackageReference Include="System.IO.Ports" Version="6.0.0" />
     </ItemGroup>
 

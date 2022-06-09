@@ -1,8 +1,40 @@
 namespace Gui
 
+open Elmish
 open Avalonia
+open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI
+open Avalonia.FuncUI.Hosts
+open Avalonia.FuncUI.Elmish
+
+open Gui.Menu
+
+type MainWindow() as this =
+    inherit HostWindow()
+
+    do
+        base.Title <- Theme.title
+        base.Width <- Theme.window.width
+        base.Height <- Theme.window.height
+        base.MinHeight <- Theme.window.height
+        base.MinWidth <- Theme.window.width
+        base.Icon <- Theme.icon ()
+        base.SystemDecorations <- SystemDecorations.Full
+
+        // Can be turned on during debug
+        // this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
+        // this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
+
+        Menu.setMenu this
+
+        let updateWithServices (msg: Shell.Msg) (state: Shell.State) = Shell.update msg state this
+
+        Program.mkProgram Shell.init updateWithServices Shell.view
+        |> Program.withSubscription (Menu.subscription Shell.MenuMsg)
+        |> Program.withSubscription (Shell.keyUpHandler this)
+        |> Program.withHost this
+        |> Program.run
 
 /// This is your application you can ose the initialize method to load styles
 /// or handle Life Cycle events of your application
@@ -22,7 +54,7 @@ type App() =
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
-            desktopLifetime.MainWindow <- Shell.MainWindow()
+            desktopLifetime.MainWindow <- MainWindow()
         | _ -> ()
 
 module Program =
