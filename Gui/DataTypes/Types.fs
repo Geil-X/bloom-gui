@@ -40,6 +40,10 @@ type Time = int
 
 type Packet = byte []
 
+type ConnectionStatus =
+    | Disconnected
+    | Connected
+
 type Flower =
     { Id: Flower Id
       Name: string
@@ -47,9 +51,10 @@ type Flower =
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       OpenPercent: ClampedPercentage
-      Speed: Speed
+      Speed: RemoteValue<Speed>
       Acceleration: Acceleration
-      Radius: Length<Pixels> }
+      Radius: Length<Pixels>
+      ConnectionStatus: ConnectionStatus }
 
 type Response =
     { Time: Time
@@ -86,6 +91,7 @@ type Action =
     | DeselectFlower
     | DeleteFlower
     | SendCommand of Command
+    | PingFlower
     | SelectChoreography of Choreography
 
 [<RequireQualifiedAccess>]
@@ -102,3 +108,4 @@ type ActionError =
     | ErrorPickingFileToOpen
     | CouldNotOpenFile of exn
     | CouldNotSendCommand of exn
+    | CouldNotPerformRequest of exn

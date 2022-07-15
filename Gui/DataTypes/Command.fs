@@ -1,7 +1,5 @@
 module Gui.DataTypes.Command
 
-
-
 open System.IO.Ports
 open System.Threading.Tasks
 
@@ -18,6 +16,7 @@ type CommandId =
     | OpenTo = 5uy
     | Speed = 6uy
     | Acceleration = 7uy
+    | Ping = 255uy
 
 let sendCommand (serialPort: SerialPort) (address: I2cAddress) (command: Command) : Task<unit> =
     let packet: Packet =
@@ -31,6 +30,15 @@ let sendCommand (serialPort: SerialPort) (address: I2cAddress) (command: Command
         | Speed speed -> Array.append [| byte CommandId.Speed |] (uint16 speed |> UInt16.inBytes)
         | Acceleration acceleration ->
             Array.append [| byte CommandId.Acceleration |] (uint16 acceleration |> UInt16.inBytes)
-        |> Array.append [| byte address |]
+        |> Array.append [| address |]
+
+    task { serialPort.Write(packet, 0, packet.Length) }
+
+let request (serialPort: SerialPort, address: I2cAddress) : Task<unit> =
+    let packet =
+        [| address
+           byte CommandId.Ping
+           0uy
+           0uy |]
 
     task { serialPort.Write(packet, 0, packet.Length) }

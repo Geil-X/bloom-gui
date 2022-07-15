@@ -37,6 +37,7 @@
         <Compile Include="Generics\ClampedPercentage.fs" />
         <Compile Include="Generics\Events.fs" />
         <Compile Include="Generics\Timer.fs" />
+        <Compile Include="Generics\RemoteValue.fs" />
         <Compile Include="Generics\SerialPort.fs" />
         <Compile Include="DataTypes\Log.fs" />
         <Compile Include="DataTypes\Theme.fs" />

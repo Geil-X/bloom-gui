@@ -7,7 +7,7 @@ module SerialPort =
     open System.IO.Ports
     open System.Threading.Tasks
     open System.Text
-    
+
     open Extensions
 
     let connect (port: string) : Task<SerialPort> =
@@ -35,10 +35,8 @@ module SerialPort =
             serialPort.Open()
             return serialPort
         }
-        
-    let connectAndOpen (port: string): Task<SerialPort> =
-        connect port
-        |> Task.bind openPort
+
+    let connectAndOpen (port: string) : Task<SerialPort> = connect port |> Task.bind openPort
 
     let closePort (serialPort: SerialPort) : Task<SerialPort> =
         task {
@@ -49,15 +47,19 @@ module SerialPort =
     let onReceived (msg: Packet -> 'Msg) (serialPort: SerialPort) : Cmd<'Msg> =
         let sub (dispatch: 'Msg -> unit) =
             let handler _ _ : unit =
-                let serialString = serialPort.ReadExisting().Trim()
-
-                if serialString <> "" then
-                    let packet = Encoding.ASCII.GetBytes serialString
-
-                    dispatch (msg packet)
-
-                else
+                if not serialPort.IsOpen then
                     ()
+                else
+                    let serialString = serialPort.ReadExisting()
+
+                    if serialString = "" then
+                        ()
+
+                    else
+                        let packet =
+                            Encoding.ASCII.GetBytes serialString
+
+                        dispatch (msg packet)
 
             let receivedEvent = serialPort.DataReceived
             receivedEvent.AddHandler handler
