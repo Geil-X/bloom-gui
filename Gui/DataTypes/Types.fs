@@ -3,7 +3,9 @@ namespace Gui
 open System.IO.Ports
 open Avalonia.Media
 open Geometry
+
 open Gui.DataTypes
+open Gui.Generics
 
 // ---- Constants --------------------------------------------------------------
 
@@ -75,23 +77,24 @@ type Command =
 
 // ---- Actions ----------------------------------------------------------------
 
+type PathName = string
+
 type Action =
     // File Actions
     | NewFile
-    | SaveAsDialog
-    | SaveAs of string
-    | OpenFileDialog
-    | OpenFile of string
-    | FileOpened of Flower seq
-    | RefreshSerialPorts
+    | SaveAsDialog of AsyncOperationStatus<unit, exn>
+    | SaveAs of AsyncOperationStatus<PathName, Result<unit, exn>>
+    | OpenFileDialog of AsyncOperationStatus<unit, string option>
+    | OpenFile of AsyncOperationStatus<PathName, Result<Flower seq, exn>>
+    | RefreshSerialPorts of AsyncOperationStatus<unit, string list>
 
     // Flower Actions
     | NewFlower
     | SelectFlower of Flower Id
     | DeselectFlower
     | DeleteFlower
-    | SendCommand of Command
-    | PingFlower
+    | SendCommand of AsyncOperationStatus<Command, exn>
+    | PingFlower of AsyncOperationStatus<unit, exn>
     | SelectChoreography of Choreography
 
 [<RequireQualifiedAccess>]
@@ -99,13 +102,3 @@ type ActionResult =
     | SerialPortOpened of SerialPort
     | SerialPortClosed of SerialPort
     | SerialPortReceivedData of Packet
-    | GotSerialPorts of string list
-
-[<RequireQualifiedAccess>]
-type ActionError =
-    | ErrorSavingFile of exn
-    | ErrorPickingSaveFile
-    | ErrorPickingFileToOpen
-    | CouldNotOpenFile of exn
-    | CouldNotSendCommand of exn
-    | CouldNotPerformRequest of exn

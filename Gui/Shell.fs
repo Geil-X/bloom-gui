@@ -68,7 +68,6 @@ type SimulationEvent =
 type Msg =
     // Shell Messages
     | Action of Action
-    | ActionError of ActionError
     | ActionResult of ActionResult
     | RerenderView
 
@@ -91,7 +90,7 @@ let init () : State * Cmd<Msg> =
       SerialPorts = []
       Rerender = 0
       Tab = Simulation },
-    Cmd.ofMsg (Action.RefreshSerialPorts |> Action)
+    Cmd.ofMsg (Start () |> Action.RefreshSerialPorts |> Action)
 
 // ---- Update helper functions -----
 
@@ -107,8 +106,7 @@ let getFlower id flowers : Flower option = Map.tryFind id flowers
 
 let pingFlower serialPort flower =
     Log.debug $"Requesting results from flower '{flower.Name}' at I2C Address '{flower.I2cAddress}'"
-
-    Cmd.OfTask.attempt Command.request (serialPort, flower.I2cAddress) (ActionError.CouldNotSendCommand >> ActionError)
+    Cmd.OfTask.attempt Command.request (serialPort, flower.I2cAddress) (Finished >> PingFlower >> Action)
 
 let pingCurrentFlower state =
     let selectedFlowerOption =
@@ -200,7 +198,7 @@ let sendCommand (command: Command) (state: State) : Cmd<Msg> =
         Cmd.OfTask.attempt
             (Command.sendCommand serialPort flower.I2cAddress)
             command
-            (ActionError.CouldNotPerformRequest >> ActionError)
+            (Finished >> SendCommand >> Action)
 
     | None, Some _ ->
         Log.warning "Serial port is not selected, cannot send command."
@@ -223,39 +221,79 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
     | Action.NewFile -> newFile state Seq.empty, Cmd.none
 
 
-    | Action.SaveAsDialog -> state, Cmd.OfTask.perform FlowerFile.saveFileDialog window (Action.SaveAs >> Action)
+    | Action.SaveAsDialog asyncOperation ->
+        match asyncOperation with
+        | Start _ ->
+            state,
+            Cmd.OfTask.either
+                FlowerFile.saveFileDialog
+                window
+                (Start >> Action.SaveAs >> Action)
+                (Finished >> Action.SaveAsDialog >> Action)
+
+        | Finished exn ->
+            Log.error $"Encountered an error when trying to save file{Environment.NewLine}{exn}"
+            state, Cmd.none
 
 
-    | Action.SaveAs path ->
-        state,
-        Cmd.OfTask.attempt
-            FlowerFile.writeFlowerFile
-            (path, Map.values state.Flowers)
-            (ActionError.ErrorSavingFile >> ActionError)
+    | Action.SaveAs asyncOperation ->
+        match asyncOperation with
+        | Start path ->
+            state,
+            Cmd.OfTask.either
+                FlowerFile.writeFlowerFile
+                (path, Map.values state.Flowers)
+                (Ok >> Finished >> Action.SaveAs >> Action)
+                (Error >> Finished >> Action.SaveAs >> Action)
+
+        | Finished (Ok _) ->
+            Log.info "Saved flower file"
+            state, Cmd.none
+
+        | Finished (Error exn) ->
+            match exn with
+            // No save file was selected, do not report an error on this exception
+            | :? AggregateException -> state, Cmd.none
+            | _ ->
+                Log.error $"Could not save file {Environment.NewLine}{exn}"
+                state, Cmd.none
 
 
-    | Action.OpenFileDialog ->
-        state,
-        Cmd.OfTask.perform
-            FlowerFile.openFileDialog
-            window
-            (Option.split (Action.OpenFile >> Action) (ActionError.ErrorPickingFileToOpen |> ActionError))
+    | Action.OpenFileDialog asyncOperation ->
+        match asyncOperation with
+        | Start _ ->
+            state, Cmd.OfTask.perform FlowerFile.openFileDialog window (Finished >> Action.OpenFileDialog >> Action)
+
+        | Finished (Some path) -> state, Cmd.ofMsg (Start path |> Action.OpenFile |> Action)
+
+        | Finished None ->
+            Log.error "Encountered problems trying to open a file."
+            state, Cmd.none
 
 
-    | Action.OpenFile path ->
-        state,
-        Cmd.OfTask.either
-            FlowerFile.loadFlowerFile
-            path
-            (Action.FileOpened >> Action)
-            (ActionError.CouldNotOpenFile >> ActionError)
+    | Action.OpenFile asyncOperation ->
+        match asyncOperation with
+        | Start path ->
+            state,
+            Cmd.OfTask.either
+                FlowerFile.loadFlowerFile
+                path
+                (Ok >> Finished >> Action.OpenFile >> Action)
+                (Error >> Finished >> Action.OpenFile >> Action)
 
-    | Action.FileOpened flowers -> newFile state flowers, Cmd.none
+        | Finished (Ok flowers) -> newFile state flowers, Cmd.none
+
+        | Finished (Error exn) ->
+            Log.error $"Could not open the selected file{Environment.NewLine}{exn}"
+            state, Cmd.none
 
     | Action.SelectChoreography _ -> state, Cmd.none
 
-    | RefreshSerialPorts ->
-        state, Cmd.OfTask.perform SerialPort.getPorts () (ActionResult.GotSerialPorts >> ActionResult)
+    | RefreshSerialPorts asyncOperation ->
+        match asyncOperation with
+        | Start _ -> state, Cmd.OfTask.perform SerialPort.getPorts () (Finished >> Action.RefreshSerialPorts >> Action)
+
+        | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none
 
     // ---- Flower Actions ----
 
@@ -275,9 +313,21 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
 
         | None -> state, Cmd.none
 
-    | Action.SendCommand command -> state, sendCommand command state
+    | Action.SendCommand asyncOperation ->
+        match asyncOperation with
+        | Start command -> state, sendCommand command state
+        | Finished exn ->
+            Log.error $"Could not send command over the serial port{Environment.NewLine}{exn}"
+            state, Cmd.none
 
-    | Action.PingFlower -> state, pingCurrentFlower state
+    | Action.PingFlower asyncOperation ->
+        match asyncOperation with
+        | Start _ ->
+            state, pingCurrentFlower state
+            
+        | Finished exn ->
+            Log.error $"Could not receive request from flower{Environment.NewLine}{exn}"
+            state, Cmd.none
 
 let updateActionResult (result: ActionResult) (state: State) : State * Cmd<Msg> =
     match result with
@@ -303,38 +353,6 @@ let updateActionResult (result: ActionResult) (state: State) : State * Cmd<Msg> 
         Log.info $"Received message over serial{Environment.NewLine}{str}"
         state, Cmd.none
 
-    | ActionResult.GotSerialPorts serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none
-
-let updateActionError (error: ActionError) (state: State) : State * Cmd<Msg> =
-    match error with
-    | ActionError.ErrorPickingSaveFile ->
-        Log.error "Could not pick file to save as"
-        state, Cmd.none
-
-    | ActionError.ErrorSavingFile exn ->
-        match exn with
-        // No save file was selected, do not report an error on this exception
-        | :? AggregateException -> state, Cmd.none
-        | _ ->
-            Log.error $"Could not save file \n{exn}"
-            state, Cmd.none
-
-    | ActionError.ErrorPickingFileToOpen ->
-        Log.error "Could not pick file to open"
-        state, Cmd.none
-
-    | ActionError.CouldNotOpenFile exn ->
-        Log.error $"Could not open file\n{exn}"
-        state, Cmd.none
-
-    | ActionError.CouldNotSendCommand exn ->
-        Log.error $"Could not send command over the serial port{Environment.NewLine}{exn}"
-        state, Cmd.none
-        
-    | ActionError.CouldNotPerformRequest exn ->
-        Log.error $"Could not request data over the serial port{Environment.NewLine}{exn}"
-        state, Cmd.none
-        
 
 
 let updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
@@ -342,14 +360,14 @@ let updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
     | Menu.FileMsg msg ->
         match msg with
         | File.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
-        | File.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
-        | File.OpenFile -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
+        | File.SaveAs -> state, Cmd.ofMsg (Start() |> Action.SaveAsDialog |> Action)
+        | File.OpenFile -> state, Cmd.ofMsg (Start() |> Action.OpenFileDialog |> Action)
 
 let updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
     | IconDock.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
-    | IconDock.SaveAs -> state, Cmd.ofMsg (Action.SaveAsDialog |> Action)
-    | IconDock.Open -> state, Cmd.ofMsg (Action.OpenFileDialog |> Action)
+    | IconDock.SaveAs -> state, Cmd.ofMsg (Start() |> Action.SaveAsDialog |> Action)
+    | IconDock.Open -> state, Cmd.ofMsg (Start() |> Action.OpenFileDialog |> Action)
     | IconDock.NewFlower -> state, Cmd.ofMsg (Action.NewFlower |> Action)
 
 
@@ -406,7 +424,7 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
         | FlowerCommands.CloseSerialPort serialPort ->
             state, Cmd.OfTask.perform SerialPort.closePort serialPort (ActionResult.SerialPortClosed >> ActionResult)
 
-        | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg (Action.RefreshSerialPorts |> Action)
+        | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg (Start () |> Action.RefreshSerialPorts |> Action)
 
         | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
             updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
@@ -417,7 +435,7 @@ let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
         | FlowerCommands.Msg.ChangeAcceleration (id, acceleration) ->
             updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
 
-        | FlowerCommands.Msg.SendCommand command -> state, Cmd.ofMsg (SendCommand command |> Action)
+        | FlowerCommands.Msg.SendCommand command -> state, sendCommand command state
 
 let updateChoreographies (msg: Choreographies.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -533,7 +551,6 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     match msg with
     // Shell Messages
     | Action action -> updateAction action state window
-    | ActionError error -> updateActionError error state
     | ActionResult result -> updateActionResult result state
 
     | RerenderView -> { state with Rerender = state.Rerender + 1 }, Cmd.none

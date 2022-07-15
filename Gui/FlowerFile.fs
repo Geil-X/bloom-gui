@@ -29,9 +29,9 @@ let saveFileDialog (window: Window) =
 // ---- Read & Write ----
 
 // Note: Can throw an exception
-let private readFile path (deserializer: StreamReader -> 'T) : Task<'T> =
+let private readFile (path: PathName) (deserializer: StreamReader -> 'T) : Task<'T> =
     task {
-        use reader = new StreamReader(File.OpenRead(path))
+        use reader = new StreamReader(File.OpenRead(string path))
         return deserializer reader
     }
 
