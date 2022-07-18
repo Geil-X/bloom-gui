@@ -1,7 +1,7 @@
 module Gui.Menu.Menu
 
 open Avalonia.Controls
-open Avalonia.FuncUI.Components.Hosts
+open Avalonia.FuncUI.Hosts
 open Elmish
 
 type Msg = FileMsg of File.Msg

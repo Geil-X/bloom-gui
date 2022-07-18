@@ -6,8 +6,10 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 
 open Geometry
+open Gui
 open Gui.DataTypes
 open Gui.Views
+open Extensions
 
 type Msg =
     | ChangeName of Flower Id * string
@@ -46,17 +48,39 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
         | Some flower ->
             TextBox.create [
                 TextBox.text (string flower.I2cAddress)
+                TextBox.dock Dock.Left
                 TextBox.onTextChanged (
-                    (fun newI2cAddress -> ChangeI2cAddress(flower.Id, newI2cAddress) |> dispatch),
+                    (fun newI2cAddress ->
+                        ChangeI2cAddress(flower.Id, newI2cAddress)
+                        |> dispatch),
                     SubPatchOptions.OnChangeOf flower.Id
                 )
             ]
         | None -> disabledTextBox
 
+    let connectionStatus =
+        match flowerOption with
+        | Some flower ->
+            match flower.ConnectionStatus with
+            | Connected ->
+                Icon.connected Icon.small Theme.palette.success
+            | Disconnected ->
+                Icon.disconnected Icon.small Theme.palette.danger
+        | _ ->
+            Icon.disconnected Icon.small Theme.palette.foregroundFaded
+        |> View.withAttrs [
+            Viewbox.dock Dock.Right
+            Viewbox.margin (Theme.spacing.medium, 0., 0., 0.)
+           ]
+
     Form.formElement
         {| Name = "I2C Address"
            Orientation = Orientation.Vertical
-           Element = i2cTextBox |}
+           Element =
+            DockPanel.create [
+                DockPanel.children [ connectionStatus; i2cTextBox ]
+            ] |}
+
 
 let private positionView (flowerOption: Flower option) =
     let rounded l = (Length.roundTo 0 l).value ()
@@ -81,10 +105,7 @@ let private positionView (flowerOption: Flower option) =
 let private id (flowerOption: Flower option) =
     let idText =
         match flowerOption with
-        | Some flower ->
-            TextBlock.create [
-                TextBlock.text (Id.shortName flower.Id)
-            ]
+        | Some flower -> TextBlock.create [ TextBlock.text (Id.shortName flower.Id) ]
         | None -> TextBlock.create [ TextBlock.text "0000000" ]
 
     Form.formElement

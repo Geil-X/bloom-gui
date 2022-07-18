@@ -3,7 +3,9 @@ namespace Gui
 open System.IO.Ports
 open Avalonia.Media
 open Geometry
+
 open Gui.DataTypes
+open Gui.Generics
 
 // ---- Constants --------------------------------------------------------------
 
@@ -16,12 +18,11 @@ module Constants =
 
 // ---- Generic Types ----------------------------------------------------------
 
-type I2cAddress = byte
+type Speed = int
 
-[<RequireQualifiedAccess>]
-type Choreography =
-    | None
-    | OpenClose
+type Acceleration = int
+
+type I2cAddress = byte
 
 [<RequireQualifiedAccess>]
 type Direction =
@@ -29,8 +30,16 @@ type Direction =
     | Top
     | Right
     | Bottom
-    
+
 // ---- Flower Types -----------------------------------------------------------
+
+type Time = int
+
+type Packet = byte []
+
+type ConnectionStatus =
+    | Disconnected
+    | Connected
 
 type Flower =
     { Id: Flower Id
@@ -39,10 +48,18 @@ type Flower =
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       OpenPercent: ClampedPercentage
-      Speed: uint
-      Acceleration: uint
-      Radius: Length<Pixels> }
-    
+      Speed: RemoteValue<Speed>
+      Acceleration: Acceleration
+      Radius: Length<Pixels>
+      ConnectionStatus: ConnectionStatus }
+
+type Response =
+    { Time: Time
+      Position: ClampedPercentage
+      Target: ClampedPercentage
+      Acceleration: Acceleration
+      MaxSpeed: Speed }
+
 type Command =
     | NoCommand
     | Setup
@@ -52,38 +69,30 @@ type Command =
     | OpenTo of ClampedPercentage
     | Speed of uint
     | Acceleration of uint
-    
+
 // ---- Actions ----------------------------------------------------------------
+
+type PathName = string
 
 type Action =
     // File Actions
     | NewFile
-    | SaveAsDialog
-    | SaveAs of string
-    | OpenFileDialog
-    | OpenFile of string
-    | FileOpened of Flower seq
-    | RefreshSerialPorts
+    | SaveAsDialog of AsyncOperationStatus<unit, exn>
+    | SaveAs of AsyncOperationStatus<PathName, Result<unit, exn>>
+    | OpenFileDialog of AsyncOperationStatus<unit, string option>
+    | OpenFile of AsyncOperationStatus<PathName, Result<Flower seq, exn>>
+    
+    // Serial Port Actions
+    | RefreshSerialPorts of AsyncOperationStatus<unit, string list>
+    | ConnectAndOpenPort of AsyncOperationStatus<string, SerialPort>
+    | OpenSerialPort of AsyncOperationStatus<SerialPort, SerialPort>
+    | CloseSerialPort of AsyncOperationStatus<SerialPort, SerialPort>
+    | ReceivedDataFromSerialPort of Packet
 
     // Flower Actions
     | NewFlower
     | SelectFlower of Flower Id
     | DeselectFlower
     | DeleteFlower
-    | SendCommand of Command
-    | SelectChoreography of Choreography
-
-[<RequireQualifiedAccess>]
-type ActionResult =
-    | SerialPortOpened of SerialPort
-    | SerialPortClosed of SerialPort
-    | SerialPortReceivedData of string
-    | GotSerialPorts of string list
-
-[<RequireQualifiedAccess>]
-type ActionError =
-    | ErrorSavingFile of exn
-    | ErrorPickingSaveFile
-    | ErrorPickingFileToOpen
-    | CouldNotOpenFile of exn
-    | CouldNotSendCommand of exn
+    | SendCommand of AsyncOperationStatus<Command, exn>
+    | PingFlower of AsyncOperationStatus<unit, exn>
