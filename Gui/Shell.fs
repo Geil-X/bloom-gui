@@ -192,17 +192,17 @@ let private newFile (state: State) (flowers: Flower seq) : State =
           FlowerInteraction = NoInteraction
           Selected = None }
 
-let private addFlower (flower: Flower) (state: State) : State =
+let addFlower (flower: Flower) (state: State) : State =
     { state with
           Flowers = Map.add flower.Id flower state.Flowers }
 
-let private addFlowers (flowers: Flower seq) (state: State) : State =
+let addFlowers (flowers: Flower seq) (state: State) : State =
     let flowerMap =
         Seq.fold (fun map (flower: Flower) -> Map.add flower.Id flower map) Map.empty flowers
 
     { state with Flowers = flowerMap }
 
-let private addNewFlower (state: State) : State * Cmd<Msg> =
+let addNewFlower (state: State) : State * Cmd<Msg> =
     let flower =
         Flower.basic $"Flower {Map.count state.Flowers + 1}"
         |> Flower.setPosition (Point2D.pixels 100. 100.)
