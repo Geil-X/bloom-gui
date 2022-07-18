@@ -10,7 +10,7 @@ module SerialPort =
 
     open Extensions
 
-    let connect (port: string) : Task<SerialPort> =
+    let connectAndOpenPort (port: string) : Task<SerialPort> =
         task {
             let baud = 115200
 
@@ -35,8 +35,6 @@ module SerialPort =
             serialPort.Open()
             return serialPort
         }
-
-    let connectAndOpen (port: string) : Task<SerialPort> = connect port |> Task.bind openPort
 
     let closePort (serialPort: SerialPort) : Task<SerialPort> =
         task {

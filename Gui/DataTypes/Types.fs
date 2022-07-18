@@ -25,11 +25,6 @@ type Acceleration = int
 type I2cAddress = byte
 
 [<RequireQualifiedAccess>]
-type Choreography =
-    | None
-    | OpenClose
-
-[<RequireQualifiedAccess>]
 type Direction =
     | Left
     | Top
@@ -86,7 +81,13 @@ type Action =
     | SaveAs of AsyncOperationStatus<PathName, Result<unit, exn>>
     | OpenFileDialog of AsyncOperationStatus<unit, string option>
     | OpenFile of AsyncOperationStatus<PathName, Result<Flower seq, exn>>
+    
+    // Serial Port Actions
     | RefreshSerialPorts of AsyncOperationStatus<unit, string list>
+    | ConnectAndOpenPort of AsyncOperationStatus<string, SerialPort>
+    | OpenSerialPort of AsyncOperationStatus<SerialPort, SerialPort>
+    | CloseSerialPort of AsyncOperationStatus<SerialPort, SerialPort>
+    | ReceivedDataFromSerialPort of Packet
 
     // Flower Actions
     | NewFlower
@@ -95,10 +96,3 @@ type Action =
     | DeleteFlower
     | SendCommand of AsyncOperationStatus<Command, exn>
     | PingFlower of AsyncOperationStatus<unit, exn>
-    | SelectChoreography of Choreography
-
-[<RequireQualifiedAccess>]
-type ActionResult =
-    | SerialPortOpened of SerialPort
-    | SerialPortClosed of SerialPort
-    | SerialPortReceivedData of Packet

@@ -68,15 +68,14 @@ type SimulationEvent =
 type Msg =
     // Shell Messages
     | Action of Action
-    | ActionResult of ActionResult
     | RerenderView
 
     // Msg Mapping
     | SimulationEvent of SimulationEvent
     | MenuMsg of Menu.Msg
     | IconDockMsg of IconDock.Msg
-    | FlowerPanelMsg of FlowerPanel.Msg
-    | ChoreographiesMsg of Choreographies.Msg
+    | FlowerPropertiesMsg of FlowerProperties.Msg
+    | FlowerCommandsMsg of FlowerCommands.Msg
 
 
 // ---- Init ----
@@ -90,25 +89,71 @@ let init () : State * Cmd<Msg> =
       SerialPorts = []
       Rerender = 0
       Tab = Simulation },
-    Cmd.ofMsg (Start () |> Action.RefreshSerialPorts |> Action)
+    Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
 
-// ---- Update helper functions -----
+// ---- Update helper functions ------------------------------------------------
 
-let minMouseMovement = Length.pixels 10.
+let private minMouseMovement = Length.pixels 10.
 
-let minMouseMovementSquared =
-    Length.square minMouseMovement
+let private minMouseMovementSquared = Length.square minMouseMovement
+
+// ---- Serial Port Updates ----------------------------------------------------
+
+/// Open up a connected serial port
+let private openSerialPort (serialPort: SerialPort) : Cmd<Msg> =
+    Cmd.OfTask.perform SerialPort.openPort serialPort (Finished >> Action.OpenSerialPort >> Action)
+
+/// Close a connected serial port
+let private closeSerialPort (serialPort: SerialPort) : Cmd<Msg> =
+    Cmd.OfTask.perform SerialPort.closePort serialPort (Finished >> Action.CloseSerialPort >> Action)
+
+/// Connect to a serial port and open it up for communication.
+let private connectAndOpenSerialPort (newPortName: string) : Cmd<Msg> =
+    Cmd.OfTask.perform SerialPort.connectAndOpenPort newPortName (Finished >> Action.OpenSerialPort >> Action)
+
+/// Open up a new serial port. If there is a serial port currently opened, it
+/// is closed and disconnected. If no port is selected, then the current serial
+/// port is disconnected.
+///
+/// Note: This is generally the function that you want to use to connect to a
+/// new serial port. This function handles change in program as well as
+/// dispatching connection commands.
+let private connectToSerialPort (newPortName: string) (state: State) : State * Cmd<Msg> =
+    match state.SerialPort with
+    | Some serialPort when
+        newPortName = FlowerCommands.noPort
+        || String.IsNullOrEmpty newPortName ->
+        Log.debug $"Disconnecting from serial port '{serialPort.PortName}'"
+        { state with SerialPort = None }, closeSerialPort serialPort
+
+    | Some serialPort ->
+        Log.debug $"Changing from serial port '{serialPort.PortName}' to '{newPortName}'"
+
+        state,
+        Cmd.batch [
+            closeSerialPort serialPort
+            connectAndOpenSerialPort newPortName
+        ]
+
+    // Nothing needs to be done in this case
+    | None when
+        newPortName = FlowerCommands.noPort
+        || String.IsNullOrEmpty newPortName -> state, Cmd.none
+
+    | None ->
+        Log.debug $"Connecting to serial port '{newPortName}'"
+        state, connectAndOpenSerialPort newPortName
 
 
-// ---- Flower Functions ----
+// ---- Flower Functions -------------------------------------------------------
 
-let getFlower id flowers : Flower option = Map.tryFind id flowers
+let private getFlower id flowers : Flower option = Map.tryFind id flowers
 
-let pingFlower serialPort flower =
+let private pingFlower serialPort flower =
     Log.debug $"Requesting results from flower '{flower.Name}' at I2C Address '{flower.I2cAddress}'"
     Cmd.OfTask.attempt Command.request (serialPort, flower.I2cAddress) (Finished >> PingFlower >> Action)
 
-let pingCurrentFlower state =
+let private pingCurrentFlower state =
     let selectedFlowerOption =
         Option.bind (fun flowerId -> getFlower flowerId state.Flowers) state.Selected
 
@@ -124,10 +169,12 @@ let pingCurrentFlower state =
         Cmd.none
 
     | None, None ->
-        Log.error "An unknown error occured when trying to send command."
+        Log.error
+            $"An unknown error occured when trying to send command.{Environment.NewLine}No serial port is open and no flower is selected."
+
         Cmd.none
 
-let pingAllFlowers state =
+let private pingAllFlowers state =
     match state.SerialPort with
     | Some serialPort ->
         let cmds =
@@ -136,25 +183,26 @@ let pingAllFlowers state =
         Cmd.batch cmds
     | None -> Cmd.none
 
-let newFile (state: State) (flowers: Flower seq) : State =
+let private newFile (state: State) (flowers: Flower seq) : State =
     let flowerMap =
         Seq.fold (fun map (flower: Flower) -> Map.add flower.Id flower map) Map.empty flowers
 
     { state with
-        Flowers = flowerMap
-        FlowerInteraction = NoInteraction
-        Selected = None }
+          Flowers = flowerMap
+          FlowerInteraction = NoInteraction
+          Selected = None }
 
-let addFlower (flower: Flower) (state: State) : State =
-    { state with Flowers = Map.add flower.Id flower state.Flowers }
+let private addFlower (flower: Flower) (state: State) : State =
+    { state with
+          Flowers = Map.add flower.Id flower state.Flowers }
 
-let addFlowers (flowers: Flower seq) (state: State) : State =
+let private addFlowers (flowers: Flower seq) (state: State) : State =
     let flowerMap =
         Seq.fold (fun map (flower: Flower) -> Map.add flower.Id flower map) Map.empty flowers
 
     { state with Flowers = flowerMap }
 
-let addNewFlower (state: State) : State * Cmd<Msg> =
+let private addNewFlower (state: State) : State * Cmd<Msg> =
     let flower =
         Flower.basic $"Flower {Map.count state.Flowers + 1}"
         |> Flower.setPosition (Point2D.pixels 100. 100.)
@@ -166,28 +214,36 @@ let addNewFlower (state: State) : State * Cmd<Msg> =
 
     addFlower flower state, requestCmd
 
-let updateFlower (id: Flower Id) (property: string) (f: 'a -> Flower -> Flower) (value: 'a) (state: State) : State =
+let private updateFlower
+    (id: Flower Id)
+    (property: string)
+    (f: 'a -> Flower -> Flower)
+    (value: 'a)
+    (state: State)
+    : State =
     if Option.contains id state.Selected then
         Log.verbose $"Updated flower '{Id.shortName id}' with new {property} '{value}'"
 
-        { state with Flowers = Map.update id (f value) state.Flowers }
+        { state with
+              Flowers = Map.update id (f value) state.Flowers }
     else
         state
 
-// ---- Update ----
+// ---- Update -----------------------------------------------------------------
 
 let keyUpHandler (window: Window) _ =
     let sub dispatch =
-        window.KeyUp.Add (fun eventArgs ->
-            match eventArgs.Key with
-            | Key.Escape -> Action.DeselectFlower |> Action |> dispatch
-            | Key.Delete -> Action.DeleteFlower |> Action |> dispatch
-            | _ -> ())
+        window.KeyUp.Add
+            (fun eventArgs ->
+                match eventArgs.Key with
+                | Key.Escape -> Action.DeselectFlower |> Action |> dispatch
+                | Key.Delete -> Action.DeleteFlower |> Action |> dispatch
+                | _ -> ())
 
     Cmd.ofSub sub
 
 
-let sendCommand (command: Command) (state: State) : Cmd<Msg> =
+let private sendCommand (command: Command) (state: State) : Cmd<Msg> =
     let selectedFlowerOption =
         Option.bind (fun flowerId -> getFlower flowerId state.Flowers) state.Selected
 
@@ -213,8 +269,7 @@ let sendCommand (command: Command) (state: State) : Cmd<Msg> =
         Cmd.none
 
 
-
-let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<Msg> =
+let private updateAction (action: Action) (state: State) (window: Window) : State * Cmd<Msg> =
     match action with
     // ---- File Actions ----
 
@@ -287,13 +342,48 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
             Log.error $"Could not open the selected file{Environment.NewLine}{exn}"
             state, Cmd.none
 
-    | Action.SelectChoreography _ -> state, Cmd.none
+
+    // ---- Serial Port Actions ----
 
     | RefreshSerialPorts asyncOperation ->
         match asyncOperation with
         | Start _ -> state, Cmd.OfTask.perform SerialPort.getPorts () (Finished >> Action.RefreshSerialPorts >> Action)
-
         | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none
+
+
+    | Action.ConnectAndOpenPort asyncOperation ->
+        match asyncOperation with
+        | Start portName -> connectToSerialPort portName state
+        | Finished serialPort ->
+            { state with
+                  SerialPort = Some serialPort },
+            Cmd.none
+
+
+    | Action.OpenSerialPort asyncOperation ->
+        match asyncOperation with
+        | Start serialPort -> state, openSerialPort serialPort
+        | Finished serialPort ->
+            Log.debug $"Connected to serial port '{serialPort.PortName}'"
+
+            { state with
+                  SerialPort = Some serialPort },
+            Cmd.batch [
+                Cmd.ofMsg RerenderView
+                pingAllFlowers state
+                SerialPort.onReceived (Action.ReceivedDataFromSerialPort >> Action) serialPort
+            ]
+
+    | Action.CloseSerialPort asyncOperation ->
+        match asyncOperation with
+        | Start serialPort -> state, closeSerialPort serialPort
+        | Finished serialPort ->
+            Log.debug $"Closed serial port '{serialPort.PortName}'"
+            state, Cmd.ofMsg RerenderView
+
+    | Action.ReceivedDataFromSerialPort packet ->
+        Log.info $"Received message over serial{Environment.NewLine}{packet}"
+        state, Cmd.none
 
     // ---- Flower Actions ----
 
@@ -307,8 +397,8 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
         match state.Selected with
         | Some id ->
             { state with
-                Flowers = Map.remove id state.Flowers
-                Selected = None },
+                  Flowers = Map.remove id state.Flowers
+                  Selected = None },
             Cmd.none
 
         | None -> state, Cmd.none
@@ -322,40 +412,14 @@ let updateAction (action: Action) (state: State) (window: Window) : State * Cmd<
 
     | Action.PingFlower asyncOperation ->
         match asyncOperation with
-        | Start _ ->
-            state, pingCurrentFlower state
-            
+        | Start _ -> state, pingCurrentFlower state
+
         | Finished exn ->
             Log.error $"Could not receive request from flower{Environment.NewLine}{exn}"
             state, Cmd.none
 
-let updateActionResult (result: ActionResult) (state: State) : State * Cmd<Msg> =
-    match result with
-    | ActionResult.SerialPortOpened serialPort ->
-        Log.debug $"Connected to serial port '{serialPort.PortName}'"
 
-        { state with SerialPort = Some serialPort },
-        Cmd.batch [
-            Cmd.ofMsg RerenderView
-            pingAllFlowers state
-            SerialPort.onReceived
-                (ActionResult.SerialPortReceivedData
-                 >> ActionResult)
-                serialPort
-        ]
-
-    | ActionResult.SerialPortClosed serialPort ->
-        Log.debug $"Closed serial port '{serialPort.PortName}'"
-        state, Cmd.ofMsg RerenderView
-
-
-    | ActionResult.SerialPortReceivedData str ->
-        Log.info $"Received message over serial{Environment.NewLine}{str}"
-        state, Cmd.none
-
-
-
-let updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
+let private updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
     | Menu.FileMsg msg ->
         match msg with
@@ -363,7 +427,7 @@ let updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
         | File.SaveAs -> state, Cmd.ofMsg (Start() |> Action.SaveAsDialog |> Action)
         | File.OpenFile -> state, Cmd.ofMsg (Start() |> Action.OpenFileDialog |> Action)
 
-let updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg> =
+let private updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
     | IconDock.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
     | IconDock.SaveAs -> state, Cmd.ofMsg (Start() |> Action.SaveAsDialog |> Action)
@@ -371,77 +435,44 @@ let updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg> =
     | IconDock.NewFlower -> state, Cmd.ofMsg (Action.NewFlower |> Action)
 
 
-
-let updateFlowerPanel (msg: FlowerPanel.Msg) (state: State) : State * Cmd<Msg> =
+let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
-    | FlowerPanel.FlowerPropertiesMsg flowerPropertiesMsg ->
-        match flowerPropertiesMsg with
-        | FlowerProperties.ChangeName (id, newName) -> updateFlower id "Name" Flower.setName newName state, Cmd.none
+    | FlowerProperties.ChangeName (id, newName) -> updateFlower id "Name" Flower.setName newName state, Cmd.none
 
-        | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
+    | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
+        if not <| String.IsNullOrEmpty i2cAddressString then
             match String.parseByte i2cAddressString with
             | Some i2cAddress -> updateFlower id "I2C Address" Flower.setI2cAddress i2cAddress state, Cmd.none
-
             | None ->
-                // Todo: handle invalid I2C Address
+                Log.debug $"Could not parse invalid I2C address '{i2cAddressString}' for flower '{id}'"
                 state, Cmd.none
+        else
+            state, Cmd.none
 
-    | FlowerPanel.FlowerCommandsMsg flowerCommandsMsg ->
-        match flowerCommandsMsg with
-        | FlowerCommands.ChangePort newPort ->
-            match state.SerialPort with
-            | Some serialPort when newPort = FlowerCommands.noPort ->
-                Log.debug $"Disconnecting from serial port '{serialPort.PortName}'"
-
-                { state with SerialPort = None },
-                Cmd.batch [
-                    Cmd.OfTask.perform SerialPort.closePort serialPort (ActionResult.SerialPortClosed >> ActionResult)
-                ]
-
-            | Some serialPort ->
-                Log.debug $"Changing from serial port '{serialPort.PortName}' to '{newPort}'"
-
-                state,
-                Cmd.batch [
-                    Cmd.OfTask.perform SerialPort.closePort serialPort (ActionResult.SerialPortClosed >> ActionResult)
-                    Cmd.OfTask.perform SerialPort.connectAndOpen newPort (ActionResult.SerialPortOpened >> ActionResult)
-                ]
-
-            | None when
-                newPort = FlowerCommands.noPort
-                || String.IsNullOrEmpty newPort
-                ->
-                { state with SerialPort = None }, Cmd.none
-
-            | None ->
-                Log.verbose $"Selected serial port '{newPort}'"
-
-                state, Cmd.OfTask.perform SerialPort.connect newPort (ActionResult.SerialPortOpened >> ActionResult)
-
-        | FlowerCommands.OpenSerialPort serialPort ->
-            state, Cmd.OfTask.perform SerialPort.openPort serialPort (ActionResult.SerialPortOpened >> ActionResult)
-
-        | FlowerCommands.CloseSerialPort serialPort ->
-            state, Cmd.OfTask.perform SerialPort.closePort serialPort (ActionResult.SerialPortClosed >> ActionResult)
-
-        | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg (Start () |> Action.RefreshSerialPorts |> Action)
-
-        | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
-            updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
-
-        | FlowerCommands.Msg.ChangeSpeed (id, speed) ->
-            updateFlower id "Speed" Flower.setSpeedLocal speed state, Cmd.none
-
-        | FlowerCommands.Msg.ChangeAcceleration (id, acceleration) ->
-            updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
-
-        | FlowerCommands.Msg.SendCommand command -> state, sendCommand command state
-
-let updateChoreographies (msg: Choreographies.Msg) (state: State) : State * Cmd<Msg> =
+let private updateFlowerCommands (msg: FlowerCommands.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
-    | Choreographies.Action action -> state, Cmd.ofMsg (Action action)
+    | FlowerCommands.ChangePort newPortName -> connectToSerialPort newPortName state
 
-let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
+    | FlowerCommands.OpenSerialPort serialPort ->
+        state, Cmd.OfTask.perform SerialPort.openPort serialPort (Finished >> Action.OpenSerialPort >> Action)
+
+    | FlowerCommands.CloseSerialPort serialPort ->
+        state, Cmd.OfTask.perform SerialPort.closePort serialPort (Finished >> Action.CloseSerialPort >> Action)
+
+    | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
+
+    | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
+        updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
+
+    | FlowerCommands.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeedLocal speed state, Cmd.none
+
+    | FlowerCommands.Msg.ChangeAcceleration (id, acceleration) ->
+        updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
+
+    | FlowerCommands.Msg.SendCommand command -> state, sendCommand command state
+
+
+let private updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
     match msg with
     | BackgroundEvent backgroundEvent ->
         match backgroundEvent with
@@ -449,8 +480,8 @@ let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Ms
             Log.verbose "Background: Pointer Released"
 
             { state with
-                FlowerInteraction = NoInteraction
-                Selected = None },
+                  FlowerInteraction = NoInteraction
+                  Selected = None },
             Cmd.none
 
     | FlowerEvent flowerEvent ->
@@ -458,19 +489,22 @@ let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Ms
         | FlowerPointerEvent.OnEnter (flowerId, _) ->
             Log.verbose $"Flower: Hovering {Id.shortName flowerId}"
 
-            { state with FlowerInteraction = Hovering flowerId }, Cmd.none
+            { state with
+                  FlowerInteraction = Hovering flowerId },
+            Cmd.none
 
         | FlowerPointerEvent.OnLeave (flowerId, _) ->
             Log.verbose $"Flower: Pointer Left {Id.shortName flowerId}"
 
-            { state with FlowerInteraction = NoInteraction }, Cmd.none
+            { state with
+                  FlowerInteraction = NoInteraction },
+            Cmd.none
 
         | FlowerPointerEvent.OnMoved (flowerId, e) ->
             match state.FlowerInteraction with
             | Pressing pressing when
                 pressing.Id = flowerId
-                && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
-                ->
+                && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared ->
                 Log.verbose $"Flower: Start Dragging {Id.shortName flowerId}"
 
                 let delta =
@@ -480,19 +514,19 @@ let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Ms
                 let newPosition = e.Position + delta
 
                 { state with
-                    Flowers = Map.update pressing.Id (Flower.setPosition newPosition) state.Flowers
-                    FlowerInteraction =
-                        Dragging
-                            { Id = pressing.Id
-                              DraggingDelta = delta } },
+                      Flowers = Map.update pressing.Id (Flower.setPosition newPosition) state.Flowers
+                      FlowerInteraction =
+                          Dragging
+                              { Id = pressing.Id
+                                DraggingDelta = delta } },
                 Cmd.none
 
             | Dragging draggingData ->
                 // Continue dragging
-                let newPosition =
-                    e.Position + draggingData.DraggingDelta
+                let newPosition = e.Position + draggingData.DraggingDelta
 
-                { state with Flowers = Map.update draggingData.Id (Flower.setPosition newPosition) state.Flowers },
+                { state with
+                      Flowers = Map.update draggingData.Id (Flower.setPosition newPosition) state.Flowers },
                 Cmd.none
 
             // Take no action
@@ -501,19 +535,18 @@ let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Ms
 
         | FlowerPointerEvent.OnPressed (flowerId, e) ->
             if InputTypes.isPrimary e.MouseButton then
-                let maybeFlower =
-                    getFlower flowerId state.Flowers
+                let maybeFlower = getFlower flowerId state.Flowers
 
                 match maybeFlower with
                 | Some pressed ->
                     Log.verbose $"Flower: Pressed {Id.shortName pressed.Id}"
 
                     { state with
-                        FlowerInteraction =
-                            Pressing
-                                { Id = flowerId
-                                  MousePressedLocation = e.Position
-                                  InitialFlowerPosition = pressed.Position } },
+                          FlowerInteraction =
+                              Pressing
+                                  { Id = flowerId
+                                    MousePressedLocation = e.Position
+                                    InitialFlowerPosition = pressed.Position } },
                     Cmd.none
 
                 | None ->
@@ -522,20 +555,23 @@ let updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Ms
             else
                 state, Cmd.none
 
+
         | FlowerPointerEvent.OnReleased (flowerId, e) ->
             if InputTypes.isPrimary e.MouseButton then
                 match state.FlowerInteraction with
                 | Dragging _ ->
                     Log.verbose $"Flower: Dragging -> Hovering {Id.shortName flowerId}"
 
-                    { state with FlowerInteraction = Hovering flowerId }, Cmd.none
+                    { state with
+                          FlowerInteraction = Hovering flowerId },
+                    Cmd.none
 
                 | Pressing _ ->
                     Log.verbose $"Flower: Selected {Id.shortName flowerId}"
 
                     { state with
-                        FlowerInteraction = Hovering flowerId
-                        Selected = Some flowerId },
+                          FlowerInteraction = Hovering flowerId
+                          Selected = Some flowerId },
                     Cmd.none
 
 
@@ -551,16 +587,18 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     match msg with
     // Shell Messages
     | Action action -> updateAction action state window
-    | ActionResult result -> updateActionResult result state
 
-    | RerenderView -> { state with Rerender = state.Rerender + 1 }, Cmd.none
+    | RerenderView ->
+        { state with
+              Rerender = state.Rerender + 1 },
+        Cmd.none
 
     // Msg Mapping
     | MenuMsg menuMsg -> updateMenu menuMsg state
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
-    | FlowerPanelMsg flowerPanelMsg -> updateFlowerPanel flowerPanelMsg state
-    | ChoreographiesMsg choreographiesMsg -> updateChoreographies choreographiesMsg state
     | SimulationEvent event -> updateSimulationEvent event state
+    | FlowerPropertiesMsg flowerPropertiesMsg -> updateFlowerProperties flowerPropertiesMsg state
+    | FlowerCommandsMsg flowerCommandsMsg -> updateFlowerCommands flowerCommandsMsg state
 
 
 // ---- View Functions ----
@@ -568,7 +606,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 open Avalonia.FuncUI.Types
 open Avalonia.FuncUI.DSL
 
-let drawFlower (state: State) (dispatch: FlowerPointerEvent -> unit) (flower: Flower) : IView =
+let private drawFlower (state: State) (dispatch: FlowerPointerEvent -> unit) (flower: Flower) : IView =
     let flowerState (flower: Flower) : Flower.Attribute option =
         match state.FlowerInteraction with
         | Hovering id when id = flower.Id -> Flower.hovered |> Some
@@ -589,7 +627,7 @@ let drawFlower (state: State) (dispatch: FlowerPointerEvent -> unit) (flower: Fl
           Flower.onPointerReleased (FlowerPointerEvent.OnReleased >> dispatch) ]
     :> IView
 
-let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
+let private simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
     let flowers =
         state.Flowers
         |> Map.values
@@ -613,38 +651,28 @@ let simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
     :> IView
 
 
-let simulationView (state: State) (dispatch: Msg -> unit) =
-    let selected =
+let private simulationView (state: State) (dispatch: Msg -> unit) =
+    let selectedFlowerOption =
         Option.bind (fun id -> getFlower id state.Flowers) state.Selected
 
     DockPanel.create [
         DockPanel.children [
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
 
-            DockPanel.child
-                Dock.Left
-                (FlowerPanel.view selected state.SerialPorts state.SerialPort (FlowerPanelMsg >> dispatch))
+            DockPanel.child Dock.Left (FlowerProperties.view selectedFlowerOption (FlowerPropertiesMsg >> dispatch))
 
-            DockPanel.child Dock.Right (Choreographies.view (ChoreographiesMsg >> dispatch))
+            DockPanel.child
+                Dock.Right
+                (FlowerCommands.view
+                    selectedFlowerOption
+                    state.SerialPorts
+                    state.SerialPort
+                    (FlowerCommandsMsg >> dispatch))
+
 
             simulationSpace state (Msg.SimulationEvent >> dispatch)
         ]
     ]
 
-let inputsView (state: State) (dispatch: Msg -> unit) = DockPanel.create []
 
-let view (state: State) (dispatch: Msg -> unit) =
-    TabControl.create [
-        TabControl.viewItems [
-            TabItem.create [
-                TabItem.header "Simulation"
-                TabItem.content (simulationView state dispatch)
-            ]
-            TabItem.create [
-                TabItem.header "Inputs"
-                TabItem.content (inputsView state dispatch)
-            ]
-        ]
-    ]
-
-// ---- Main Window Creation ----
+let view (state: State) (dispatch: Msg -> unit) = simulationView state dispatch
