@@ -170,7 +170,7 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Speed"
           Value =
-            Option.map (Flower.speed >> RemoteValue.local) flowerOption
+            Option.map Flower.maxSpeed flowerOption
             |> Option.defaultValue presets.speedEmpty
             |> float
           Min = presets.minSpeed
@@ -229,18 +229,13 @@ let view
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
           serialPortView serialPorts serialPort dispatch
+          iconButton "Ping" Icon.ping (fun _ -> Ping) flowerOption serialPort dispatch
           iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
           iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption serialPort dispatch
           iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch
           iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption serialPort dispatch
           openPercentageView flowerOption dispatch
-          iconButton
-              "Set Speed"
-              Icon.speed
-              (Flower.speed >> RemoteValue.local >> uint >> Speed)
-              flowerOption
-              serialPort
-              dispatch
+          iconButton "Set Speed" Icon.speed (Flower.maxSpeed >> uint >> Speed) flowerOption serialPort dispatch
           speedView flowerOption dispatch
           iconButton
               "Set Acceleration"

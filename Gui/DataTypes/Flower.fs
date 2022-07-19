@@ -45,7 +45,8 @@ let basic name : Flower =
       I2cAddress = initialI2cAddress
       Color = Color.hex Theme.palette.primary
       OpenPercent = ClampedPercentage.zero
-      Speed = Local 5000
+      TargetPercent = ClampedPercentage.zero
+      MaxSpeed = 5000
       Acceleration = 1000
       Radius = Length.pixels 20.
       ConnectionStatus = Disconnected }
@@ -57,7 +58,8 @@ let i2cAddress (flower: Flower) : I2cAddress = flower.I2cAddress
 let color (flower: Flower) : Color = flower.Color
 let position (flower: Flower) : Point2D<Pixels, UserSpace> = flower.Position
 let openPercent (flower: Flower) : ClampedPercentage = flower.OpenPercent
-let speed (flower: Flower) : RemoteValue<Speed> = flower.Speed
+let targetPercent (flower: Flower) : ClampedPercentage = flower.TargetPercent
+let maxSpeed (flower: Flower) : Speed = flower.MaxSpeed
     
 let acceleration (flower: Flower) : Acceleration = flower.Acceleration
 
@@ -68,9 +70,10 @@ let setI2cAddress i2CAddress flower : Flower = { flower with I2cAddress = i2CAdd
 let setColor color flower : Flower = { flower with Color = color }
 let setPosition position flower : Flower = { flower with Position = position }
 let setOpenPercent percent flower : Flower = { flower with OpenPercent = percent }
-let setSpeed speed flower : Flower = { flower with Speed = speed }
-let setSpeedLocal speed flower : Flower = { flower with Speed = RemoteValue.setLocal speed flower.Speed }
-let setSpeedRemote speed flower : Flower = { flower with Speed = RemoteValue.setRemote speed flower.Speed }
+let setTargetPercent percent flower : Flower = { flower with TargetPercent = percent }
+let setMaxSpeed speed flower : Flower = { flower with MaxSpeed = speed }
+let connected flower : Flower = { flower with ConnectionStatus = Connected }
+let disconnected flower : Flower = { flower with ConnectionStatus = Disconnected }
 
 let setAcceleration acceleration flower : Flower =
     { flower with

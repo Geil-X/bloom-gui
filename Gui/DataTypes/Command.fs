@@ -30,15 +30,7 @@ let sendCommand (serialPort: SerialPort) (address: I2cAddress) (command: Command
         | Speed speed -> Array.append [| byte CommandId.Speed |] (uint16 speed |> UInt16.inBytes)
         | Acceleration acceleration ->
             Array.append [| byte CommandId.Acceleration |] (uint16 acceleration |> UInt16.inBytes)
+        | Ping -> [| byte CommandId.Ping; 0uy; 0uy |]
         |> Array.append [| address |]
-
-    task { serialPort.Write(packet, 0, packet.Length) }
-
-let request (serialPort: SerialPort, address: I2cAddress) : Task<unit> =
-    let packet =
-        [| address
-           byte CommandId.Ping
-           0uy
-           0uy |]
 
     task { serialPort.Write(packet, 0, packet.Length) }

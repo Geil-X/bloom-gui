@@ -48,17 +48,12 @@ type Flower =
       Position: Point2D<Pixels, UserSpace>
       Color: Color
       OpenPercent: ClampedPercentage
-      Speed: RemoteValue<Speed>
+      TargetPercent: ClampedPercentage
+      MaxSpeed: Speed
       Acceleration: Acceleration
       Radius: Length<Pixels>
       ConnectionStatus: ConnectionStatus }
 
-type Response =
-    { Time: Time
-      Position: ClampedPercentage
-      Target: ClampedPercentage
-      Acceleration: Acceleration
-      MaxSpeed: Speed }
 
 type Command =
     | NoCommand
@@ -69,6 +64,7 @@ type Command =
     | OpenTo of ClampedPercentage
     | Speed of uint
     | Acceleration of uint
+    | Ping
 
 // ---- Actions ----------------------------------------------------------------
 
