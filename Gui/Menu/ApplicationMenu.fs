@@ -23,7 +23,7 @@ let menuTab  (menuTab: MenuTab<'Msg>) (dispatch: 'Msg -> unit): IView =
         MenuItem.viewItems  menuItems
     ]
     
-let view (menuBar: MenuBar<'Msg>) (dispatch: 'Msg -> unit): IView =
+let view (menuBar: MenuBar<'Msg>) (dispatch: 'Msg -> unit): IView<Menu> =
     let menuTabHelper item = menuTab item dispatch
     let tabs = List.map menuTabHelper menuBar
     

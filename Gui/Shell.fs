@@ -653,6 +653,10 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
 
     DockPanel.create [
         DockPanel.children [
+            if OperatingSystem.IsLinux()
+               || OperatingSystem.IsWindows() then
+                DockPanel.child Dock.Top (Menu.applicationMenu (MenuMsg >> dispatch))
+
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
 
             DockPanel.child Dock.Left (FlowerProperties.view selectedFlowerOption (FlowerPropertiesMsg >> dispatch))

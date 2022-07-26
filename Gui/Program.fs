@@ -26,12 +26,10 @@ type MainWindow() as this =
         // this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
         // this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
 
-        Menu.nativeFromWindow this
-
         let updateWithServices (msg: Shell.Msg) (state: Shell.State) = Shell.update msg state this
 
         Program.mkProgram Shell.init updateWithServices Shell.view
-        |> Program.withSubscription (Menu.subscription Shell.MenuMsg)
+        |> Program.withNativeMenu this Menu.menuBar Shell.MenuMsg
         |> Program.withSubscription (Shell.keyUpHandler this)
         |> Program.withHost this
         |> Program.run

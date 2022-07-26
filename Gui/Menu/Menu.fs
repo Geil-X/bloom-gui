@@ -16,6 +16,7 @@ module Gui.Menu.Menu
 
 open Avalonia.Controls
 open Avalonia.FuncUI.Hosts
+open Avalonia.FuncUI.Types
 open Elmish
 
 open Gui
@@ -34,14 +35,11 @@ let private fileMenu =
           { Name = "Open"; Msg = OpenFile }
           { Name = "Save As"; Msg = SaveAs } ] }
 
-let private menuBar: MenuBar<Msg> =
+let menuBar: MenuBar<Msg> =
     [ fileMenu ]
 
 /// Create a menu bar at the top of the application window. This is the main
 /// interaction method for a lot of the core functionality of the application.
 /// This menu provides access to the core functionality of the application,
 /// or to window dialogues that contain more central information.
-let applicationMenu (dispatch: Msg -> unit) = ApplicationMenu.view menuBar dispatch
-
-//let addNativeMenuToWindow window =
-//    nativeMenuFromWindow window menuBar
+let applicationMenu (dispatch: Msg -> unit): IView<Menu> = ApplicationMenu.view menuBar dispatch
