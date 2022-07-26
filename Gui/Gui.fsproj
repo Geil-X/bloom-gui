@@ -58,13 +58,14 @@
         <Compile Include="Views\Tabs\Simulation\Panels\FlowerCommands.fs" />
         <Compile Include="Views\Tabs\Simulation\Panels\FlowerPanel.fs" />
         <Compile Include="Views\Tabs\Simulation\Panels\IconDock.fs" />
-        <Compile Include="Menu\File.fs" />
+        <Compile Include="Menu\NativeMenu.fs" />
+        <Compile Include="Menu\ApplicationMenu.fs" />
         <Compile Include="Menu\Menu.fs" />
         <Compile Include="FlowerFile.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
-    
+
     <ItemGroup>
         <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
         <PackageReference Include="DotNet.Bundle" Version="0.9.13" />

@@ -26,7 +26,7 @@ type MainWindow() as this =
         // this.VisualRoot.VisualRoot.Renderer.DrawFps <- true
         // this.VisualRoot.VisualRoot.Renderer.DrawDirtyRects <- true
 
-        Menu.setMenu this
+        Menu.nativeFromWindow this
 
         let updateWithServices (msg: Shell.Msg) (state: Shell.State) = Shell.update msg state this
 

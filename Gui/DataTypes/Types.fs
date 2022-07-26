@@ -92,3 +92,16 @@ type Action =
     | DeleteFlower
     | SendCommand of AsyncOperationStatus<Command, exn>
     | PingFlower of AsyncOperationStatus<unit, exn>
+    
+// ---- Menu Controls ----
+type MenuAction<'Msg> =
+    { Name: string
+      Msg : 'Msg
+    }
+    
+type MenuTab<'Msg> =
+    { Name: string
+      Items: MenuAction<'Msg> list
+    }
+    
+type MenuBar<'Msg> = MenuTab<'Msg> list

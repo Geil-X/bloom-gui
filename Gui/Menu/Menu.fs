@@ -1,41 +1,47 @@
+/// A native menu is the menu that
+/// appears at the top system menu bar on MacOS and in some applications under
+/// Linux distributions. For MacOS, this menu is generally the main location of
+/// the program menu. On Linux, the native menu is generally not implemented for
+/// most applications and is implemented with an inbuilt menu at the top of the
+/// application. The menu at the top of the application is also the only way
+/// that menus are implemented on Windows systems, so generally Linux
+/// applications have the same menu configuration. Menus in this module use the
+/// native menu to set up native menus on MacOS and Linux, and implement the top
+/// application menus for Windows and Linux. This allows Linux to have the
+/// expected menu location at the top of the application but alternatively takes
+/// advantage of as many native menu features as possible to provide an alternate
+/// means of accessing that functionality.
 module Gui.Menu.Menu
+
 
 open Avalonia.Controls
 open Avalonia.FuncUI.Hosts
 open Elmish
 
-type Msg = FileMsg of File.Msg
+open Gui
+open Gui.DataTypes
 
-let menuItem name = NativeMenuItem name
+type Msg =
+    // ---- File -----
+    | NewFile
+    | OpenFile
+    | SaveAs
 
-let fileMenuItems: NativeMenuItem list =
-    File.menuItems
-    |> List.map fst
-    |> List.map menuItem
+let private fileMenu =
+    { Name = "File"
+      Items =
+        [ { Name = "New File"; Msg = NewFile }
+          { Name = "Open"; Msg = OpenFile }
+          { Name = "Save As"; Msg = SaveAs } ] }
 
-let fileMenu: NativeMenuItem =
-    let menuItem = NativeMenuItem File.tabName
-    let menu = NativeMenu()
-    menuItem.Menu <- menu
-    
-    List.iter menu.Add fileMenuItems
+let private menuBar: MenuBar<Msg> =
+    [ fileMenu ]
 
-    menuItem
+/// Create a menu bar at the top of the application window. This is the main
+/// interaction method for a lot of the core functionality of the application.
+/// This menu provides access to the core functionality of the application,
+/// or to window dialogues that contain more central information.
+let applicationMenu (dispatch: Msg -> unit) = ApplicationMenu.view menuBar dispatch
 
-let nativeMenu: NativeMenu =
-    let menu = NativeMenu()
-    menu.Add fileMenu
-
-    menu
-
-let subscription (conv: Msg -> 'Msg) (_: 'State) =
-    let sub (dispatch: 'Msg -> unit) =
-        let fileMsgs = List.map snd File.menuItems
-
-        List.iter
-            (fun (menuItem: NativeMenuItem, msg) -> menuItem.Clicked.Add(fun _ -> FileMsg msg |> conv |> dispatch))
-            (List.zip fileMenuItems fileMsgs)
-
-    Cmd.ofSub sub
-
-let setMenu (window: HostWindow) = NativeMenu.SetMenu(window, nativeMenu)
+//let addNativeMenuToWindow window =
+//    nativeMenuFromWindow window menuBar

@@ -426,11 +426,9 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
 
 let private updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
-    | Menu.FileMsg msg ->
-        match msg with
-        | File.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
-        | File.SaveAs -> state, Cmd.ofMsg (Start() |> Action.SaveAsDialog |> Action)
-        | File.OpenFile -> state, Cmd.ofMsg (Start() |> Action.OpenFileDialog |> Action)
+    | Menu.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
+    | Menu.SaveAs -> state, Cmd.ofMsg (Start() |> Action.SaveAsDialog |> Action)
+    | Menu.OpenFile -> state, Cmd.ofMsg (Start() |> Action.OpenFileDialog |> Action)
 
 let private updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
