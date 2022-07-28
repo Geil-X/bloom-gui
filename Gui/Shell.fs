@@ -80,7 +80,7 @@ type Msg =
     | FlowerPropertiesMsg of FlowerProperties.Msg
     | FlowerCommandsMsg of FlowerCommands.Msg
 
-// ---- High Level Key Handling ----
+// ---- High Level Key Handling ------------------------------------------------
 
 let keyUpHandler (window: Window) _ =
     let sub dispatch =
@@ -92,8 +92,16 @@ let keyUpHandler (window: Window) _ =
 
     Cmd.ofSub sub
 
+// ---- File Writing -----------------------------------------------------------
 
-// ---- Init ----
+let saveAppConfigFile (appConfig: AppConfig) : Cmd<Msg> =
+    File.write AppConfig.configPath appConfig WroteAppConfig
+
+let loadAppConfigFile: Cmd<Msg> =
+    File.load AppConfig.configPath LoadedAppConfig
+
+
+// ---- Init -------------------------------------------------------------------
 
 let init () : State * Cmd<Msg> =
     { CanvasSize = Size.create Length.zero Length.zero
@@ -106,8 +114,7 @@ let init () : State * Cmd<Msg> =
       Tab = Simulation
       AppConfig = AppConfig.init },
     Cmd.batch [
-        AppConfig.load LoadedAppConfig
-
+        loadAppConfigFile
         Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
     ]
 
@@ -168,7 +175,6 @@ let private connectToSerialPort (newPortName: string) (state: State) : State * C
     | None ->
         Log.debug $"Connecting to serial port '{newPortName}'"
         state, connectAndOpenSerialPort newPortName
-
 
 // ---- Flower Functions -------------------------------------------------------
 
@@ -305,12 +311,10 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
     | Action.SaveAs asyncOperation ->
         match asyncOperation with
         | Start path ->
-            state,
-            Cmd.OfTask.either
-                FlowerFile.writeFlowerFile
-                (path, Map.values state.Flowers)
-                (Ok >> Finished >> Action.SaveAs >> Action)
-                (Error >> Finished >> Action.SaveAs >> Action)
+            let flowerFileData: Flower seq =
+                Map.values state.Flowers
+
+            state, File.write path flowerFileData (Finished >> Action.SaveAs >> Action)
 
         | Finished (Ok _) ->
             Log.info "Saved flower file"
@@ -339,13 +343,7 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
 
     | Action.OpenFile asyncOperation ->
         match asyncOperation with
-        | Start path ->
-            state,
-            Cmd.OfTask.either
-                FlowerFile.loadFlowerFile
-                path
-                (Ok >> Finished >> Action.OpenFile >> Action)
-                (Error >> Finished >> Action.OpenFile >> Action)
+        | Start path -> state, File.load path (Finished >> Action.OpenFile >> Action)
 
         | Finished (Ok flowers) -> newFile state flowers, Cmd.none
 
@@ -606,11 +604,15 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     | LoadedAppConfig appConfigResult ->
         match appConfigResult with
-        | Ok appConfig -> { state with AppConfig = appConfig }, Cmd.none
+        | Ok appConfig ->
+            Log.info "Loaded Application Configuration from the disk."
+            { state with AppConfig = appConfig }, Cmd.none
         | Error exn ->
             match exn with
             // The file path doesn't exist so we should make one
-            | :? AggregateException -> state, AppConfig.write (state.AppConfig) WroteAppConfig
+            | :? AggregateException ->
+                Log.info "Could not find a configuration file on this computer so I'm creating one."
+                state, saveAppConfigFile state.AppConfig
             | _ ->
                 Log.error
                     $"There was an error when trying to load the Application Configuration file{Environment.NewLine}{exn}"
@@ -619,7 +621,9 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     | WroteAppConfig result ->
         match result with
-        | Ok _ -> state, Cmd.none
+        | Ok _ ->
+            Log.info "Wrote and updated the Application Configuration file."
+            state, Cmd.none
         | Error exn ->
             Log.error $"There was an error writing the Application Configuration{Environment.NewLine}{exn}"
             state, Cmd.none

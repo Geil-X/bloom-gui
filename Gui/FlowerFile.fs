@@ -5,9 +5,11 @@ open System.IO
 open System.Threading.Tasks
 open Avalonia.Controls
 
+open Elmish
 open Gui.DataTypes
 open Gui.Views
 open Extensions
+open Gui.Generics
 
 type FileError = exn
 
@@ -24,27 +26,3 @@ let openFileDialog (window: Window) =
 
 let saveFileDialog (window: Window) =
     Dialogs.saveFileDialog dialogTitle extensions defaultDirectory window
-
-
-// ---- Read & Write ----
-
-// Note: Can throw an exception
-let private readFile (path: PathName) (deserializer: StreamReader -> 'T) : Task<'T> =
-    task {
-        use reader = new StreamReader(File.OpenRead(string path))
-        return deserializer reader
-    }
-
-/// TODO: catch json deserialization errors
-// Note: Can throw an exception
-let loadFlowerFile path : Task<Flower seq> = readFile path Flower.deserialize
-
-// Note: Can throw an exception
-let private writeFile path (serializer: StreamWriter -> 'T -> unit) (data: 'T) : Task<unit> =
-    task {
-        use writer = new StreamWriter(File.OpenWrite(path))
-        serializer writer data
-    }
-
-/// Note: Can throw an exception
-let writeFlowerFile (path, flowers: Flower seq) : Task<unit> = writeFile path Flower.serialize flowers

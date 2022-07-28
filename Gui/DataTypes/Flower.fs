@@ -4,12 +4,10 @@ open Avalonia.Media
 open Geometry
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-open System
 open Avalonia.Controls.Shapes
 
 open Gui
 open Gui.DataTypes
-open Gui.Generics
 open Extensions
 
 type Id = Flower Id
@@ -85,15 +83,8 @@ let setAcceleration acceleration flower : Flower =
 let containsPoint point (state: Flower) =
     Circle2D.atPoint state.Position state.Radius
     |> Circle2D.containsPoint point
-
-// ---- Serialization & Deserialization ----
-
-let serialize (stream: IO.TextWriter) (flowers: Flower seq) : unit =
-    Serializer.serialize stream flowers
-
-let deserialize (flowerStream: IO.TextReader) : Flower seq =
-    Serializer.deserialize flowerStream
-
+    
+    
 // ---- Attributes ----
 
 // Flowers

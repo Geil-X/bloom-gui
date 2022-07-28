@@ -1,10 +1,9 @@
 module Gui.Generics.File
 
-open System
 open System.IO
 open System.Threading.Tasks
 open Elmish
-open MBrace.FsPickler.Json
+open FSharp.Json
 
 open Extensions
 
@@ -12,17 +11,17 @@ open Extensions
 
 // ---- File Operations --------------------------------------------------------
 
-let readTask<'a> (path: string) (deserializer: StreamReader -> 'a) : Task<'a> =
+let readJsonTask<'a> (path: string) : Task<'a> =
     task {
-        use reader =
-            new StreamReader(File.OpenRead(string path))
+        use fileStream =
+            new StreamReader(File.OpenRead(path))
 
-        return deserializer reader
+        return Json.deserialize<'a> (fileStream.ReadToEnd())
     }
 
 
 // Note: Can throw an exception
-let writeTask<'a> (path: string) (serializer: StreamWriter -> 'a -> unit) (data: 'a) : Task<unit> =
+let writeJsonTask<'a> (path: string) (data: 'a) : Task<unit> =
     task {
         let fileDirectory =
             Path.parentDirectory path
@@ -33,20 +32,8 @@ let writeTask<'a> (path: string) (serializer: StreamWriter -> 'a -> unit) (data:
         use writer =
             new StreamWriter(File.OpenWrite(path))
 
-
-        serializer writer data
+        writer.Write(Json.serialize data)
     }
-
-// ---- Serialization & Deserialization Types ----------------------------------
-
-let private jsonSerializer =
-    FsPickler.CreateJsonSerializer(indent = false)
-
-
-let serializer<'a> (stream: TextWriter) (data: 'a) : unit = jsonSerializer.Serialize(stream, data)
-
-let deserializer<'a> (stream: TextReader) : 'a = jsonSerializer.Deserialize<'a>(stream)
-
 
 // ---- Elmish Commands --------------------------------------------------------
 
@@ -56,8 +43,8 @@ let deserializer<'a> (stream: TextReader) : 'a = jsonSerializer.Deserialize<'a>(
 //type WritingError =
 //    | DirectoryDoesNotExist
 
-let load<'a> (path: string) (msg: Result<'a, exn> -> 'Msg) : Cmd<'Msg> =
-    Cmd.OfTask.either (readTask<'a> path) deserializer<'a> (Ok >> msg) (Error >> msg)
+let load (path: string) (msg: Result<'a, exn> -> 'Msg) : Cmd<'Msg> =
+    Cmd.OfTask.either readJsonTask<'a> path (Ok >> msg) (Error >> msg)
 
-let write<'a> (path: string) (data: 'a) (onError: exn -> 'Msg) : Cmd<'Msg> =
-    Cmd.OfTask.attempt (writeTask<'a> path serializer<'a>) data onError
+let write (path: string) (data: 'a) (msg: Result<unit, exn> -> 'Msg) : Cmd<'Msg> =
+    Cmd.OfTask.either (writeJsonTask<'a> path) data (Ok >> msg) (Error >> msg)

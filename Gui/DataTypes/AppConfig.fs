@@ -5,14 +5,7 @@ namespace Gui.DataTypes
 type AppConfig = { RecentFiles: string list }
 
 module AppConfig =
-
-    open System
-    open System.IO
-    open System.Threading.Tasks
-    open Elmish
-
     open Gui
-    open Gui.DataTypes
     open Gui.Generics
     open Extensions
 
@@ -67,9 +60,3 @@ module AppConfig =
             let appdata = getEnv "APPDATA"
 
             appdata ./ bloomDirectory ./ "config.json"
-
-    let load (msg: Result<AppConfig, exn> -> 'Msg) : Cmd<'Msg> =
-        Cmd.OfTask.either (File.readTask configPath) File.deserializer<AppConfig> (Ok >> msg) (Error >> msg)
-
-    let write (data: AppConfig) (msg: Result<unit, exn> -> 'Msg) : Cmd<'Msg> =
-        Cmd.OfTask.either (File.writeTask configPath File.serializer<AppConfig>) data (Ok >> msg) (Error >> msg)

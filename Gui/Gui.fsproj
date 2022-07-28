@@ -44,7 +44,6 @@
         <Compile Include="Generics\OperatingSystem.fs" />
         <Compile Include="Generics\Deferred.fs" />
         <Compile Include="Generics\AsyncOperationStatus.fs" />
-        <Compile Include="Generics\Serializer.fs" />
         <Compile Include="DataTypes\Log.fs" />
         <Compile Include="DataTypes\Theme.fs" />
         <Compile Include="DataTypes\Types.fs" />
@@ -76,7 +75,6 @@
         <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
         <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
         <PackageReference Include="Fsharp.Geometry" Version="0.1.22" />
-        <PackageReference Include="FsPickler.Json" Version="5.3.2" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.1" />
