@@ -6,10 +6,10 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open System
 open Avalonia.Controls.Shapes
-open MBrace.FsPickler.Json
 
 open Gui
 open Gui.DataTypes
+open Gui.Generics
 open Extensions
 
 type Id = Flower Id
@@ -88,15 +88,11 @@ let containsPoint point (state: Flower) =
 
 // ---- Serialization & Deserialization ----
 
-let jsonSerializer =
-    FsPickler.CreateJsonSerializer(indent = false)
-
-let serialize (stream: IO.TextWriter) (flower: Flower seq) : unit =
-    jsonSerializer.Serialize(stream, flower)
+let serialize (stream: IO.TextWriter) (flowers: Flower seq) : unit =
+    Serializer.serialize stream flowers
 
 let deserialize (flowerStream: IO.TextReader) : Flower seq =
-    jsonSerializer.Deserialize<Flower seq>(flowerStream)
-
+    Serializer.deserialize flowerStream
 
 // ---- Attributes ----
 

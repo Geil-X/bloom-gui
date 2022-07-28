@@ -1,9 +1,5 @@
 namespace Gui.Generics
 
-type AsyncOperationStatus<'input, 'output> =
-    | Start of 'input
-    | Finished of 'output
-
 type Deferred<'t> =
     | HasNotStartedYet
     | InProgress

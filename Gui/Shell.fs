@@ -6,6 +6,7 @@ open Avalonia.Controls
 open Avalonia.Input
 open Elmish
 
+open Extensions
 open Geometry
 open Gui
 open Gui.Menu
@@ -13,7 +14,6 @@ open Gui.DataTypes
 open Gui.Panels
 open Gui.Views
 open Gui.Generics
-open Extensions
 
 
 // ---- States ----
@@ -30,7 +30,8 @@ type State =
       SerialPort: SerialPort option
       SerialPorts: string list
       Rerender: int
-      Tab: Tab }
+      Tab: Tab
+      AppConfig: AppConfig }
 
 and FlowerInteraction =
     | Hovering of Flower Id
@@ -69,6 +70,8 @@ type Msg =
     // Shell Messages
     | Action of Action
     | RerenderView
+    | LoadedAppConfig of Result<AppConfig, exn>
+    | WroteAppConfig of Result<unit, exn>
 
     // Msg Mapping
     | SimulationEvent of SimulationEvent
@@ -100,8 +103,13 @@ let init () : State * Cmd<Msg> =
       SerialPort = None
       SerialPorts = []
       Rerender = 0
-      Tab = Simulation },
-    Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
+      Tab = Simulation
+      AppConfig = AppConfig.init },
+    Cmd.batch [
+        AppConfig.load LoadedAppConfig
+
+        Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
+    ]
 
 // ---- Update helper functions ------------------------------------------------
 
@@ -588,11 +596,34 @@ let private updateSimulationEvent (msg: SimulationEvent) (state: State) : State 
                 state, Cmd.none
 
 let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
+
     match msg with
     // Shell Messages
+
     | Action action -> updateAction action state window
 
     | RerenderView -> { state with Rerender = state.Rerender + 1 }, Cmd.none
+
+    | LoadedAppConfig appConfigResult ->
+        match appConfigResult with
+        | Ok appConfig -> { state with AppConfig = appConfig }, Cmd.none
+        | Error exn ->
+            match exn with
+            // The file path doesn't exist so we should make one
+            | :? AggregateException -> state, AppConfig.write (state.AppConfig) WroteAppConfig
+            | _ ->
+                Log.error
+                    $"There was an error when trying to load the Application Configuration file{Environment.NewLine}{exn}"
+
+                state, Cmd.none
+
+    | WroteAppConfig result ->
+        match result with
+        | Ok _ -> state, Cmd.none
+        | Error exn ->
+            Log.error $"There was an error writing the Application Configuration{Environment.NewLine}{exn}"
+            state, Cmd.none
+
 
     // Msg Mapping
     | MenuMsg menuMsg -> updateMenu menuMsg state window
