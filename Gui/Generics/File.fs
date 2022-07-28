@@ -11,40 +11,53 @@ open Extensions
 
 // ---- File Operations --------------------------------------------------------
 
-let readJsonTask<'a> (path: string) : Task<'a> =
-    task {
-        use fileStream =
-            new StreamReader(File.OpenRead(path))
+// TODO: Convert file writing operations to use Error messages
 
-        return Json.deserialize<'a> (fileStream.ReadToEnd())
+
+[<RequireQualifiedAccess>]
+type ReadError = UnknownException of exn
+
+
+let readJsonTask<'a> (fileInfo: FileInfo) : Task<Result<'a, ReadError>> =
+    task {
+        try
+            let fileStream =
+                new StreamReader(fileInfo.OpenRead())
+
+            let deserialized =
+                Json.deserialize<'a> (fileStream.ReadToEnd())
+
+            return Ok deserialized
+
+        with
+        | exn -> return Error(ReadError.UnknownException exn)
     }
 
 
-// Note: Can throw an exception
-let writeJsonTask<'a> (path: string) (data: 'a) : Task<unit> =
+[<RequireQualifiedAccess>]
+type WriteError =
+    | UnknownException of exn
+
+let writeJsonTask<'a> (fileInfo: FileInfo) (data: 'a) : Task<Result<FileInfo, WriteError>> =
     task {
-        let fileDirectory =
-            Path.parentDirectory path
+        try
+            // Ensure that the parent directory for the file we are writing exists
+            fileInfo.Directory.Create()
 
-        if not <| Directory.exists fileDirectory then
-            Directory.createDirectory fileDirectory |> ignore
+            use fileStream = fileInfo.OpenWrite()
+            use writer = new StreamWriter(fileStream)
 
-        use writer =
-            new StreamWriter(File.OpenWrite(path))
+            writer.Write(Json.serialize data)
 
-        writer.Write(Json.serialize data)
+            return Ok fileInfo
+        with
+        | exn -> return Error(WriteError.UnknownException exn)
     }
 
 // ---- Elmish Commands --------------------------------------------------------
 
-//type ReadingError =
-//    | PathDoesNotExist
-//
-//type WritingError =
-//    | DirectoryDoesNotExist
+let read (fileInfo: FileInfo) (msg: Result<'a, ReadError> -> 'Msg) : Cmd<'Msg> =
+    Cmd.OfTask.perform readJsonTask<'a> fileInfo msg
 
-let load (path: string) (msg: Result<'a, exn> -> 'Msg) : Cmd<'Msg> =
-    Cmd.OfTask.either readJsonTask<'a> path (Ok >> msg) (Error >> msg)
-
-let write (path: string) (data: 'a) (msg: Result<unit, exn> -> 'Msg) : Cmd<'Msg> =
-    Cmd.OfTask.either (writeJsonTask<'a> path) data (Ok >> msg) (Error >> msg)
+let write (fileInfo: FileInfo) (data: 'a) (msg: Result<FileInfo, WriteError> -> 'Msg) : Cmd<'Msg> =
+    Cmd.OfTask.perform (writeJsonTask<'a> fileInfo) data msg

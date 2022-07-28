@@ -1,5 +1,6 @@
 namespace Gui
 
+open System.IO
 open System.IO.Ports
 open Avalonia.Media
 open Geometry
@@ -68,15 +69,15 @@ type Command =
 
 // ---- Actions ----------------------------------------------------------------
 
-type PathName = string
+// TODO: type SerialPortName = string
 
 type Action =
     // File Actions
     | NewFile
     | SaveAsDialog of AsyncOperationStatus<unit, exn>
-    | SaveAs of AsyncOperationStatus<PathName, Result<unit, exn>>
-    | OpenFileDialog of AsyncOperationStatus<unit, string option>
-    | OpenFile of AsyncOperationStatus<PathName, Result<Flower seq, exn>>
+    | SaveAs of AsyncOperationStatus<FileInfo, Result<FileInfo, File.WriteError>>
+    | OpenFileDialog of AsyncOperationStatus<unit, FileInfo seq>
+    | OpenFile of AsyncOperationStatus<FileInfo, Result<Flower seq, File.ReadError>>
 
     // Serial Port Actions
     | RefreshSerialPorts of AsyncOperationStatus<unit, string list>

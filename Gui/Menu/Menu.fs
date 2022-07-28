@@ -10,23 +10,23 @@
 /// application menus for Windows and Linux. This allows Linux to have the
 /// expected menu location at the top of the application but alternatively takes
 /// advantage of as many native menu features as possible to provide an alternate
-/// means of accessing that functionality.
+/// means of accessing that functionality. The Linux built in menu support will
+/// most likely not be of the same quality as the MacOS menu because support for
+/// MacOS native menus in Avalonia have better support.
 module Gui.Menu.Menu
 
 
+open System.IO
 open Avalonia.Controls
-open Avalonia.FuncUI.Hosts
 open Avalonia.FuncUI.Types
-open Elmish
 
 open Gui
-open Gui.DataTypes
 
 type Msg =
     // ---- File -----
     | NewFile
     | OpenFile
-    | Open of PathName
+    | Open of FileInfo
     | SaveAs
 
 let private fileMenu: MenuTab<Msg> =
@@ -38,7 +38,7 @@ let private fileMenu: MenuTab<Msg> =
               { Name = "Open Recent"
                 Actions =
                   [ { Name = "Some file name"
-                      Msg = Open "bad/file/path" } ] }
+                      Msg = Open(FileInfo("Bad Path Name")) } ] }
           MenuItem.Action { Name = "Save As"; Msg = SaveAs } ] }
 
 let menuBar: MenuBar<Msg> = [ fileMenu ]

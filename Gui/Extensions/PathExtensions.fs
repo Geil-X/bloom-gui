@@ -21,6 +21,4 @@ module Directory =
     
     open System.IO
     
-    let createDirectory = Directory.CreateDirectory
-    
     let exists = Directory.Exists

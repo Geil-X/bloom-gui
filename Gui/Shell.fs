@@ -1,6 +1,7 @@
 module Gui.Shell
 
 open System
+open System.IO
 open System.IO.Ports
 open Avalonia.Controls
 open Avalonia.Input
@@ -9,11 +10,11 @@ open Elmish
 open Extensions
 open Geometry
 open Gui
-open Gui.Menu
 open Gui.DataTypes
+open Gui.Generics
+open Gui.Menu
 open Gui.Panels
 open Gui.Views
-open Gui.Generics
 
 
 // ---- States ----
@@ -70,8 +71,8 @@ type Msg =
     // Shell Messages
     | Action of Action
     | RerenderView
-    | LoadedAppConfig of Result<AppConfig, exn>
-    | WroteAppConfig of Result<unit, exn>
+    | ReadAppConfig of Result<AppConfig, File.ReadError>
+    | WroteAppConfig of Result<FileInfo, File.WriteError>
 
     // Msg Mapping
     | SimulationEvent of SimulationEvent
@@ -98,7 +99,7 @@ let saveAppConfigFile (appConfig: AppConfig) : Cmd<Msg> =
     File.write AppConfig.configPath appConfig WroteAppConfig
 
 let loadAppConfigFile: Cmd<Msg> =
-    File.load AppConfig.configPath LoadedAppConfig
+    File.read AppConfig.configPath ReadAppConfig
 
 
 // ---- Init -------------------------------------------------------------------
@@ -310,23 +311,27 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
 
     | Action.SaveAs asyncOperation ->
         match asyncOperation with
-        | Start path ->
+        | Start fileInfo ->
             let flowerFileData: Flower seq =
                 Map.values state.Flowers
 
-            state, File.write path flowerFileData (Finished >> Action.SaveAs >> Action)
+            state, File.write fileInfo flowerFileData (Finished >> Action.SaveAs >> Action)
 
-        | Finished (Ok _) ->
-            Log.info "Saved flower file"
-            state, Cmd.none
+        | Finished (Ok fileInfo) ->
+            Log.info $"Saved flower file {fileInfo.Name}"
 
-        | Finished (Error exn) ->
-            match exn with
-            // No save file was selected, do not report an error on this exception
-            | :? AggregateException -> state, Cmd.none
-            | _ ->
-                Log.error $"Could not save file {Environment.NewLine}{exn}"
-                state, Cmd.none
+            let newAppConfig =
+                AppConfig.addRecentFile fileInfo state.AppConfig
+
+            { state with AppConfig = newAppConfig }, saveAppConfigFile newAppConfig
+
+        | Finished (Error fileWriteError) ->
+            match fileWriteError with
+            | File.WriteError.UnknownException exn ->
+                match exn with
+                | _ ->
+                    Log.error $"Could not save file {Environment.NewLine}{exn}"
+                    state, Cmd.none
 
 
     | Action.OpenFileDialog asyncOperation ->
@@ -334,26 +339,27 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
         | Start _ ->
             state, Cmd.OfTask.perform FlowerFile.openFileDialog window (Finished >> Action.OpenFileDialog >> Action)
 
-        | Finished (Some path) -> state, Cmd.ofMsg (Start path |> Action.OpenFile |> Action)
+        | Finished files ->
+            match Seq.tryHead files with
+            | Some firstFile -> state, Cmd.ofMsg (Start firstFile |> Action.OpenFile |> Action)
 
-        | Finished None ->
-            Log.error "Encountered problems trying to open a file."
-            state, Cmd.none
+            // No file was selected
+            | _ -> state, Cmd.none
 
 
     | Action.OpenFile asyncOperation ->
         match asyncOperation with
-        | Start path -> state, File.load path (Finished >> Action.OpenFile >> Action)
+        | Start path -> state, File.read path (Finished >> Action.OpenFile >> Action)
 
-        | Finished (Ok flowers) -> newFile state flowers, Cmd.none
+        | Finished fileResult ->
+            match fileResult with
+            | Ok flowers -> newFile state flowers, Cmd.none
+            | Error readingError ->
+                match readingError with
+                | File.ReadError.UnknownException exn ->
+                    Log.error $"Could not open the selected file{Environment.NewLine}{exn}"
 
-        | Finished (Error exn) ->
-            match exn with
-            | :? AggregateException -> Log.error "Could not open the file because the file path does not exist."
-
-            | _ -> Log.error $"Could not open the selected file{Environment.NewLine}{exn}"
-
-            state, Cmd.none
+                state, Cmd.none
 
 
     // ---- Serial Port Actions ----
@@ -602,22 +608,25 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     | RerenderView -> { state with Rerender = state.Rerender + 1 }, Cmd.none
 
-    | LoadedAppConfig appConfigResult ->
+    | ReadAppConfig appConfigResult ->
         match appConfigResult with
         | Ok appConfig ->
             Log.info "Loaded Application Configuration from the disk."
             { state with AppConfig = appConfig }, Cmd.none
-        | Error exn ->
-            match exn with
-            // The file path doesn't exist so we should make one
-            | :? AggregateException ->
-                Log.info "Could not find a configuration file on this computer so I'm creating one."
-                state, saveAppConfigFile state.AppConfig
-            | _ ->
-                Log.error
-                    $"There was an error when trying to load the Application Configuration file{Environment.NewLine}{exn}"
 
-                state, Cmd.none
+        | Error readError ->
+            match readError with
+            | File.ReadError.UnknownException exn ->
+                match exn with
+                // The file path doesn't exist so we should make one
+                | :? AggregateException ->
+                    Log.info "Could not find a configuration file on this computer so I'm creating one."
+                    state, saveAppConfigFile state.AppConfig
+                | _ ->
+                    Log.error
+                        $"There was an error when trying to load the Application Configuration file{Environment.NewLine}{exn}"
+
+                    state, Cmd.none
 
     | WroteAppConfig result ->
         match result with

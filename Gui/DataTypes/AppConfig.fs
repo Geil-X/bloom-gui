@@ -1,25 +1,26 @@
 namespace Gui.DataTypes
 
+open System.IO
 
 
-type AppConfig = { RecentFiles: string list }
+
+type AppConfig = { RecentFiles: FileInfo list }
 
 module AppConfig =
-    open Gui
     open Gui.Generics
     open Extensions
 
     let init = { RecentFiles = [] }
 
 
-    let setRecentFiles (recentFiles: PathName list) (appConfig: AppConfig) : AppConfig =
+    let setRecentFiles (recentFiles: FileInfo list) (appConfig: AppConfig) : AppConfig =
         { appConfig with RecentFiles = recentFiles }
 
-    let addRecentFile (recentFile: PathName) (appConfig: AppConfig) : AppConfig =
+    let addRecentFile (recentFile: FileInfo) (appConfig: AppConfig) : AppConfig =
         setRecentFiles (recentFile :: appConfig.RecentFiles) appConfig
 
 
-    let configPath =
+    let configPath: FileInfo =
         let environmentVariables =
             System.Environment.GetEnvironmentVariables()
             |> Seq.cast<System.Collections.DictionaryEntry>
@@ -60,3 +61,5 @@ module AppConfig =
             let appdata = getEnv "APPDATA"
 
             appdata ./ bloomDirectory ./ "config.json"
+
+        |> FileInfo
