@@ -33,6 +33,7 @@
         <Compile Include="Extensions\BitmapExtensions.fs" />
         <Compile Include="Extensions\NumericExtensions.fs" />
         <Compile Include="Extensions\ColorExtensions.fs" />
+        <Compile Include="Extensions\PathExtensions.fs" />
         <Compile Include="Generics\Id.fs" />
         <Compile Include="Generics\ClampedPercentage.fs" />
         <Compile Include="Generics\Events.fs" />
@@ -48,6 +49,7 @@
         <Compile Include="DataTypes\Command.fs" />
         <Compile Include="DataTypes\Response.fs" />
         <Compile Include="DataTypes\InputTypes.fs" />
+        <Compile Include="DataTypes\AppConfig.fs" />
         <Compile Include="Views\Form.fs" />
         <Compile Include="Views\Icon.fs" />
         <Compile Include="Views\Dialogs.fs" />
