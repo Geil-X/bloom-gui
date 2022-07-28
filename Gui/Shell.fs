@@ -8,8 +8,8 @@ open Elmish
 
 open Geometry
 open Gui
-open Gui.DataTypes
 open Gui.Menu
+open Gui.DataTypes
 open Gui.Panels
 open Gui.Views
 open Gui.Generics
@@ -342,7 +342,11 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
         | Finished (Ok flowers) -> newFile state flowers, Cmd.none
 
         | Finished (Error exn) ->
-            Log.error $"Could not open the selected file{Environment.NewLine}{exn}"
+            match exn with
+            | :? AggregateException -> Log.error "Could not open the file because the file path does not exist."
+
+            | _ -> Log.error $"Could not open the selected file{Environment.NewLine}{exn}"
+
             state, Cmd.none
 
 
@@ -424,11 +428,12 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
             state, Cmd.none
 
 
-let private updateMenu (msg: Menu.Msg) (state: State) : State * Cmd<Msg> =
+let private updateMenu (msg: Menu.Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     match msg with
     | Menu.NewFile -> state, Cmd.ofMsg (Action.NewFile |> Action)
     | Menu.SaveAs -> state, Cmd.ofMsg (Start() |> Action.SaveAsDialog |> Action)
     | Menu.OpenFile -> state, Cmd.ofMsg (Start() |> Action.OpenFileDialog |> Action)
+    | Menu.Open filePath -> updateAction (Start filePath |> Action.OpenFile) state window
 
 let private updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -590,7 +595,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | RerenderView -> { state with Rerender = state.Rerender + 1 }, Cmd.none
 
     // Msg Mapping
-    | MenuMsg menuMsg -> updateMenu menuMsg state
+    | MenuMsg menuMsg -> updateMenu menuMsg state window
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
     | SimulationEvent event -> updateSimulationEvent event state
     | FlowerPropertiesMsg flowerPropertiesMsg -> updateFlowerProperties flowerPropertiesMsg state

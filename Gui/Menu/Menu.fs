@@ -26,20 +26,25 @@ type Msg =
     // ---- File -----
     | NewFile
     | OpenFile
+    | Open of PathName
     | SaveAs
 
-let private fileMenu =
+let private fileMenu: MenuTab<Msg> =
     { Name = "File"
       Items =
-        [ { Name = "New File"; Msg = NewFile }
-          { Name = "Open"; Msg = OpenFile }
-          { Name = "Save As"; Msg = SaveAs } ] }
+        [ MenuItem.Action { Name = "New File"; Msg = NewFile }
+          MenuItem.Action { Name = "Open"; Msg = OpenFile }
+          MenuItem.Dropdown
+              { Name = "Open Recent"
+                Actions =
+                  [ { Name = "Some file name"
+                      Msg = Open "bad/file/path" } ] }
+          MenuItem.Action { Name = "Save As"; Msg = SaveAs } ] }
 
-let menuBar: MenuBar<Msg> =
-    [ fileMenu ]
+let menuBar: MenuBar<Msg> = [ fileMenu ]
 
 /// Create a menu bar at the top of the application window. This is the main
 /// interaction method for a lot of the core functionality of the application.
 /// This menu provides access to the core functionality of the application,
 /// or to window dialogues that contain more central information.
-let applicationMenu (dispatch: Msg -> unit): IView<Menu> = ApplicationMenu.view menuBar dispatch
+let applicationMenu (dispatch: Msg -> unit) : IView<Menu> = ApplicationMenu.view menuBar dispatch

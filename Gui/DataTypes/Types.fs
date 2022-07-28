@@ -77,7 +77,7 @@ type Action =
     | SaveAs of AsyncOperationStatus<PathName, Result<unit, exn>>
     | OpenFileDialog of AsyncOperationStatus<unit, string option>
     | OpenFile of AsyncOperationStatus<PathName, Result<Flower seq, exn>>
-    
+
     // Serial Port Actions
     | RefreshSerialPorts of AsyncOperationStatus<unit, string list>
     | ConnectAndOpenPort of AsyncOperationStatus<string, SerialPort>
@@ -92,16 +92,22 @@ type Action =
     | DeleteFlower
     | SendCommand of AsyncOperationStatus<Command, exn>
     | PingFlower of AsyncOperationStatus<unit, exn>
-    
+
 // ---- Menu Controls ----
-type MenuAction<'Msg> =
+
+type MenuAction<'Msg> = { Name: string; Msg: 'Msg }
+
+type MenuDropdown<'Msg> =
     { Name: string
-      Msg : 'Msg
-    }
-    
+      Actions: MenuAction<'Msg> list }
+
+[<RequireQualifiedAccess>]
+type MenuItem<'Msg> =
+    | Action of MenuAction<'Msg>
+    | Dropdown of MenuDropdown<'Msg>
+
 type MenuTab<'Msg> =
     { Name: string
-      Items: MenuAction<'Msg> list
-    }
-    
+      Items: MenuItem<'Msg> list }
+
 type MenuBar<'Msg> = MenuTab<'Msg> list

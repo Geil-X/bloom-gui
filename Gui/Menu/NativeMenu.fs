@@ -1,30 +1,56 @@
 namespace Gui.Menu
 
 module NativeMenu =
-    
+
     open Avalonia.Controls
-    
+
     open Gui
 
     type MenuItemWithMsg<'Msg> = { Item: NativeMenuItem; Msg: 'Msg }
 
-    let menuItem (menuAction: MenuAction<'Msg>) : MenuItemWithMsg<'Msg> =
+    let menuActionView (menuAction: MenuAction<'Msg>) : MenuItemWithMsg<'Msg> =
         { Msg = menuAction.Msg
           Item = NativeMenuItem menuAction.Name }
 
-    let menuTab (menuTabData: MenuTab<'Msg>) : MenuItemWithMsg<'Msg> list * NativeMenuItem =
-        let menu = NativeMenu()
-        let tab = NativeMenuItem menuTabData.Name
+    let menuItemView (menuItem: MenuItem<'Msg>) : MenuItemWithMsg<'Msg> list * NativeMenuItem =
+        match menuItem with
+        | MenuItem.Action action ->
+            let actionView = menuActionView action
+            [ actionView ], actionView.Item
 
-        let menuItems =
-            List.map menuItem menuTabData.Items
+        | MenuItem.Dropdown dropdown ->
+            let actions =
+                List.map menuActionView dropdown.Actions
+
+            // Create the dropdown item and menu objects
+            let nativeMenuItem =
+                NativeMenuItem dropdown.Name
+
+            let nativeMenu = NativeMenu()
+            nativeMenuItem.Menu <- nativeMenu
+
+            // Assign all the actions to the dropdown menu
+            for action in actions do
+                nativeMenu.Add action.Item
+
+            actions, nativeMenuItem
+
+    let menuTab (menuTab: MenuTab<'Msg>) : MenuItemWithMsg<'Msg> list * NativeMenuItem =
+        let menu = NativeMenu()
+        let tab = NativeMenuItem menuTab.Name
 
         tab.Menu <- menu
 
-        for menuItem in menuItems do
-            menu.Add(menuItem.Item)
+        let mutable menuTabMsgs = []
 
-        menuItems, tab
+        for menuItem in menuTab.Items do
+            let menuItemsWithMsgs, nativeMenuItem =
+                menuItemView menuItem
+
+            menuTabMsgs <- menuItemsWithMsgs @ menuTabMsgs
+            menu.Add(nativeMenuItem)
+
+        menuTabMsgs, tab
 
     let fromMenuBar (menuBar: MenuBar<'Msg>) : MenuItemWithMsg<'Msg> list * NativeMenu =
         let menu = NativeMenu()
