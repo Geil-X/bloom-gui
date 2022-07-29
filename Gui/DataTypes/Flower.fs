@@ -267,7 +267,7 @@ let nameTag (flower: Flower) =
                        TextBlock.top (flower.Position.Y.value () - 35.) ]
 
 
-// ---- Drawing ----
+// ---- Drawing ----------------------------------------------------------------
 
 let draw (flower: Flower) (attributes: Attribute list) =
     let circle =

@@ -615,7 +615,11 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
                 state, saveAppConfigFile state.AppConfig
 
             | File.ReadError.FileAlreadyOpened _ ->
-                Log.error "Cannot open the configuration file, it is already opened."
+                Log.error "Cannot open the Application Configuration file, it is already opened by another program."
+                state, Cmd.none
+                
+            | File.ReadError.JsonDeserializationError (_, error) ->
+                Log.error $"An error occured when decoding the Json data in the Application Configuration file.{Environment.NewLine}{error}"
                 state, Cmd.none
 
             | File.ReadError.InvalidFilePermissions _ ->
