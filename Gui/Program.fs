@@ -8,6 +8,7 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Hosts
 open Avalonia.FuncUI.Elmish
 
+open Gui.DataTypes
 open Gui.Menu
 
 type MainWindow() as this =
@@ -29,7 +30,7 @@ type MainWindow() as this =
         let updateWithServices (msg: Shell.Msg) (state: Shell.State) = Shell.update msg state this
 
         Program.mkProgram Shell.init updateWithServices Shell.view
-        |> Program.withNativeMenu this Menu.menuBar Shell.MenuMsg
+        |> Program.withNativeMenu this (Menu.menuBar AppConfig.init) Shell.MenuMsg
         |> Program.withSubscription (Shell.keyUpHandler this)
         |> Program.withHost this
         |> Program.run
@@ -43,16 +44,15 @@ type App() =
         this.Styles.Load "avares://Avalonia.Themes.Default/DefaultTheme.xaml"
         this.Styles.Load "avares://Avalonia.Themes.Default/Accents/BaseDark.xaml"
         this.Styles.Load "avares://Gui/Styles.xaml"
-//        this.Styles.Add(FluentTheme(baseUri = null, Mode = FluentThemeMode.Dark))
+        //        this.Styles.Add(FluentTheme(baseUri = null, Mode = FluentThemeMode.Dark))
 
         this.Name <- Theme.program
-        
+
         Log.LogLevel <- Log.Debug
 
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with
-        | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime ->
-            desktopLifetime.MainWindow <- MainWindow()
+        | :? IClassicDesktopStyleApplicationLifetime as desktopLifetime -> desktopLifetime.MainWindow <- MainWindow()
         | _ -> ()
 
 module Program =

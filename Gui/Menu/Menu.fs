@@ -21,6 +21,7 @@ open Avalonia.Controls
 open Avalonia.FuncUI.Types
 
 open Gui
+open Gui.DataTypes
 
 type Msg =
     // ---- File -----
@@ -29,22 +30,26 @@ type Msg =
     | Open of FileInfo
     | SaveAs
 
-let private fileMenu: MenuTab<Msg> =
+let private recentFiles (files: FileInfo seq) : MenuAction<Msg> list =
+    files
+    |> Seq.map (fun fileInfo -> { Name = ""; Msg = Open fileInfo })
+    |> List.ofSeq
+
+let private fileMenu (appConfig: AppConfig) : MenuTab<Msg> =
     { Name = "File"
       Items =
         [ MenuItem.Action { Name = "New File"; Msg = NewFile }
           MenuItem.Action { Name = "Open"; Msg = OpenFile }
           MenuItem.Dropdown
               { Name = "Open Recent"
-                Actions =
-                  [ { Name = "Some file name"
-                      Msg = Open(FileInfo("Bad Path Name")) } ] }
+                Actions = recentFiles appConfig.RecentFiles }
           MenuItem.Action { Name = "Save As"; Msg = SaveAs } ] }
 
-let menuBar: MenuBar<Msg> = [ fileMenu ]
+let menuBar (appConfig: AppConfig) : MenuBar<Msg> = [ fileMenu appConfig ]
 
 /// Create a menu bar at the top of the application window. This is the main
 /// interaction method for a lot of the core functionality of the application.
 /// This menu provides access to the core functionality of the application,
 /// or to window dialogues that contain more central information.
-let applicationMenu (dispatch: Msg -> unit) : IView<Menu> = ApplicationMenu.view menuBar dispatch
+let applicationMenu (appConfig: AppConfig) (dispatch: Msg -> unit) : IView<Menu> =
+    ApplicationMenu.view (menuBar appConfig) dispatch
