@@ -1,5 +1,6 @@
 module Gui.Generics.File
 
+open System
 open System.IO
 open System.Threading.Tasks
 open Elmish
@@ -15,7 +16,12 @@ open Extensions
 
 
 [<RequireQualifiedAccess>]
-type ReadError = UnknownException of exn
+type ReadError =
+    | DirectoryDoesNotExist of DirectoryInfo
+    | FileDoesNotExist of FileInfo
+    | FileAlreadyOpened of FileInfo
+    | InvalidFilePermissions of FileInfo
+    | UnknownException of exn
 
 
 let readJsonTask<'a> (fileInfo: FileInfo) : Task<Result<'a, ReadError>> =
@@ -30,12 +36,28 @@ let readJsonTask<'a> (fileInfo: FileInfo) : Task<Result<'a, ReadError>> =
             return Ok deserialized
 
         with
-        | exn -> return Error(ReadError.UnknownException exn)
+        | :? FileNotFoundException -> return ReadError.FileDoesNotExist fileInfo |> Error
+
+        | :? DirectoryNotFoundException ->
+            return
+                ReadError.DirectoryDoesNotExist fileInfo.Directory
+                |> Error
+
+        | :? UnauthorizedAccessException -> return ReadError.InvalidFilePermissions fileInfo |> Error
+
+        | :? IOException -> return ReadError.FileAlreadyOpened fileInfo |> Error
+
+
+        | exn -> return ReadError.UnknownException exn |> Error
     }
 
 
 [<RequireQualifiedAccess>]
 type WriteError =
+    | DirectoryDoesNotExist of DirectoryInfo
+    | FileDoesNotExist of FileInfo
+    | FileAlreadyOpened of FileInfo
+    | InvalidFilePermissions of FileInfo
     | UnknownException of exn
 
 let writeJsonTask<'a> (fileInfo: FileInfo) (data: 'a) : Task<Result<FileInfo, WriteError>> =
@@ -51,6 +73,16 @@ let writeJsonTask<'a> (fileInfo: FileInfo) (data: 'a) : Task<Result<FileInfo, Wr
 
             return Ok fileInfo
         with
+        | :? FileNotFoundException -> return WriteError.FileDoesNotExist fileInfo |> Error
+
+        | :? DirectoryNotFoundException ->
+            return
+                WriteError.DirectoryDoesNotExist fileInfo.Directory
+                |> Error
+
+        | :? UnauthorizedAccessException -> return WriteError.InvalidFilePermissions fileInfo |> Error
+
+        | :? IOException -> return WriteError.FileAlreadyOpened fileInfo |> Error
         | exn -> return Error(WriteError.UnknownException exn)
     }
 

@@ -326,12 +326,8 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
             { state with AppConfig = newAppConfig }, saveAppConfigFile newAppConfig
 
         | Finished (Error fileWriteError) ->
-            match fileWriteError with
-            | File.WriteError.UnknownException exn ->
-                match exn with
-                | _ ->
-                    Log.error $"Could not save file {Environment.NewLine}{exn}"
-                    state, Cmd.none
+            Log.error $"Could not save file{Environment.NewLine}{fileWriteError}"
+            state, Cmd.none
 
 
     | Action.OpenFileDialog asyncOperation ->
@@ -355,10 +351,7 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
             match fileResult with
             | Ok flowers -> newFile state flowers, Cmd.none
             | Error readingError ->
-                match readingError with
-                | File.ReadError.UnknownException exn ->
-                    Log.error $"Could not open the selected file{Environment.NewLine}{exn}"
-
+                Log.error $"Could not read file{Environment.NewLine}{readingError}"
                 state, Cmd.none
 
 
@@ -616,12 +609,21 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
         | Error readError ->
             match readError with
+            | File.ReadError.DirectoryDoesNotExist _
+            | File.ReadError.FileDoesNotExist _ ->
+                Log.info "Could not find a configuration file on this computer so I'm creating one."
+                state, saveAppConfigFile state.AppConfig
+
+            | File.ReadError.FileAlreadyOpened _ ->
+                Log.error "Cannot open the configuration file, it is already opened."
+                state, Cmd.none
+
+            | File.ReadError.InvalidFilePermissions _ ->
+                Log.error "Cannot open the configuration file because I don't have the right file permissions."
+                state, Cmd.none
+
             | File.ReadError.UnknownException exn ->
                 match exn with
-                // The file path doesn't exist so we should make one
-                | :? AggregateException ->
-                    Log.info "Could not find a configuration file on this computer so I'm creating one."
-                    state, saveAppConfigFile state.AppConfig
                 | _ ->
                     Log.error
                         $"There was an error when trying to load the Application Configuration file{Environment.NewLine}{exn}"
@@ -633,9 +635,25 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         | Ok _ ->
             Log.info "Wrote and updated the Application Configuration file."
             state, Cmd.none
-        | Error exn ->
-            Log.error $"There was an error writing the Application Configuration{Environment.NewLine}{exn}"
-            state, Cmd.none
+
+        | Error writeError ->
+            match writeError with
+            | File.WriteError.DirectoryDoesNotExist _
+            | File.WriteError.FileDoesNotExist _ ->
+                Log.info "Could not find a configuration file on this computer so I'm creating one."
+                state, saveAppConfigFile state.AppConfig
+
+            | File.WriteError.FileAlreadyOpened _ ->
+                Log.error "Cannot open the configuration file, it is already opened."
+                state, Cmd.none
+
+            | File.WriteError.InvalidFilePermissions _ ->
+                Log.error "Cannot open the configuration file because I don't have the right file permissions."
+                state, Cmd.none
+
+            | File.WriteError.UnknownException exn ->
+                Log.error $"There was an error writing the Application Configuration{Environment.NewLine}{exn}"
+                state, Cmd.none
 
 
     // Msg Mapping

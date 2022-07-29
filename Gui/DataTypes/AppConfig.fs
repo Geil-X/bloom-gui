@@ -2,8 +2,6 @@ namespace Gui.DataTypes
 
 open System.IO
 
-
-
 type AppConfig = { RecentFiles: FileInfo list }
 
 module AppConfig =
@@ -37,15 +35,7 @@ module AppConfig =
         let configFileName = "config.json"
 
         match OperatingSystem.get with
-        | OSX ->
-            let userDirectory = getEnv "HOME"
-
-            userDirectory
-            ./ ".config"
-            ./ bloomDirectory
-            ./ configFileName
-
-
+        | OSX
         | Linux ->
             let userDirectory = getEnv "HOME"
 
