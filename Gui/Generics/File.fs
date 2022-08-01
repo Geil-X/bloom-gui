@@ -3,17 +3,45 @@ module Gui.Generics.File
 open System
 open System.IO
 open System.Threading.Tasks
+open Avalonia.Media
 open Elmish
-open Thoth.Json
+open Thoth.Json.Net
 
 // ---- File Encoders & Decoders -----------------------------------------------
 
-let fileInfoEncoder (fileInfo: FileInfo) =
-    Encode.object [ "Path", Encode.string fileInfo.FullName ]
 
-let fileInfoDecoder : string -> JsonValue -> Result=
-    Decode.field "Path" Decode.string
-    |> Decode.map FileInfo
+let fileInfoEncoder (fileInfo: FileInfo) : JsonValue =
+    printfn $"{fileInfo.FullName}"
+    Encode.string fileInfo.FullName
+
+let fileInfoDecoder: Decoder<FileInfo> =
+    fun path value ->
+        if Decode.Helpers.isString value then
+            Decode.Helpers.asString value |> FileInfo |> Ok
+
+        else
+            (path, ErrorReason.BadPrimitive("a file path", value))
+            |> Error
+
+
+let colorEncoder (color: Color) : JsonValue = Encode.string (string color)
+
+let colorDecoder: Decoder<Color> =
+    fun path value ->
+        if Decode.Helpers.isString value then
+            let mutable color: Color = Color()
+
+            if Color.TryParse(Decode.Helpers.asString value, &color) then
+                Ok color
+
+            else
+                (path, ErrorReason.BadPrimitive("Could not parse the string into a color value", value))
+                |> Error
+
+        else
+            (path, ErrorReason.BadPrimitive("a color value", value))
+            |> Error
+
 
 
 // ---- All Coders ----
@@ -21,12 +49,10 @@ let fileInfoDecoder : string -> JsonValue -> Result=
 let extraCoders =
     Extra.empty
     |> Extra.withCustom fileInfoEncoder fileInfoDecoder
+    |> Extra.withCustom colorEncoder colorDecoder
 
 
 // ---- File Operations --------------------------------------------------------
-
-// TODO: Convert file writing operations to use Error messages
-
 
 [<RequireQualifiedAccess>]
 type ReadError =

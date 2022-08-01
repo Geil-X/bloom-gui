@@ -77,7 +77,7 @@ type Action =
     | SaveAsDialog of AsyncOperationStatus<unit, exn>
     | SaveAs of AsyncOperationStatus<FileInfo, Result<FileInfo, File.WriteError>>
     | OpenFileDialog of AsyncOperationStatus<unit, FileInfo seq>
-    | OpenFile of AsyncOperationStatus<FileInfo, Result<Flower seq, File.ReadError>>
+    | OpenFile of AsyncOperationStatus<FileInfo, Result<Flower list, File.ReadError>>
 
     // Serial Port Actions
     | RefreshSerialPorts of AsyncOperationStatus<unit, string list>

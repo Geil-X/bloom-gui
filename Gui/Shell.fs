@@ -312,8 +312,9 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
     | Action.SaveAs asyncOperation ->
         match asyncOperation with
         | Start fileInfo ->
-            let flowerFileData: Flower seq =
+            let flowerFileData: Flower list =
                 Map.values state.Flowers
+                |> Seq.toList
 
             state, File.write fileInfo flowerFileData (Finished >> Action.SaveAs >> Action)
 
