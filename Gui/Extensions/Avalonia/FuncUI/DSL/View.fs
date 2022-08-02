@@ -1,5 +1,5 @@
 [<RequireQualifiedAccess>]
-module Extensions.View
+module Avalonia.FuncUI.DSL.View
 
 open Avalonia.Controls
 open Avalonia.FuncUI.Types

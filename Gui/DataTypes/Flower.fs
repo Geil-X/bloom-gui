@@ -27,7 +27,6 @@ type Attribute =
     | OnPointerReleased of (Flower Id * MouseButtonEvent<Pixels, UserSpace> -> unit)
 
 
-
 // ---- Builders -----
 
 /// The first 8 Addresses are reserved so the starting address must be the
@@ -58,7 +57,7 @@ let position (flower: Flower) : Point2D<Pixels, UserSpace> = flower.Position
 let openPercent (flower: Flower) : ClampedPercentage = flower.OpenPercent
 let targetPercent (flower: Flower) : ClampedPercentage = flower.TargetPercent
 let maxSpeed (flower: Flower) : Speed = flower.MaxSpeed
-    
+
 let acceleration (flower: Flower) : Acceleration = flower.Acceleration
 
 // ---- Modifiers ----
@@ -70,12 +69,15 @@ let setPosition position flower : Flower = { flower with Position = position }
 let setOpenPercent percent flower : Flower = { flower with OpenPercent = percent }
 let setTargetPercent percent flower : Flower = { flower with TargetPercent = percent }
 let setMaxSpeed speed flower : Flower = { flower with MaxSpeed = speed }
-let connected flower : Flower = { flower with ConnectionStatus = Connected }
-let disconnected flower : Flower = { flower with ConnectionStatus = Disconnected }
+
+let connected flower : Flower =
+    { flower with ConnectionStatus = Connected }
+
+let disconnected flower : Flower =
+    { flower with ConnectionStatus = Disconnected }
 
 let setAcceleration acceleration flower : Flower =
-    { flower with
-          Acceleration = acceleration }
+    { flower with Acceleration = acceleration }
 
 
 // ---- Queries ----
@@ -83,8 +85,8 @@ let setAcceleration acceleration flower : Flower =
 let containsPoint point (state: Flower) =
     Circle2D.atPoint state.Position state.Radius
     |> Circle2D.containsPoint point
-    
-    
+
+
 // ---- Attributes ----
 
 // Flowers
@@ -94,11 +96,20 @@ let selected = Attribute.Selected
 let dragged = Attribute.Dragged
 
 // Events
-let onPointerEnter = Attribute.OnPointerEnter
-let onPointerLeave = Attribute.OnPointerLeave
-let onPointerPressed = Attribute.OnPointerPressed
-let onPointerReleased = Attribute.OnPointerReleased
-let onPointerMoved = Attribute.OnPointerMoved
+let onPointerEnter =
+    Attribute.OnPointerEnter
+
+let onPointerLeave =
+    Attribute.OnPointerLeave
+
+let onPointerPressed =
+    Attribute.OnPointerPressed
+
+let onPointerReleased =
+    Attribute.OnPointerReleased
+
+let onPointerMoved =
+    Attribute.OnPointerMoved
 
 let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
     let fadedColor =
@@ -114,13 +125,13 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
         List.map
             (fun attribute ->
                 match attribute with
-                | Hovered -> hovered () |> Ellipse.fill |> Some
-                | Pressed -> pressed () |> Ellipse.fill |> Some
+                | Hovered -> hovered () |> Circle.fill |> Some
+                | Pressed -> pressed () |> Circle.fill |> Some
                 | Selected -> None
-                | Dragged -> dragged () |> Ellipse.fill |> Some
+                | Dragged -> dragged () |> Circle.fill |> Some
 
                 | OnPointerEnter enterMsg ->
-                    Ellipse.onPointerEnter (
+                    Circle.onPointerEnter (
                         Events.pointerEnter Constants.CanvasId
                         >> Option.map (fun e -> enterMsg (flower.Id, e))
                         >> Option.defaultValue (),
@@ -129,7 +140,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
                     |> Some
 
                 | OnPointerLeave leaveMsg ->
-                    Ellipse.onPointerLeave (
+                    Circle.onPointerLeave (
                         Events.pointerLeave Constants.CanvasId
                         >> Option.map (fun e -> leaveMsg (flower.Id, e))
                         >> Option.defaultValue (),
@@ -138,7 +149,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
                     |> Some
 
                 | OnPointerMoved movedMsg ->
-                    Ellipse.onPointerMoved (
+                    Circle.onPointerMoved (
                         Events.pointerMoved Constants.CanvasId
                         >> Option.map (fun e -> movedMsg (flower.Id, e))
                         >> Option.defaultValue (),
@@ -147,7 +158,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
                     |> Some
 
                 | OnPointerPressed pressedMsg ->
-                    Ellipse.onPointerPressed (
+                    Circle.onPointerPressed (
                         Events.pointerPressed Constants.CanvasId
                         >> Option.map (fun e -> pressedMsg (flower.Id, e))
                         >> Option.defaultValue (),
@@ -156,7 +167,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
                     |> Some
 
                 | OnPointerReleased releasedMsg ->
-                    Ellipse.onPointerReleased (
+                    Circle.onPointerReleased (
                         Events.pointerReleased Constants.CanvasId
                         >> Option.map (fun e -> releasedMsg (flower.Id, e))
                         >> Option.defaultValue (),
@@ -168,11 +179,11 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
         |> List.filterNone
 
 
-    Draw.circle
+    Circle.from
         circle
         (circleAttributes
-         @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
-             Ellipse.fill (string fadedColor) ])
+         @ [ Circle.strokeThickness Theme.drawing.strokeWidth
+             Circle.fill (string fadedColor) ])
 
 let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
     let innerRadius =
@@ -238,21 +249,22 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
             attributes
         |> List.filterNone
 
-    Draw.circle
+    Circle.from
         (Circle2D.withRadius innerRadius circle.Center)
         (circleAttributes
          @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
              Ellipse.fill (string flower.Color) ])
 
 let selection (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
-    if List.exists
-        (fun e ->
-            match e with
-            | Selected -> true
-            | _ -> false)
-        attributes then
+    if
+        List.exists
+            (fun e ->
+                match e with
+                | Selected -> true
+                | _ -> false)
+            attributes then
 
-        Draw.boundingBox
+        Rectangle.fromBoundingBox
             (Circle2D.boundingBox circle)
             [ Rectangle.stroke Theme.colors.blue
               Rectangle.strokeThickness Theme.drawing.strokeWidth
@@ -262,9 +274,11 @@ let selection (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list)
         None
 
 let nameTag (flower: Flower) =
-    TextBlock.create [ TextBlock.text flower.Name
-                       TextBlock.left (flower.Position.X.value () - 20.)
-                       TextBlock.top (flower.Position.Y.value () - 35.) ]
+    TextBlock.create [
+        TextBlock.text flower.Name
+        TextBlock.left (flower.Position.X.value () - 20.)
+        TextBlock.top (flower.Position.Y.value () - 35.)
+    ]
 
 
 // ---- Drawing ----------------------------------------------------------------
@@ -273,9 +287,13 @@ let draw (flower: Flower) (attributes: Attribute list) =
     let circle =
         Circle2D.atPoint flower.Position flower.Radius
 
-    Canvas.create [ Canvas.children [ outerCircle flower circle attributes
-                                      innerCircle flower circle attributes
+    Canvas.create [
+        Canvas.children [
+            outerCircle flower circle attributes
+            innerCircle flower circle attributes
 
-                                      yield! selection circle attributes |> Option.toList
+            yield! selection circle attributes |> Option.toList
 
-                                      nameTag flower ] ]
+            nameTag flower
+        ]
+    ]

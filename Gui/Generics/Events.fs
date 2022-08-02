@@ -1,11 +1,9 @@
 namespace Gui
 
 open Avalonia.Input
+open Avalonia.FuncUI.DSL
 open Avalonia.Interactivity
 open Geometry
-
-open Extensions
-
 
 type MouseEvent<'Unit, 'Coordinates> =
     { Position: Point2D<'Unit, 'Coordinates>

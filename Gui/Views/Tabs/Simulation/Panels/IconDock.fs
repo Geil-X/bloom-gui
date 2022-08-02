@@ -4,9 +4,8 @@ open Avalonia.Controls
 open Avalonia.Layout
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
+open Avalonia.Input
 
-open Avalonia.Styling
-open Extensions
 open Gui
 open Gui.Views
 
@@ -33,7 +32,8 @@ let view (dispatch: Msg -> unit) =
         ]
         :> IView
 
-    let buttons : IView list = List.map button iconButtons
+    let buttons: IView list =
+        List.map button iconButtons
 
     StackPanel.create [
         StackPanel.orientation Orientation.Horizontal

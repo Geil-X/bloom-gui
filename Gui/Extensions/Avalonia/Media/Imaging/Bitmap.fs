@@ -1,11 +1,11 @@
-module Extensions.Bitmap
+module Avalonia.Media.Imaging.Bitmap
 
 open Avalonia
 open System
 open Avalonia.Media.Imaging
 open Avalonia.Platform
 
-let create(s: string) : Bitmap =
+let create (s: string) : Bitmap =
     let uri =
         if s.StartsWith("/") then
             Uri(s, UriKind.Relative)

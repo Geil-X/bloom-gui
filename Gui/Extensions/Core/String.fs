@@ -7,14 +7,14 @@ let parseInt (s: string) =
         Some(int s)
     with
     | _ -> None
-    
+
 /// Try parsing a string into an integer. Will return None on failure
 let parseByte (s: string) =
     try
         Some(byte s)
     with
     | _ -> None
-    
+
 /// Try parsing a string into a floating point number. Will return None on failure
 let parseFloat (s: string) =
     try

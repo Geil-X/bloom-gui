@@ -1,13 +1,12 @@
 module Gui.Theme
 
 open Avalonia.Controls
-open Extensions
+open Avalonia.Media
 
 let program = "Bloom"
 let title = "Bloom"
 
-let icon (): WindowIcon =
-    WindowIcon "Assets/icon.ico"
+let icon () : WindowIcon = WindowIcon "icon.ico"
 
 /// Color palette is based off of the yellow color with a 150° tetradic color scheme
 /// https://paletton.com/#uid=70I2m0krBw0hcHpmp-MvIrjzmlr
@@ -21,18 +20,17 @@ let colors =
        yellow = "#FFA123"
        blue = "#2375B3"
        green = "#18AF6E"
-       red = "#FF6223"
-       |}
+       red = "#FF6223" |}
 
 let palette =
-    
+
     // Color Operations
     let darkest = Color.darken 0.2
     let darken = Color.darken 0.1
     let lighten = Color.lighten 0.1
     let lightest = Color.lighten 0.2
     let fade = Color.fadeOut 0.5
-    
+
     // Base Colors
     let foreground = Color.hex colors.offWhite
     let primary = Color.hex colors.yellow
@@ -72,12 +70,15 @@ let darker = Color.darken 0.075
 let darkest = Color.darken 0.15
 let fade = Color.fadeOut 0.15
 
-let window = {| height = 800.; width = 1200. |}
+let window =
+    {| height = 800.; width = 1200. |}
 
 
-let font = {| h1 = 16.; h2 = 14.; normal = 12. |}
+let font =
+    {| h1 = 16.; h2 = 14.; normal = 12. |}
 
-let border = {| thickness = 1.; cornerRadius = 5. |}
+let border =
+    {| thickness = 1.; cornerRadius = 5. |}
 
 let spacing =
     {| small = 4.

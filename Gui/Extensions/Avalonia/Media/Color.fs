@@ -1,4 +1,4 @@
-module Extensions.Color
+module Avalonia.Media.Color
 
 open Avalonia.Media
 

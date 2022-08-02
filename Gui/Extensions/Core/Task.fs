@@ -96,13 +96,11 @@ let map2 (f: 'T -> 'U -> 'V) (x: Task<'T>) (y: Task<'U>) : Task<'V> =
 
             x.ContinueWith k |> ignore
         | _, _ ->
-            x.ContinueWith
-                (function
+            x.ContinueWith (function
                 | Canceled -> tcs.SetCanceled()
                 | Faulted e -> tcs.SetException e.InnerExceptions
                 | Completed r ->
-                    y.ContinueWith
-                        (function
+                    y.ContinueWith (function
                         | Canceled -> tcs.SetCanceled()
                         | Faulted e -> tcs.SetException e.InnerExceptions
                         | Completed r' ->
@@ -171,13 +169,11 @@ let apply (f: Task<'T -> 'U>) (x: Task<'T>) : Task<'U> =
 
             f.ContinueWith k |> ignore
         | _, _ ->
-            f.ContinueWith
-                (function
+            f.ContinueWith (function
                 | Canceled -> tcs.SetCanceled()
                 | Faulted e -> tcs.SetException e.InnerExceptions
                 | Completed r ->
-                    x.ContinueWith
-                        (function
+                    x.ContinueWith (function
                         | Canceled -> tcs.SetCanceled()
                         | Faulted e -> tcs.SetException e.InnerExceptions
                         | Completed r' ->
@@ -220,13 +216,11 @@ let zip (x: Task<'T>) (y: Task<'U>) : Task<'T * 'U> =
 
             x.ContinueWith k |> ignore
         | _, _ ->
-            x.ContinueWith
-                (function
+            x.ContinueWith (function
                 | Canceled -> tcs.SetCanceled()
                 | Faulted e -> tcs.SetException e.InnerExceptions
                 | Completed r ->
-                    y.ContinueWith
-                        (function
+                    y.ContinueWith (function
                         | Canceled -> tcs.SetCanceled()
                         | Faulted e -> tcs.SetException e.InnerExceptions
                         | Completed r' -> tcs.SetResult(r, r'))

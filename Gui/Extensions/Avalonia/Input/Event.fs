@@ -1,12 +1,11 @@
-module Extensions.Event
+module Avalonia.Input.Event
 
-open System
 open Avalonia
 open Avalonia.Controls
+open Avalonia.FuncUI.DSL
 open Avalonia.Input
 open Avalonia.Interactivity
-
-open Extensions
+open System
 
 let handleEvent msg (event: RoutedEventArgs) =
     event.Handled <- true
