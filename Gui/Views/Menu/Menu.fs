@@ -20,7 +20,6 @@ open System.IO
 open Avalonia.Controls
 open Avalonia.FuncUI.Types
 
-open Gui
 open Gui.DataTypes
 
 type Msg =
@@ -32,7 +31,9 @@ type Msg =
 
 let private recentFiles (files: FileInfo seq) : MenuAction<Msg> list =
     files
-    |> Seq.map (fun fileInfo -> { Name = fileInfo.Name ; Msg = Open fileInfo })
+    |> Seq.map (fun fileInfo ->
+        { Name = fileInfo.Name
+          Msg = Open fileInfo })
     |> List.ofSeq
 
 let private fileMenu (appConfig: AppConfig) : MenuTab<Msg> =

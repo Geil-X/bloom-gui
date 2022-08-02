@@ -22,7 +22,7 @@ let mutable LogLevel = Debug
 
 /// The interface loggers need to implement.
 type ILogger =
-    abstract Log : Level -> Printf.StringFormat<'a, unit> -> unit
+    abstract Log: Level -> Printf.StringFormat<'a, unit> -> unit
 
 /// Writes to console.
 let ConsoleLogger =
@@ -33,7 +33,8 @@ let ConsoleLogger =
                 |> ignore }
 
 /// Defines which logger to use.
-let mutable private DefaultLogger = ConsoleLogger
+let mutable private DefaultLogger =
+    ConsoleLogger
 
 /// Logs a message with the specified logger.
 let logUsing (logger: ILogger) = logger.Log

@@ -2,7 +2,7 @@ namespace Avalonia.Input
 
 open Avalonia.Interactivity
 open Geometry
-    
+
 type MouseEvent<'Unit, 'Coordinates> =
     { Position: Point2D<'Unit, 'Coordinates>
       BaseEvent: RoutedEventArgs }
@@ -68,8 +68,8 @@ module Event =
         match maybeVisual with
         | Some visual -> event.GetPosition(visual)
         | None -> Point(infinity, infinity)
-        
-        
+
+
     let private point id (e: PointerEventArgs) : Point2D<'Unit, 'Coordinates> =
         let maybeVisual =
             View.findControl id (e.Source :?> IControl)

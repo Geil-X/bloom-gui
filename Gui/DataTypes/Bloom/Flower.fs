@@ -16,9 +16,9 @@ type Flower =
 
 module Flower =
     open Avalonia.Input
-    
+
     open Gui.DataTypes
-    
+
     type Id = Flower Id
 
     type Attribute =

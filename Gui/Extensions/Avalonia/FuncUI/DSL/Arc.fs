@@ -2,12 +2,7 @@ namespace Avalonia.FuncUI.DSL
 
 [<AutoOpen>]
 module ArcSegment =
-    open Avalonia
-    open Avalonia.Controls.Shapes
-    open System
     open Avalonia.Media
-    open Avalonia.Controls
-    open Avalonia.Controls.Templates
     open Avalonia.FuncUI.Types
     open Avalonia.FuncUI.Builder
 

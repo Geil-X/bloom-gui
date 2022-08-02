@@ -11,7 +11,6 @@ open Extensions
 open Geometry
 open Gui
 open Gui.DataTypes
-open Gui.DataTypes
 open Gui.Panels
 open Gui.Views
 open Gui.Views.Menu
@@ -313,8 +312,7 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
         match asyncOperation with
         | Start fileInfo ->
             let flowerFileData: Flower list =
-                Map.values state.Flowers
-                |> Seq.toList
+                Map.values state.Flowers |> Seq.toList
 
             state, File.write fileInfo flowerFileData (Finished >> Action.SaveAs >> Action)
 
@@ -618,9 +616,11 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
             | File.ReadError.FileAlreadyOpened _ ->
                 Log.error "Cannot open the Application Configuration file, it is already opened by another program."
                 state, Cmd.none
-                
+
             | File.ReadError.JsonDeserializationError (_, error) ->
-                Log.error $"An error occured when decoding the Json data in the Application Configuration file.{Environment.NewLine}{error}"
+                Log.error
+                    $"An error occured when decoding the Json data in the Application Configuration file.{Environment.NewLine}{error}"
+
                 state, Cmd.none
 
             | File.ReadError.InvalidFilePermissions _ ->

@@ -34,10 +34,10 @@ let textItem
         {| Name = state.Name
            Orientation = state.LabelPlacement
            Element =
-               TextBox.create [
-                   TextBox.text state.Value
-                   TextBox.onTextChanged state.OnChange
-               ] |}
+            TextBox.create [
+                TextBox.text state.Value
+                TextBox.onTextChanged state.OnChange
+            ] |}
 
 let multiline
     (state: {| Name: string
@@ -49,11 +49,11 @@ let multiline
         {| Name = state.Name
            Orientation = Orientation.Vertical
            Element =
-               TextBox.create
-               <| [ TextBox.acceptsReturn true
-                    TextBox.textWrapping TextWrapping.Wrap
-                    TextBox.text state.Value
-                    TextBox.onTextChanged state.OnSelected ] |}
+            TextBox.create
+            <| [ TextBox.acceptsReturn true
+                 TextBox.textWrapping TextWrapping.Wrap
+                 TextBox.text state.Value
+                 TextBox.onTextChanged state.OnSelected ] |}
 
 let dropdownSelection
     (state: {| Name: string
@@ -65,10 +65,10 @@ let dropdownSelection
         {| Name = state.Name
            Orientation = Orientation.Vertical
            Element =
-               ComboBox.create
-               <| [ ComboBox.dataItems (Seq.map DiscriminatedUnion.toString DiscriminatedUnion.allCases<'a>)
-                    ComboBox.selectedItem (DiscriminatedUnion.toString state.Selected)
-                    ComboBox.onSelectedItemChanged (tryUnbox >> Option.iter state.OnSelected) ] |}
+            ComboBox.create
+            <| [ ComboBox.dataItems (Seq.map DiscriminatedUnion.toString DiscriminatedUnion.allCases<'a>)
+                 ComboBox.selectedItem (DiscriminatedUnion.toString state.Selected)
+                 ComboBox.onSelectedItemChanged (tryUnbox >> Option.iter state.OnSelected) ] |}
 
 
 let imageButton (icon: IView) (color: string) (onClick: RoutedEventArgs -> unit) : IView<Button> =

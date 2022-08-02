@@ -37,7 +37,7 @@ type RadialSlider() as this =
         RadialSlider.MinimumProperty.OverrideMetadata<RadialSlider>(DirectPropertyMetadata<float>(0.))
         RadialSlider.ValueProperty.OverrideMetadata<RadialSlider>(DirectPropertyMetadata<float>(25.))
 
-//        RadialSlider.AffectsRender<RadialSlider>(this.XAngleProperty, this.YAngleProperty)
+    //        RadialSlider.AffectsRender<RadialSlider>(this.XAngleProperty, this.YAngleProperty)
 
     // ---- Math Helper Functions ----------------------------------------------
 
@@ -55,7 +55,9 @@ type RadialSlider() as this =
         let center = Point(radius, radius)
         let xDiff = center.X - pos.X
         let yDiff = center.Y - pos.Y
-        let r = xDiff * xDiff + yDiff * yDiff |> sqrt
+
+        let r =
+            xDiff * xDiff + yDiff * yDiff |> sqrt
 
         if pos.X < radius then
             (acos (center.Y - pos.Y) / r)
@@ -70,7 +72,7 @@ type RadialSlider() as this =
     member this.Radius
         with get () = this.radius
         and set value =
-            base.SetAndRaise(this.RadiusProperty, ref this.radius, value)
+            ``base``.SetAndRaise(this.RadiusProperty, ref this.radius, value)
             |> ignore
 
     member this.RadiusProperty: DirectProperty<RadialSlider, float> =
@@ -152,17 +154,17 @@ type RadialSlider() as this =
     // ---- Events ---------------------------------------------------------------------------
 
     override this.OnPointerMoved(e: PointerEventArgs) =
-        base.OnPointerMoved(e)
+        ``base``.OnPointerMoved(e)
 
         if this.pressed then
             this.UpdateValueFromPoint(e.GetCurrentPoint(this).Position)
-            
+
     override this.OnPointerPressed(e) =
-        base.OnPointerPressed(e)
+        ``base``.OnPointerPressed(e)
         this.pressed <- true
-        
+
     override this.OnPointerReleased(e) =
-        base.OnPointerReleased(e)
+        ``base``.OnPointerReleased(e)
         this.pressed <- false
 
 
@@ -184,11 +186,10 @@ type RadialSlider() as this =
             pr.YAngle <- angleFromMinMaxValues pr.Value pr.Minimum pr.Maximum
             pr.InvalidateVisual()
         | _ -> ()
-            
 
-let create (attrs: IAttr<RadialSlider> list) : IView<RadialSlider> =
-    ViewBuilder.Create<RadialSlider>(attrs)
-    
+
+let create (attrs: IAttr<RadialSlider> list) : IView<RadialSlider> = ViewBuilder.Create<RadialSlider>(attrs)
+
 
 
 

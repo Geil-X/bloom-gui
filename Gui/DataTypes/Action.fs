@@ -29,4 +29,5 @@ type Action =
     | SendCommand of AsyncOperationStatus<Command, exn>
     | PingFlower of AsyncOperationStatus<unit, exn>
 
-module Action = ()
+module Action =
+    ()

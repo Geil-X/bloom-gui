@@ -6,10 +6,8 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 
 open Geometry
-open Gui
 open Gui.DataTypes
 open Gui.Views
-open Extensions
 
 type Msg =
     | ChangeName of Flower Id * string
@@ -62,12 +60,9 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
         match flowerOption with
         | Some flower ->
             match flower.ConnectionStatus with
-            | Connected ->
-                Icon.connected Icon.small Theme.palette.success
-            | Disconnected ->
-                Icon.disconnected Icon.small Theme.palette.danger
-        | _ ->
-            Icon.disconnected Icon.small Theme.palette.foregroundFaded
+            | Connected -> Icon.connected Icon.small Theme.palette.success
+            | Disconnected -> Icon.disconnected Icon.small Theme.palette.danger
+        | _ -> Icon.disconnected Icon.small Theme.palette.foregroundFaded
         |> View.withAttrs [
             Viewbox.dock Dock.Right
             Viewbox.margin (Theme.spacing.medium, 0., 0., 0.)

@@ -1,6 +1,5 @@
 namespace Gui.DataTypes
 
-open Gui
 
 type Response =
     { I2cAddress: I2cAddress

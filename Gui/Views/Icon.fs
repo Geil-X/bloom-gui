@@ -3,7 +3,6 @@ module Gui.Views.Icon
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Types
 open Avalonia.Controls.Shapes
 open Avalonia.Media
 

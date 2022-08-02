@@ -9,7 +9,6 @@ open System.IO.Ports
 
 open Gui.DataTypes
 open Gui.Views
-open Gui
 open Extensions
 
 type Msg =

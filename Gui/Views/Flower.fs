@@ -87,8 +87,9 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
              Circle.fill (string fadedColor) ])
 
 let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
-    let color = Theme.palette.primary |> Color.hex
-    
+    let color =
+        Theme.palette.primary |> Color.hex
+
     let innerRadius =
         circle.Radius
         * ClampedPercentage.inDecimal flower.OpenPercent
