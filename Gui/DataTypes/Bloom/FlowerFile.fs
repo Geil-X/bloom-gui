@@ -3,7 +3,6 @@ module Gui.FlowerFile
 open System
 open Avalonia.Controls
 
-open Gui.Views
 
 type FileError = exn
 

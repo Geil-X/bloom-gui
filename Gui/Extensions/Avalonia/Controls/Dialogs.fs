@@ -1,4 +1,4 @@
-module Gui.Views.Dialogs
+module Avalonia.Controls.Dialogs
 
 open System
 open System.IO
