@@ -1,10 +1,10 @@
-namespace Gui.Menu
+namespace Gui.Views.Menu
+
+open Gui.DataTypes
 
 module NativeMenu =
 
     open Avalonia.Controls
-
-    open Gui
 
     type MenuItemWithMsg<'Msg> = { Item: NativeMenuItem; Msg: 'Msg }
 
@@ -73,8 +73,6 @@ module Program =
     open Avalonia.Controls
     open Avalonia.FuncUI.Hosts
     open Elmish
-
-    open Gui
 
     /// Set up a native window from the base Avalonia Window class
     /// `Avalonia.FuncUI.Hosts.HostWindow` class.

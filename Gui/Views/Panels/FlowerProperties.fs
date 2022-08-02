@@ -1,4 +1,4 @@
-module Gui.FlowerProperties
+module Gui.Panels.FlowerProperties
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL

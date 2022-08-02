@@ -5,7 +5,7 @@ open System.IO
 type AppConfig = { RecentFiles: FileInfo list }
 
 module AppConfig =
-    open Gui.Generics
+    open Gui.DataTypes
     open Extensions
 
     let init = { RecentFiles = [] }

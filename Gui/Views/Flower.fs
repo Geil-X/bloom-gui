@@ -1,119 +1,20 @@
-module Gui.DataTypes.Flower
+module Gui.Views.Flower
 
+open Avalonia.Controls
+open Avalonia.Controls.Shapes
+open Avalonia.FuncUI.DSL
+open Avalonia.Input
 open Avalonia.Media
 open Geometry
-open Avalonia.Controls
-open Avalonia.FuncUI.DSL
-open Avalonia.Controls.Shapes
 
-open Gui
 open Gui.DataTypes
+open Gui.DataTypes.Flower
 open Extensions
-
-type Id = Flower Id
-
-type Attribute =
-    // Flowers
-    | Hovered
-    | Selected
-    | Pressed
-    | Dragged
-
-    // Events
-    | OnPointerEnter of (Flower Id * MouseEvent<Pixels, UserSpace> -> unit)
-    | OnPointerLeave of (Flower Id * MouseEvent<Pixels, UserSpace> -> unit)
-    | OnPointerMoved of (Flower Id * MouseEvent<Pixels, UserSpace> -> unit)
-    | OnPointerPressed of (Flower Id * MouseButtonEvent<Pixels, UserSpace> -> unit)
-    | OnPointerReleased of (Flower Id * MouseButtonEvent<Pixels, UserSpace> -> unit)
-
-
-// ---- Builders -----
-
-/// The first 8 Addresses are reserved so the starting address must be the
-/// 9th address.
-let mutable private initialI2cAddress = 16uy
-
-let basic name : Flower =
-    initialI2cAddress <- initialI2cAddress + 1uy
-
-    { Id = Id.create ()
-      Name = name
-      Position = Point2D.origin ()
-      I2cAddress = initialI2cAddress
-      Color = Color.hex Theme.palette.primary
-      OpenPercent = ClampedPercentage.zero
-      TargetPercent = ClampedPercentage.zero
-      MaxSpeed = 5000
-      Acceleration = 1000
-      Radius = Length.pixels 20.
-      ConnectionStatus = Disconnected }
-
-// ---- Accessors ----
-
-let name (flower: Flower) : string = flower.Name
-let i2cAddress (flower: Flower) : I2cAddress = flower.I2cAddress
-let color (flower: Flower) : Color = flower.Color
-let position (flower: Flower) : Point2D<Pixels, UserSpace> = flower.Position
-let openPercent (flower: Flower) : ClampedPercentage = flower.OpenPercent
-let targetPercent (flower: Flower) : ClampedPercentage = flower.TargetPercent
-let maxSpeed (flower: Flower) : Speed = flower.MaxSpeed
-
-let acceleration (flower: Flower) : Acceleration = flower.Acceleration
-
-// ---- Modifiers ----
-
-let setName name flower : Flower = { flower with Name = name }
-let setI2cAddress i2CAddress flower : Flower = { flower with I2cAddress = i2CAddress }
-let setColor color flower : Flower = { flower with Color = color }
-let setPosition position flower : Flower = { flower with Position = position }
-let setOpenPercent percent flower : Flower = { flower with OpenPercent = percent }
-let setTargetPercent percent flower : Flower = { flower with TargetPercent = percent }
-let setMaxSpeed speed flower : Flower = { flower with MaxSpeed = speed }
-
-let connected flower : Flower =
-    { flower with ConnectionStatus = Connected }
-
-let disconnected flower : Flower =
-    { flower with ConnectionStatus = Disconnected }
-
-let setAcceleration acceleration flower : Flower =
-    { flower with Acceleration = acceleration }
-
-
-// ---- Queries ----
-
-let containsPoint point (state: Flower) =
-    Circle2D.atPoint state.Position state.Radius
-    |> Circle2D.containsPoint point
-
-
-// ---- Attributes ----
-
-// Flowers
-let hovered = Attribute.Hovered
-let pressed = Attribute.Pressed
-let selected = Attribute.Selected
-let dragged = Attribute.Dragged
-
-// Events
-let onPointerEnter =
-    Attribute.OnPointerEnter
-
-let onPointerLeave =
-    Attribute.OnPointerLeave
-
-let onPointerPressed =
-    Attribute.OnPointerPressed
-
-let onPointerReleased =
-    Attribute.OnPointerReleased
-
-let onPointerMoved =
-    Attribute.OnPointerMoved
 
 let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
     let fadedColor =
-        flower.Color
+        Theme.palette.primary
+        |> Color.hex
         |> Color.desaturate 0.15
         |> Color.lighten 0.1
 
@@ -132,7 +33,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerEnter enterMsg ->
                     Circle.onPointerEnter (
-                        Events.pointerEnter Constants.CanvasId
+                        Event.pointerEnter Constants.CanvasId
                         >> Option.map (fun e -> enterMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -141,7 +42,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerLeave leaveMsg ->
                     Circle.onPointerLeave (
-                        Events.pointerLeave Constants.CanvasId
+                        Event.pointerLeave Constants.CanvasId
                         >> Option.map (fun e -> leaveMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -150,7 +51,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerMoved movedMsg ->
                     Circle.onPointerMoved (
-                        Events.pointerMoved Constants.CanvasId
+                        Event.pointerMoved Constants.CanvasId
                         >> Option.map (fun e -> movedMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -159,7 +60,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerPressed pressedMsg ->
                     Circle.onPointerPressed (
-                        Events.pointerPressed Constants.CanvasId
+                        Event.pointerPressed Constants.CanvasId
                         >> Option.map (fun e -> pressedMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -168,7 +69,7 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerReleased releasedMsg ->
                     Circle.onPointerReleased (
-                        Events.pointerReleased Constants.CanvasId
+                        Event.pointerReleased Constants.CanvasId
                         >> Option.map (fun e -> releasedMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -186,13 +87,15 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
              Circle.fill (string fadedColor) ])
 
 let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
+    let color = Theme.palette.primary |> Color.hex
+    
     let innerRadius =
         circle.Radius
         * ClampedPercentage.inDecimal flower.OpenPercent
 
-    let hovered () = Theme.lighter flower.Color |> string
-    let pressed () = Theme.lightest flower.Color |> string
-    let dragged () = Theme.fade flower.Color |> string
+    let hovered () = Theme.lighter color |> string
+    let pressed () = Theme.lightest color |> string
+    let dragged () = Theme.fade color |> string
 
     let circleAttributes =
         List.map
@@ -204,7 +107,7 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
                 | Selected -> None
                 | OnPointerEnter enterMsg ->
                     Ellipse.onPointerEnter (
-                        Events.pointerEnter Constants.CanvasId
+                        Event.pointerEnter Constants.CanvasId
                         >> Option.map (fun e -> enterMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -213,7 +116,7 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerLeave leaveMsg ->
                     Ellipse.onPointerLeave (
-                        Events.pointerLeave Constants.CanvasId
+                        Event.pointerLeave Constants.CanvasId
                         >> Option.map (fun e -> leaveMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -222,7 +125,7 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerMoved movedMsg ->
                     Ellipse.onPointerMoved (
-                        Events.pointerMoved Constants.CanvasId
+                        Event.pointerMoved Constants.CanvasId
                         >> Option.map (fun e -> movedMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -231,7 +134,7 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerPressed pressedMsg ->
                     Ellipse.onPointerPressed (
-                        Events.pointerPressed Constants.CanvasId
+                        Event.pointerPressed Constants.CanvasId
                         >> Option.map (fun e -> pressedMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -240,7 +143,7 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
 
                 | OnPointerReleased releasedMsg ->
                     Ellipse.onPointerReleased (
-                        Events.pointerReleased Constants.CanvasId
+                        Event.pointerReleased Constants.CanvasId
                         >> Option.map (fun e -> releasedMsg (flower.Id, e))
                         >> Option.defaultValue (),
                         SubPatchOptions.OnChangeOf flower.Id
@@ -253,7 +156,7 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
         (Circle2D.withRadius innerRadius circle.Center)
         (circleAttributes
          @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
-             Ellipse.fill (string flower.Color) ])
+             Ellipse.fill (string color) ])
 
 let selection (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
     if

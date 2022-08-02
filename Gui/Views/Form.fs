@@ -5,10 +5,9 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Interactivity
 open Avalonia.Layout
-open Avalonia.Input
 open Avalonia.Media
 
-open Gui
+open Gui.DataTypes
 open Extensions
 
 let formElement

@@ -1,4 +1,4 @@
-module Gui.Generics.File
+module Gui.DataTypes.File
 
 open System
 open System.IO

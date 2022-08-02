@@ -13,7 +13,7 @@
 /// means of accessing that functionality. The Linux built in menu support will
 /// most likely not be of the same quality as the MacOS menu because support for
 /// MacOS native menus in Avalonia have better support.
-module Gui.Menu.Menu
+module Gui.Views.Menu.Menu
 
 
 open System.IO

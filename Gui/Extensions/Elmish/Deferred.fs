@@ -1,4 +1,4 @@
-namespace Gui.Generics
+namespace Elmish
 
 type Deferred<'t> =
     | HasNotStartedYet

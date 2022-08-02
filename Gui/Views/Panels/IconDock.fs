@@ -6,7 +6,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Input
 
-open Gui
+open Gui.DataTypes
 open Gui.Views
 
 

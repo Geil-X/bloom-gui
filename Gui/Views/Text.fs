@@ -4,12 +4,12 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
-open Gui
+open Gui.DataTypes
 
 let iconTitle (icon: IView) (name: string) (color: string) =
     let titleBlock =
         TextBlock.create [
-            TextBlock.classes ["h1"]
+            TextBlock.classes [ "h1" ]
             TextBlock.fontSize Theme.font.h1
             TextBlock.foreground color
             TextBlock.verticalAlignment VerticalAlignment.Center

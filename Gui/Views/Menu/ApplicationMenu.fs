@@ -1,11 +1,10 @@
-module Gui.Menu.ApplicationMenu
+module Gui.Views.Menu.ApplicationMenu
 
-open System
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 
-open Gui
+open Gui.DataTypes
 
 let menuActionView (item: MenuAction<'Msg>) (dispatch: 'Msg -> unit) : IView =
     MenuItem.create [
@@ -48,6 +47,4 @@ let view (menuBar: MenuBar<'Msg>) (dispatch: 'Msg -> unit) : IView<Menu> =
     let menuTabHelper item = menuTab item dispatch
     let tabs = List.map menuTabHelper menuBar
 
-    Menu.create [
-        Menu.viewItems tabs
-    ]
+    Menu.create [ Menu.viewItems tabs ]

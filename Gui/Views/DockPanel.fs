@@ -3,8 +3,7 @@ module Gui.Views.DockPanel
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
-open Gui
-
+open Gui.DataTypes
 
 let child dir (child: IView<'a>) =
     let border =

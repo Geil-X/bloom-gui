@@ -13,7 +13,7 @@ type Response =
 module Response =
 
     open Extensions
-    open Gui.Generics
+    open Gui.DataTypes
 
     [<Literal>]
     let responseSize = 13

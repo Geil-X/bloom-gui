@@ -4,7 +4,7 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 
-open Gui
+open Gui.DataTypes
 
 let verticalSeparator (child: IView<'a>) =
     Border.create [

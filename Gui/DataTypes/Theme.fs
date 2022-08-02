@@ -1,4 +1,4 @@
-module Gui.Theme
+module Gui.DataTypes.Theme
 
 open Avalonia.Controls
 open Avalonia.Media

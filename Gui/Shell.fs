@@ -11,10 +11,10 @@ open Extensions
 open Geometry
 open Gui
 open Gui.DataTypes
-open Gui.Generics
-open Gui.Menu
+open Gui.DataTypes
 open Gui.Panels
 open Gui.Views
+open Gui.Views.Menu
 
 
 // ---- States ----
@@ -707,7 +707,7 @@ let private simulationSpace state (dispatch: SimulationEvent -> unit) : IView =
         Canvas.background Theme.palette.canvasBackground
         Canvas.name Constants.CanvasId
         Canvas.onPointerReleased (
-            Events.pointerReleased Constants.CanvasId
+            Event.pointerReleased Constants.CanvasId
             >> Option.map (
                 BackgroundEvent.OnReleased
                 >> SimulationEvent.BackgroundEvent

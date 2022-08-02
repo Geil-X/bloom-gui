@@ -1,4 +1,4 @@
-module Gui.InputTypes
+module Avalonia.Input.InputTypes
 
 open Avalonia.Input
 

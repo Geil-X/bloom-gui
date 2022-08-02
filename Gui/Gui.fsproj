@@ -1,11 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <!-- Properties -->
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>Gui</RootNamespace>
     </PropertyGroup>
 
+    <!-- Packages -->
+    <ItemGroup>
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
+        <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
+        <PackageReference Include="Fsharp.Geometry" Version="0.1.22" />
+        <PackageReference Include="FsPickler.Json" Version="5.3.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.1" />
+        <PackageReference Include="System.IO.Ports" Version="6.0.0" />
+        <PackageReference Include="Thoth.Json.Net" Version="8.0.0" />
+    </ItemGroup>
+
+    <!-- Non-Source Code Files -->
     <ItemGroup>
         <AvaloniaResource Include="**\*.xaml" />
         <Content Include="Info.plist">
@@ -16,6 +31,7 @@
         </Content>
     </ItemGroup>
 
+    <!-- F# Files -->
     <ItemGroup>
         <Compile Include="Extensions\Numeric.fs" />
         <Compile Include="Extensions\Path.fs" />
@@ -31,28 +47,27 @@
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\Circle.fs" />
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\Rectangle.fs" />
         <Compile Include="Extensions\Avalonia\Input\Event.fs" />
+        <Compile Include="Extensions\Avalonia\Input\InputTypes.fs" />
         <Compile Include="Extensions\Avalonia\Media\Imaging\Bitmap.fs" />
         <Compile Include="Extensions\Avalonia\Media\Color.fs" />
         <Compile Include="Extensions\Avalonia\Controls\Image.fs" />
         <Compile Include="Extensions\Geometry\Vector2D.fs" />
-        <Compile Include="Generics\File.fs" />
-        <Compile Include="Generics\Id.fs" />
-        <Compile Include="Generics\ClampedPercentage.fs" />
-        <Compile Include="Generics\Events.fs" />
-        <Compile Include="Generics\Timer.fs" />
-        <Compile Include="Generics\RemoteValue.fs" />
-        <Compile Include="Generics\SerialPort.fs" />
-        <Compile Include="Generics\OperatingSystem.fs" />
-        <Compile Include="Generics\Deferred.fs" />
-        <Compile Include="Generics\AsyncOperationStatus.fs" />
+        <Compile Include="Extensions\Elmish\Deferred.fs" />
+        <Compile Include="Extensions\Elmish\AsyncOperationStatus.fs" />
+        <Compile Include="Extensions\Elmish\Cmd.fs" />
+        <Compile Include="DataTypes\Generic\File.fs" />
+        <Compile Include="DataTypes\Generic\Id.fs" />
+        <Compile Include="DataTypes\Generic\ClampedPercentage.fs" />
+        <Compile Include="DataTypes\Generic\SerialPort.fs" />
+        <Compile Include="DataTypes\Generic\OperatingSystem.fs" />
+        <Compile Include="DataTypes\Generic\Types.fs" />
+        <Compile Include="DataTypes\Bloom\Flower.fs" />
+        <Compile Include="DataTypes\Bloom\AppConfig.fs" />
+        <Compile Include="DataTypes\Bloom\Command.fs" />
+        <Compile Include="DataTypes\Bloom\Response.fs" />
         <Compile Include="DataTypes\Log.fs" />
         <Compile Include="DataTypes\Theme.fs" />
-        <Compile Include="DataTypes\Types.fs" />
-        <Compile Include="DataTypes\Flower.fs" />
-        <Compile Include="DataTypes\Command.fs" />
-        <Compile Include="DataTypes\Response.fs" />
-        <Compile Include="DataTypes\InputTypes.fs" />
-        <Compile Include="DataTypes\AppConfig.fs" />
+        <Compile Include="DataTypes\Action.fs" />
         <Compile Include="Views\Form.fs" />
         <Compile Include="Views\Icon.fs" />
         <Compile Include="Views\Dialogs.fs" />
@@ -60,29 +75,19 @@
         <Compile Include="Views\Text.fs" />
         <Compile Include="Views\StackPanel.fs" />
         <Compile Include="Views\Components\RadialSlider.fs" />
-        <Compile Include="Views\Tabs\Simulation\Panels\FlowerProperties.fs" />
-        <Compile Include="Views\Tabs\Simulation\Panels\FlowerCommands.fs" />
-        <Compile Include="Views\Tabs\Simulation\Panels\FlowerPanel.fs" />
-        <Compile Include="Views\Tabs\Simulation\Panels\IconDock.fs" />
-        <Compile Include="Menu\NativeMenu.fs" />
-        <Compile Include="Menu\ApplicationMenu.fs" />
-        <Compile Include="Menu\Menu.fs" />
+        <Compile Include="Views\Menu\NativeMenu.fs" />
+        <Compile Include="Views\Menu\ApplicationMenu.fs" />
+        <Compile Include="Views\Menu\Menu.fs" />
+        <Compile Include="Views\Panels\FlowerProperties.fs" />
+        <Compile Include="Views\Panels\FlowerCommands.fs" />
+        <Compile Include="Views\Panels\FlowerPanel.fs" />
+        <Compile Include="Views\Panels\IconDock.fs" />
+        <Compile Include="Views\Flower.fs" />
         <Compile Include="FlowerFile.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
-        <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
-        <PackageReference Include="Fsharp.Geometry" Version="0.1.22" />
-        <PackageReference Include="FsPickler.Json" Version="5.3.2" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2" />
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.1" />
-        <PackageReference Include="System.IO.Ports" Version="6.0.0" />
-        <PackageReference Include="Thoth.Json.Net" Version="8.0.0" />
-    </ItemGroup>
 
     <ItemGroup>
         <EmbeddedResource Remove=".template.config\**" />

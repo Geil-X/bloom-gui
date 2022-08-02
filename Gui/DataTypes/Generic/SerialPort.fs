@@ -1,4 +1,4 @@
-namespace Gui.Generics
+namespace Gui.DataTypes
 
 type Packet = byte array
 

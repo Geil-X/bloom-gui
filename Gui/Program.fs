@@ -9,7 +9,7 @@ open Avalonia.FuncUI.Hosts
 open Avalonia.FuncUI.Elmish
 
 open Gui.DataTypes
-open Gui.Menu
+open Gui.Views.Menu
 
 type MainWindow() as this =
     inherit HostWindow()
