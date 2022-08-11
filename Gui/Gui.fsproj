@@ -70,6 +70,7 @@
         <Compile Include="DataTypes\Log.fs" />
         <Compile Include="DataTypes\Theme.fs" />
         <Compile Include="DataTypes\Action.fs" />
+        <Compile Include="DataTypes\EvolutionaryAlgorithm.fs" />
         <Compile Include="Views\Form.fs" />
         <Compile Include="Views\Icon.fs" />
         <Compile Include="Views\DockPanel.fs" />
