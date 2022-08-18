@@ -1,4 +1,4 @@
-namespace Evolution
+namespace Gui.DataTypes
 
 // ---- Types ------------------------------------------------------------------
 
@@ -33,7 +33,8 @@ type EvolutionaryAlgorithm<'Model> =
     { Parameters: EvolutionaryAlgorithmParameters<'Model>
       Tested: Evaluated<'Model> list
       Current: 'Model
-      Remaining: 'Model list }
+      Remaining: 'Model list
+      Generation: int }
 
 
 /// Helper functions for creating and running an evolutionary algorithm. This
@@ -58,7 +59,8 @@ module EvolutionaryAlgorithm =
         { Parameters = parameters
           Tested = []
           Current = parameters.Initializer()
-          Remaining = List.init (parameters.PopulationSize - 1) (fun _ -> parameters.Initializer()) }
+          Remaining = List.init (parameters.PopulationSize - 1) (fun _ -> parameters.Initializer())
+          Generation = 1 }
 
 
     // ---- Accessors --------------------------------------------------------------
@@ -102,6 +104,13 @@ module EvolutionaryAlgorithm =
         : EvolutionaryAlgorithmParameters<'Model> =
         { parameters with PopulationSize = max 1 populationSize }
 
+    /// Set the number of individuals that survive to the next generation
+    let withSurvivorCount
+        (survivors: int)
+        (parameters: EvolutionaryAlgorithmParameters<'Model>)
+        : EvolutionaryAlgorithmParameters<'Model> =
+        { parameters with Survivors = max 0 survivors }
+
 
     /// Set the rate at which an allele in a gene is mutated.
     let withMutationRate
@@ -139,19 +148,35 @@ module EvolutionaryAlgorithm =
         (individuals: Evaluated<'Model> list)
         : 'Model list =
 
-        let totalFitness =
-            List.map snd individuals |> List.sum
+        let totalFitness = 0.
+        // match individuals with
+        // | _ :: _ -> List.map snd individuals |> List.sum
+        // | _ -> 0
+
 
         let sortedAndNormalizedIndividuals =
-            List.sortBy snd individuals
-            |> List.map (fun (model, fitness) -> model, fitness / totalFitness)
+            if totalFitness > 0 then
+                List.sortBy snd individuals
+                |> List.map (fun (model, fitness) -> model, fitness / totalFitness)
+            else
+                individuals
 
-        /// Get a random individual weighted by it's fitness value
-        let randomIndividual () =
+        /// Get a random individual weighted by it's fitness value. If getting
+        /// an individual by it's weighted values doesn't work, just select a
+        /// random individual.
+        let randomIndividual () : 'Model =
             let r = random.NextDouble()
 
-            List.find (fun (_, normalizedFitness) -> normalizedFitness > r) sortedAndNormalizedIndividuals
-            |> fst
+            let maybeIndividual =
+                List.tryFind (fun (_, normalizedFitness) -> normalizedFitness > r) sortedAndNormalizedIndividuals
+
+            match maybeIndividual with
+            | Some individual -> individual |> fst
+            | None ->
+                let index =
+                    random.NextInt64(List.length individuals) |> int
+
+                List.item index individuals |> fst
 
         let numChildren =
             max (parameters.PopulationSize - parameters.Survivors) 0
@@ -167,6 +192,7 @@ module EvolutionaryAlgorithm =
     /// created based off the mutation and crossover functions that are provided
     /// to the algorithm at initialization.
     let nextGeneration
+        (currentGeneration: int)
         (individuals: Evaluated<'Model> list)
         (parameters: EvolutionaryAlgorithmParameters<'Model>)
         : EvolutionaryAlgorithm<'Model> =
@@ -177,16 +203,17 @@ module EvolutionaryAlgorithm =
         let children =
             performCrossover parameters individuals
 
-        let nextGeneration =
+        let nextGenerationIndividuals =
             survivors @ children
             |> performMutation parameters.Mutator
 
-        match nextGeneration with
-        | first :: _ ->
+        match nextGenerationIndividuals with
+        | first :: rest ->
             { Parameters = parameters
               Tested = []
               Current = first
-              Remaining = nextGeneration }
+              Remaining = rest
+              Generation = currentGeneration + 1 }
         | [] -> failwith "The evolutionary algorithm failed to produce another generation with any individuals"
 
 
@@ -200,8 +227,8 @@ module EvolutionaryAlgorithm =
     /// current generation have been tested, the algorithm moves the population
     /// into the next generation and starts testing on those individuals.
     let setCurrentIndividualsFitness
-        (ea: EvolutionaryAlgorithm<'Model>)
         (fitness: float)
+        (ea: EvolutionaryAlgorithm<'Model>)
         : EvolutionaryAlgorithm<'Model> =
         match ea.Remaining with
         | next :: rest ->
@@ -212,7 +239,7 @@ module EvolutionaryAlgorithm =
                 Remaining = rest }
 
         | [] ->
-            let evaluatedIndividuals =
+            let evaluatedIndividuals: Evaluated<'Model> list =
                 (ea.Current, fitness) :: ea.Tested
 
-            nextGeneration evaluatedIndividuals ea.Parameters
+            nextGeneration ea.Generation evaluatedIndividuals ea.Parameters
