@@ -148,11 +148,8 @@ module EvolutionaryAlgorithm =
         (individuals: Evaluated<'Model> list)
         : 'Model list =
 
-        let totalFitness = 0.
-        // match individuals with
-        // | _ :: _ -> List.map snd individuals |> List.sum
-        // | _ -> 0
-
+        let totalFitness =
+            List.map snd individuals |> List.sum
 
         let sortedAndNormalizedIndividuals =
             if totalFitness > 0 then
