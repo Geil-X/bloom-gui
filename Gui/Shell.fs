@@ -11,8 +11,9 @@ open Extensions
 open Geometry
 open Gui
 open Gui.DataTypes
-open Gui.Panels
 open Gui.Views
+open Gui.Views.Components
+open Gui.Views.Panels
 open Gui.Views.Menu
 
 
@@ -725,8 +726,6 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
 
     DockPanel.create [
         DockPanel.children [
-            DockPanel.child Dock.Top (Menu.applicationMenu state.AppConfig (MenuMsg >> dispatch))
-
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
 
             DockPanel.child Dock.Left (FlowerProperties.view selectedFlowerOption (FlowerPropertiesMsg >> dispatch))
@@ -745,4 +744,24 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
     ]
 
 
-let view (state: State) (dispatch: Msg -> unit) = simulationView state dispatch
+let tabs (state: State) (dispatch: Msg -> unit) =
+    TabControl.create [
+        TabControl.viewItems [
+            TabItem.create [
+                TabItem.header "Simulation"
+                TabItem.content (simulationView state dispatch)
+            ]
+            TabItem.create [
+                TabItem.header "Video"
+                TabItem.content (Webcam.view)
+            ]
+        ]
+    ]
+
+let view (state: State) (dispatch: Msg -> unit) =
+    DockPanel.create [
+        DockPanel.children [
+            DockPanel.child Dock.Top (Menu.applicationMenu state.AppConfig (MenuMsg >> dispatch))
+            tabs state dispatch
+        ]
+    ]
