@@ -1,11 +1,11 @@
-module Gui.Panels.FlowerPanel
+module Gui.Views.Panels.FlowerPanel
 
 open System.IO.Ports
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 
 open Gui.DataTypes
-open Gui.Views
+open Gui.Views.Components
 
 type Msg =
     | FlowerPropertiesMsg of FlowerProperties.Msg

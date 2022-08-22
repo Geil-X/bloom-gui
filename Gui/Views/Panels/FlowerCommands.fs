@@ -1,4 +1,4 @@
-module Gui.Panels.FlowerCommands
+module Gui.Views.Panels.FlowerCommands
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
@@ -8,7 +8,7 @@ open System
 open System.IO.Ports
 
 open Gui.DataTypes
-open Gui.Views
+open Gui.Views.Components
 open Extensions
 
 type Msg =

@@ -1,4 +1,4 @@
-module Gui.Panels.FlowerProperties
+module Gui.Views.Panels.FlowerProperties
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
@@ -7,7 +7,7 @@ open Avalonia.Layout
 
 open Geometry
 open Gui.DataTypes
-open Gui.Views
+open Gui.Views.Components
 
 type Msg =
     | ChangeName of Flower Id * string

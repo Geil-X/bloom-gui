@@ -1,4 +1,4 @@
-module Gui.Views.DockPanel
+module Gui.Views.Components.DockPanel
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
