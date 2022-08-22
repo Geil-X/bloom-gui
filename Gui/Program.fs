@@ -56,11 +56,14 @@ type App() =
         | _ -> ()
 
 module Program =
+    let skiaOptions = SkiaOptions()
+    skiaOptions.MaxGpuResourceSizeBytes <- 8096000
 
     [<EntryPoint>]
     let main (args: string []) =
         AppBuilder
             .Configure<App>()
             .UsePlatformDetect()
+            .With(skiaOptions)
             .UseSkia()
             .StartWithClassicDesktopLifetime(args)
