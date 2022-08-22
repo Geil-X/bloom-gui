@@ -11,9 +11,10 @@ open Extensions
 open Geometry
 open Gui
 open Gui.DataTypes
-open Gui.Panels
+open Gui.Views.Components
 open Gui.Views
 open Gui.Views.Menu
+open Gui.Views.Panels
 
 
 // ---- States ----

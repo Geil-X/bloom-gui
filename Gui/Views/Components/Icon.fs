@@ -1,5 +1,5 @@
 // Icons can be found here https://materialdesignicons.com/
-module Gui.Views.Icon
+module Gui.Views.Components.Icon
 
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL

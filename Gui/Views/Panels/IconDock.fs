@@ -1,4 +1,4 @@
-module Gui.Panels.IconDock
+module Gui.Views.Panels.IconDock
 
 open Avalonia.Controls
 open Avalonia.Layout
@@ -7,7 +7,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Input
 
 open Gui.DataTypes
-open Gui.Views
+open Gui.Views.Components
 
 
 type Msg =

@@ -15,7 +15,14 @@ module AppConfig =
         { appConfig with RecentFiles = recentFiles }
 
     let addRecentFile (recentFile: FileInfo) (appConfig: AppConfig) : AppConfig =
-        setRecentFiles (recentFile :: appConfig.RecentFiles) appConfig
+        let containsFile =
+            appConfig.RecentFiles
+            |> List.exists (fun file -> file.FullName = recentFile.FullName)
+
+        if not containsFile then
+            setRecentFiles (recentFile :: appConfig.RecentFiles) appConfig
+        else
+            appConfig
 
 
     let configPath: FileInfo =
@@ -46,9 +53,9 @@ module AppConfig =
 
 
         | Windows ->
-            // On windows we are using the '.../AppData/Roaming' directory to hold user configuration. This folder is where
-            // user settings are generally stored and can be transferred from machine to machine.
-            let appdata = getEnv "APPDATA"
+            // On windows we are using the '.../AppData/' directory to hold user configuration. This folder is
+            // for user settings that stay on the local machine
+            let appdata = getEnv "LOCALAPPDATA"
 
             appdata ./ bloomDirectory ./ "config.json"
 

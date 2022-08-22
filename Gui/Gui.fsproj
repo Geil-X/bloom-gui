@@ -71,12 +71,12 @@
         <Compile Include="DataTypes\Theme.fs" />
         <Compile Include="DataTypes\Action.fs" />
         <Compile Include="DataTypes\EvolutionaryAlgorithm.fs" />
-        <Compile Include="Views\Form.fs" />
-        <Compile Include="Views\Icon.fs" />
-        <Compile Include="Views\DockPanel.fs" />
-        <Compile Include="Views\Text.fs" />
-        <Compile Include="Views\StackPanel.fs" />
+        <Compile Include="Views\Components\DockPanel.fs" />
+        <Compile Include="Views\Components\Form.fs" />
+        <Compile Include="Views\Components\Icon.fs" />
+        <Compile Include="Views\Components\StackPanel.fs" />
         <Compile Include="Views\Components\RadialSlider.fs" />
+        <Compile Include="Views\Components\Text.fs" />
         <Compile Include="Views\Menu\NativeMenu.fs" />
         <Compile Include="Views\Menu\ApplicationMenu.fs" />
         <Compile Include="Views\Menu\Menu.fs" />
