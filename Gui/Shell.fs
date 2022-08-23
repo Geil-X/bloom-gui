@@ -24,7 +24,8 @@ type Tab =
     | Inputs
 
 type State =
-    { CanvasSize: Size<Pixels>
+    { WebcamState: Webcam.State
+      CanvasSize: Size<Pixels>
       Flowers: Map<Flower Id, Flower>
       FlowerInteraction: FlowerInteraction
       Selected: Flower Id option
@@ -76,6 +77,7 @@ type Msg =
 
     // Msg Mapping
     | SimulationEvent of SimulationEvent
+    | WebcamMsg of Webcam.Msg
     | MenuMsg of Menu.Msg
     | IconDockMsg of IconDock.Msg
     | FlowerPropertiesMsg of FlowerProperties.Msg
@@ -105,15 +107,16 @@ let loadAppConfigFile: Cmd<Msg> =
 // ---- Init -------------------------------------------------------------------
 
 let init () : State * Cmd<Msg> =
-    { CanvasSize = Size.create Length.zero Length.zero
+    { AppConfig = AppConfig.init
+      WebcamState = Webcam.init ()
+      CanvasSize = Size.create Length.zero Length.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
       Selected = None
       SerialPort = None
       SerialPorts = []
       Rerender = 0
-      Tab = Simulation
-      AppConfig = AppConfig.init },
+      Tab = Simulation },
     Cmd.batch [
         loadAppConfigFile
         Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
@@ -663,6 +666,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
 
     // Msg Mapping
+    | WebcamMsg webcamMsg -> { state with WebcamState = Webcam.update state.WebcamState webcamMsg }, Cmd.none
     | MenuMsg menuMsg -> updateMenu menuMsg state window
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
     | SimulationEvent event -> updateSimulationEvent event state
@@ -755,7 +759,7 @@ let tabs (state: State) (dispatch: Msg -> unit) =
             ]
             TabItem.create [
                 TabItem.header "Video"
-                TabItem.content (Webcam.view)
+                TabItem.content (Webcam.view state.WebcamState (WebcamMsg >> dispatch))
             ]
         ]
     ]

@@ -7,6 +7,7 @@ open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI
 open Avalonia.FuncUI.Hosts
 open Avalonia.FuncUI.Elmish
+open LibVLCSharp.Shared
 
 open Gui.DataTypes
 open Gui.Views.Menu
@@ -39,6 +40,8 @@ type MainWindow() as this =
 /// or handle Life Cycle events of your application
 type App() =
     inherit Application()
+
+    do Core.Initialize()
 
     override this.Initialize() =
         this.Styles.Load "avares://Avalonia.Themes.Default/DefaultTheme.xaml"
