@@ -9,7 +9,6 @@
 
     <!-- Packages -->
     <ItemGroup>
-        <ProjectReference Include="..\LibVLCSharp.Avalonia.FuncUI\LibVLCSharp.Avalonia.FuncUI.csproj" />
         <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
         <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
         <PackageReference Include="Fsharp.Geometry" Version="0.1.22" />
@@ -63,7 +62,7 @@
         <Compile Include="Extensions\Elmish\Cmd.fs" />
         <Compile Include="Extensions\LibVLCSharp\Shared\Media.fs" />
         <Compile Include="Extensions\LibVLCSharp\Shared\MediaPlayer.fs" />
-        <Compile Include="Extensions\LibVLCSharp\Shared\WebcamView.fs" />
+        <Compile Include="Extensions\LibVLCSharp\Avalonia\FuncUI\VideoView.fs" />
         <Compile Include="DataTypes\Generic\File.fs" />
         <Compile Include="DataTypes\Generic\Id.fs" />
         <Compile Include="DataTypes\Generic\ClampedPercentage.fs" />
