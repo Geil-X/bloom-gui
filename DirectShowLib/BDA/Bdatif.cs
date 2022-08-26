@@ -22,11 +22,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
-using System;
 using System.Runtime.InteropServices;
-
 #if !USING_NET11
-using System.Runtime.InteropServices.ComTypes;
 #endif
 
 namespace DirectShowLib.BDA
@@ -34,9 +31,10 @@ namespace DirectShowLib.BDA
     #region Declarations
 
     /// <summary>
-    /// From CLSID_TIFLoad
+    ///     From CLSID_TIFLoad
     /// </summary>
-    [ComImport, Guid("14EB8748-1753-4393-95AE-4F7E7A87AAD6")]
+    [ComImport]
+    [Guid("14EB8748-1753-4393-95AE-4F7E7A87AAD6")]
     public class TIFLoad
     {
     }
@@ -46,7 +44,6 @@ namespace DirectShowLib.BDA
     #region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     Guid("DFEF4A68-EE61-415f-9CCB-CD95F2F98A3A"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -188,7 +185,7 @@ namespace DirectShowLib.BDA
         [PreserveSig]
         int Next(
             [In] int celt,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=0)] IGuideDataProperty [] ppprop,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] IGuideDataProperty [] ppprop,
             [In] IntPtr pcelt
             );
 
@@ -210,7 +207,7 @@ namespace DirectShowLib.BDA
         [PreserveSig]
         int Next(
             [In] int celt,
-            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex=0)] ITuneRequest[] ppprop,
+            [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ITuneRequest[] ppprop,
             [In] IntPtr pcelt
             );
 

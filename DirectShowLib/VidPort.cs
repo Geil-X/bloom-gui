@@ -22,17 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
-using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace DirectShowLib
-{
-    #region Declarations
+namespace DirectShowLib;
+
+#region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
-    
     /// <summary>
     /// From AMVPSIZE
     /// </summary>
@@ -89,27 +86,25 @@ namespace DirectShowLib
         public int dwVBIHeight;
         public Rectangle rcValidRegion;
     }
-
 #endif
 
-    /// <summary>
-    /// From AMVP_MODE
-    /// </summary>
-    public enum AMVP_Mode
-    {
-        Weave,
-        BobInterleaved,
-        BobNonInterleaved,
-        SkipEven,
-        SkipOdd
-    }
+/// <summary>
+///     From AMVP_MODE
+/// </summary>
+public enum AMVP_Mode
+{
+    Weave,
+    BobInterleaved,
+    BobNonInterleaved,
+    SkipEven,
+    SkipOdd
+}
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface IVPBaseConfig
     {
@@ -369,75 +364,75 @@ namespace DirectShowLib
 
         #endregion
     }
-
 #endif
 
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IVPBaseNotify
-    {
-        [PreserveSig]
-        int RenegotiateVPParameters();
-    }
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IVPBaseNotify
+{
+    [PreserveSig]
+    int RenegotiateVPParameters();
+}
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("C76794A1-D6C5-11d0-9E69-00C04FD7C15B"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IVPNotify : IVPBaseNotify
-    {
-        #region IVPBaseNotify
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("C76794A1-D6C5-11d0-9E69-00C04FD7C15B")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IVPNotify : IVPBaseNotify
+{
+    #region IVPBaseNotify
 
-        [PreserveSig]
-        new int RenegotiateVPParameters();
-
-        #endregion
-
-        [PreserveSig]
-        int SetDeinterlaceMode(
-            AMVP_Mode mode
-            );
-
-        [PreserveSig]
-        int GetDeinterlaceMode(
-            out AMVP_Mode pMode
-            );
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("EBF47183-8764-11d1-9E69-00C04FD7C15B"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IVPNotify2 : IVPNotify
-    {
-        #region IVPBaseNotify
-
-        [PreserveSig]
-        new int RenegotiateVPParameters();
-
-        #endregion
-
-        #region IVPNotify Methods
-
-        [PreserveSig]
-        new int SetDeinterlaceMode(
-            AMVP_Mode mode
-            );
-
-        [PreserveSig]
-        new int GetDeinterlaceMode(
-            out AMVP_Mode pMode
-            );
-
-        #endregion
-
-        [PreserveSig]
-        int SetVPSyncMaster(
-            [MarshalAs(UnmanagedType.Bool)] bool bVPSyncMaster
-            );
-
-        [PreserveSig]
-        int GetVPSyncMaster(
-            [MarshalAs(UnmanagedType.Bool)] out bool pbVPSyncMaster
-            );
-    }
+    [PreserveSig]
+    new int RenegotiateVPParameters();
 
     #endregion
+
+    [PreserveSig]
+    int SetDeinterlaceMode(
+        AMVP_Mode mode
+    );
+
+    [PreserveSig]
+    int GetDeinterlaceMode(
+        out AMVP_Mode pMode
+    );
 }
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("EBF47183-8764-11d1-9E69-00C04FD7C15B")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IVPNotify2 : IVPNotify
+{
+    #region IVPBaseNotify
+
+    [PreserveSig]
+    new int RenegotiateVPParameters();
+
+    #endregion
+
+    #region IVPNotify Methods
+
+    [PreserveSig]
+    new int SetDeinterlaceMode(
+        AMVP_Mode mode
+    );
+
+    [PreserveSig]
+    new int GetDeinterlaceMode(
+        out AMVP_Mode pMode
+    );
+
+    #endregion
+
+    [PreserveSig]
+    int SetVPSyncMaster(
+        [MarshalAs(UnmanagedType.Bool)] bool bVPSyncMaster
+    );
+
+    [PreserveSig]
+    int GetVPSyncMaster(
+        [MarshalAs(UnmanagedType.Bool)] out bool pbVPSyncMaster
+    );
+}
+
+#endregion

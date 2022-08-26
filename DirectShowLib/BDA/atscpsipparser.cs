@@ -22,16 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
-using System;
-using System.Runtime.InteropServices;
-using System.Security;
+namespace DirectShowLib.BDA;
 
-namespace DirectShowLib.BDA
-{
-    #region Declarations
+#region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
-
     /// <summary>
     /// From ATSC_ETM_LOCATION_*
     /// </summary>
@@ -42,15 +37,13 @@ namespace DirectShowLib.BDA
         InPtcForEvent = 0x02,
         Reserved = 0x03,
     }
-
 #endif
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     Guid("B2C98995-5EB2-4fb1-B406-F3E8E2026A9A"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -718,12 +711,10 @@ namespace DirectShowLib.BDA
         [PreserveSig]
         int  GetElementLanguageCode( 
             byte bIndex,
-            [MarshalAs(UnmanagedType.LPArray, SizeConst=3)] out byte[] LangCode
+            [MarshalAs(UnmanagedType.LPArray, SizeConst = 3)] out byte[] LangCode
             );
         
     };
-    
 #endif
 
-    #endregion
-}
+#endregion

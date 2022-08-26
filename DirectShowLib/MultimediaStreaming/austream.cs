@@ -26,12 +26,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace DirectShowLib.MultimediaStreaming
-{
-    #region Interfaces
+namespace DirectShowLib.MultimediaStreaming;
+
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown),
     Guid("327FC560-AF60-11D0-8212-00C04FC32C45")]
@@ -142,75 +141,77 @@ namespace DirectShowLib.MultimediaStreaming
             [MarshalAs(UnmanagedType.Interface)] out IAudioData ppAudio
             );
     }
-
-
 #endif
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown),
-    Guid("F7537560-A3BE-11D0-8212-00C04FC32C45")]
-    public interface IAudioMediaStream : IMediaStream
-    {
-        #region IMediaStream Methods
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+[Guid("F7537560-A3BE-11D0-8212-00C04FC32C45")]
+public interface IAudioMediaStream : IMediaStream
+{
+    #region IMediaStream Methods
 
-        [PreserveSig]
-        new int GetMultiMediaStream(
-            [MarshalAs(UnmanagedType.Interface)] out IMultiMediaStream ppMultiMediaStream
-            );
+    [PreserveSig]
+    new int GetMultiMediaStream(
+        [MarshalAs(UnmanagedType.Interface)] out IMultiMediaStream ppMultiMediaStream
+    );
 
-        [PreserveSig]
-        new int GetInformation(
-            out Guid pPurposeId,
-            out StreamType pType);
+    [PreserveSig]
+    new int GetInformation(
+        out Guid pPurposeId,
+        out StreamType pType);
 
-        [PreserveSig]
-        new int SetSameFormat(
-            [In, MarshalAs(UnmanagedType.Interface)] IMediaStream pStreamThatHasDesiredFormat,
-            [In] int dwFlags);
+    [PreserveSig]
+    new int SetSameFormat(
+        [In] [MarshalAs(UnmanagedType.Interface)]
+        IMediaStream pStreamThatHasDesiredFormat,
+        [In] int dwFlags);
 
-        [PreserveSig]
-        new int AllocateSample(
-            [In] int dwFlags,
-            [MarshalAs(UnmanagedType.Interface)] out IStreamSample ppSample
-            );
+    [PreserveSig]
+    new int AllocateSample(
+        [In] int dwFlags,
+        [MarshalAs(UnmanagedType.Interface)] out IStreamSample ppSample
+    );
 
-        [PreserveSig]
-        new int CreateSharedSample(
-            [In, MarshalAs(UnmanagedType.Interface)] IStreamSample pExistingSample,
-            [In] int dwFlags,
-            [MarshalAs(UnmanagedType.Interface)] out IStreamSample ppNewSample
-            );
+    [PreserveSig]
+    new int CreateSharedSample(
+        [In] [MarshalAs(UnmanagedType.Interface)]
+        IStreamSample pExistingSample,
+        [In] int dwFlags,
+        [MarshalAs(UnmanagedType.Interface)] out IStreamSample ppNewSample
+    );
 
-        [PreserveSig]
-        new int SendEndOfStream(
-            int dwFlags
-            );
+    [PreserveSig]
+    new int SendEndOfStream(
+        int dwFlags
+    );
 
-        #endregion
+    #endregion
 
-        [PreserveSig]
-        int GetFormat(
-            [Out, MarshalAs(UnmanagedType.LPStruct)] WaveFormatEx pWaveFormatCurrent
-            );
+    [PreserveSig]
+    int GetFormat(
+        [Out] [MarshalAs(UnmanagedType.LPStruct)]
+        WaveFormatEx pWaveFormatCurrent
+    );
 
-        [PreserveSig]
-        int SetFormat(
-            [In] WaveFormatEx lpWaveFormat
-            );
+    [PreserveSig]
+    int SetFormat(
+        [In] WaveFormatEx lpWaveFormat
+    );
 
-        [PreserveSig]
-        int CreateSample(
+    [PreserveSig]
+    int CreateSample(
 #if ALLOW_UNTESTED_INTERFACES
             [In, MarshalAs(UnmanagedType.Interface)] IAudioData pAudioData,
             [In] int dwFlags,
             [MarshalAs(UnmanagedType.Interface)] out IAudioStreamSample ppSample
 #else
-            [In, MarshalAs(UnmanagedType.Interface)] object pAudioData,
-            [In] int dwFlags,
-            [MarshalAs(UnmanagedType.Interface)] out object ppSample
+        [In] [MarshalAs(UnmanagedType.Interface)]
+        object pAudioData,
+        [In] int dwFlags,
+        [MarshalAs(UnmanagedType.Interface)] out object ppSample
 #endif
-            );
-    }
-
-    #endregion
+    );
 }
+
+#endregion

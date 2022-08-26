@@ -22,15 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
-using System;
-using System.Runtime.InteropServices;
+namespace DirectShowLib.BDA;
 
-namespace DirectShowLib.BDA
-{
-    #region Declarations
+#region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
-
     /// <summary>
     /// Defines
     /// </summary>
@@ -206,15 +202,13 @@ namespace DirectShowLib.BDA
         public long qwStreamTime;
         public long qwLiveTime;
     }
-
 #endif
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     Guid("583ec3cc-4960-4857-982b-41a33ea0a006"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -251,8 +245,6 @@ namespace DirectShowLib.BDA
           [In, Out] ref int dwAttributeLength
           );
     }
-
 #endif
 
-    #endregion
-}
+#endregion

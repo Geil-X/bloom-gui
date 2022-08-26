@@ -26,80 +26,87 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace DirectShowLib.BDA
+namespace DirectShowLib.BDA;
+
+#region COM Class Objects
+
+/// <summary>
+///     CLSID_ETFilterEncProperties
+/// </summary>
+[ComImport]
+[Guid("C4C4C481-0049-4E2B-98FB-9537F6CE516D")]
+public class ETFilterEncProperties
 {
-    #region COM Class Objects
+}
 
-    /// <summary>
-    /// CLSID_ETFilterEncProperties
-    /// </summary>
-    [ComImport, Guid("C4C4C481-0049-4E2B-98FB-9537F6CE516D")]
-    public class ETFilterEncProperties
-    {
-    }
+/// <summary>
+///     CLSID_ETFilterTagProperties
+/// </summary>
+[ComImport]
+[Guid("C4C4C491-0049-4E2B-98FB-9537F6CE516D")]
+public class ETFilterTagProperties
+{
+}
 
-    /// <summary>
-    /// CLSID_ETFilterTagProperties
-    /// </summary>
-    [ComImport, Guid("C4C4C491-0049-4E2B-98FB-9537F6CE516D")]
-    public class ETFilterTagProperties
-    {
-    }
+/// <summary>
+///     CLSID_DTFilterEncProperties
+/// </summary>
+[ComImport]
+[Guid("C4C4C482-0049-4E2B-98FB-9537F6CE516D")]
+public class DTFilterEncProperties
+{
+}
 
-    /// <summary>
-    /// CLSID_DTFilterEncProperties
-    /// </summary>
-    [ComImport, Guid("C4C4C482-0049-4E2B-98FB-9537F6CE516D")]
-    public class DTFilterEncProperties
-    {
-    }
+/// <summary>
+///     CLSID_DTFilterTagProperties
+/// </summary>
+[ComImport]
+[Guid("C4C4C492-0049-4E2B-98FB-9537F6CE516D")]
+public class DTFilterTagProperties
+{
+}
 
-    /// <summary>
-    /// CLSID_DTFilterTagProperties
-    /// </summary>
-    [ComImport, Guid("C4C4C492-0049-4E2B-98FB-9537F6CE516D")]
-    public class DTFilterTagProperties
-    {
-    }
+/// <summary>
+///     CLSID_XDSCodecProperties
+/// </summary>
+[ComImport]
+[Guid("C4C4C483-0049-4E2B-98FB-9537F6CE516D")]
+public class XDSCodecProperties
+{
+}
 
-    /// <summary>
-    /// CLSID_XDSCodecProperties
-    /// </summary>
-    [ComImport, Guid("C4C4C483-0049-4E2B-98FB-9537F6CE516D")]
-    public class XDSCodecProperties
-    {
-    }
+/// <summary>
+///     CLSID_XDSCodecTagProperties
+/// </summary>
+[ComImport]
+[Guid("C4C4C493-0049-4E2B-98FB-9537F6CE516D")]
+public class XDSCodecTagProperties
+{
+}
 
-    /// <summary>
-    /// CLSID_XDSCodecTagProperties
-    /// </summary>
-    [ComImport, Guid("C4C4C493-0049-4E2B-98FB-9537F6CE516D")]
-    public class XDSCodecTagProperties
-    {
-    }
+/// <summary>
+///     CLSID_CXDSData
+/// </summary>
+[ComImport]
+[Guid("C4C4C4F4-0049-4E2B-98FB-9537F6CE516D")]
+public class CXDSData
+{
+}
 
-    /// <summary>
-    /// CLSID_CXDSData
-    /// </summary>
-    [ComImport, Guid("C4C4C4F4-0049-4E2B-98FB-9537F6CE516D")]
-    public class CXDSData
-    {
-    }
+/// <summary>
+///     CLSID_XDSCodec
+/// </summary>
+[ComImport]
+[Guid("C4C4C4F3-0049-4E2B-98FB-9537F6CE516D")]
+public class XDSCodec
+{
+}
 
-    /// <summary>
-    /// CLSID_XDSCodec
-    /// </summary>
-    [ComImport, Guid("C4C4C4F3-0049-4E2B-98FB-9537F6CE516D")]
-    public class XDSCodec
-    {
-    }
+#endregion
 
-    #endregion
-
-    #region Declarations
+#region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
-
     /// <summary>
     /// From FormatNotSupportedEvents
     /// </summary>
@@ -242,99 +249,118 @@ namespace DirectShowLib.BDA
         InWindowOnly = 1,
         Undefined = 2
     }
-
 #endif
 
-    /// <summary>
-    /// From ProtType
-    /// </summary>
-    public enum ProtType
-    {
-        None = 0,
-        Free = 1,
-        Once = 2,
-        Never = 3,
-        NeverReally = 4,
-        NoMore = 5,
-        FreeCit = 6,
-        BF = 7,
-        CnRecordingStop = 8,
-        FreeSecure = 9,
-        Invalid = 50
-    }
+/// <summary>
+///     From ProtType
+/// </summary>
+public enum ProtType
+{
+    None = 0,
+    Free = 1,
+    Once = 2,
+    Never = 3,
+    NeverReally = 4,
+    NoMore = 5,
+    FreeCit = 6,
+    BF = 7,
+    CnRecordingStop = 8,
+    FreeSecure = 9,
+    Invalid = 50
+}
 
-    static public class EventID
-    {
-        /// <summary> EVENTID_XDSCodecNewXDSRating </summary>
-        public static readonly Guid XDSCodecNewXDSRating = new Guid(0xC4C4C4E0, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+public static class EventID
+{
+    /// <summary> EVENTID_XDSCodecNewXDSRating </summary>
+    public static readonly Guid XDSCodecNewXDSRating =
+        new(0xC4C4C4E0, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_XDSCodecDuplicateXDSRating </summary>
-        public static readonly Guid XDSCodecDuplicateXDSRating = new Guid(0xC4C4C4DF, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_XDSCodecDuplicateXDSRating </summary>
+    public static readonly Guid XDSCodecDuplicateXDSRating =
+        new(0xC4C4C4DF, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_XDSCodecNewXDSPacket </summary>
-        public static readonly Guid XDSCodecNewXDSPacket = new Guid(0xC4C4C4E1, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_XDSCodecNewXDSPacket </summary>
+    public static readonly Guid XDSCodecNewXDSPacket =
+        new(0xC4C4C4E1, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterRatingChange </summary>
-        public static readonly Guid DTFilterRatingChange = new Guid(0xC4C4C4E2, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterRatingChange </summary>
+    public static readonly Guid DTFilterRatingChange =
+        new(0xC4C4C4E2, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterRatingsBlock </summary>
-        public static readonly Guid DTFilterRatingsBlock = new Guid(0xC4C4C4E3, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterRatingsBlock </summary>
+    public static readonly Guid DTFilterRatingsBlock =
+        new(0xC4C4C4E3, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterRatingsUnblock </summary>
-        public static readonly Guid DTFilterRatingsUnblock = new Guid(0xC4C4C4E4, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterRatingsUnblock </summary>
+    public static readonly Guid DTFilterRatingsUnblock =
+        new(0xC4C4C4E4, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterXDSPacket </summary>
-        public static readonly Guid DTFilterXDSPacket = new Guid(0xC4C4C4E5, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterXDSPacket </summary>
+    public static readonly Guid DTFilterXDSPacket =
+        new(0xC4C4C4E5, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_ETFilterEncryptionOn </summary>
-        public static readonly Guid ETFilterEncryptionOn = new Guid(0xC4C4C4E6, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_ETFilterEncryptionOn </summary>
+    public static readonly Guid ETFilterEncryptionOn =
+        new(0xC4C4C4E6, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_ETFilterEncryptionOff </summary>
-        public static readonly Guid ETFilterEncryptionOff = new Guid(0xC4C4C4E7, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_ETFilterEncryptionOff </summary>
+    public static readonly Guid ETFilterEncryptionOff =
+        new(0xC4C4C4E7, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterCOPPUnblock </summary>
-        public static readonly Guid DTFilterCOPPUnblock = new Guid(0xC4C4C4E8, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterCOPPUnblock </summary>
+    public static readonly Guid DTFilterCOPPUnblock =
+        new(0xC4C4C4E8, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_EncDecFilterError </summary>
-        public static readonly Guid EncDecFilterError = new Guid(0xC4C4C4E9, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_EncDecFilterError </summary>
+    public static readonly Guid EncDecFilterError =
+        new(0xC4C4C4E9, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterCOPPBlock </summary>
-        public static readonly Guid DTFilterCOPPBlock = new Guid(0xC4C4C4EA, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterCOPPBlock </summary>
+    public static readonly Guid DTFilterCOPPBlock =
+        new(0xC4C4C4EA, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_ETFilterCopyOnce </summary>
-        public static readonly Guid ETFilterCopyOnce = new Guid(0xC4C4C4EB, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_ETFilterCopyOnce </summary>
+    public static readonly Guid ETFilterCopyOnce =
+        new(0xC4C4C4EB, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_ETFilterCopyNever </summary>
-        public static readonly Guid ETFilterCopyNever = new Guid(0xC4C4C4F0, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_ETFilterCopyNever </summary>
+    public static readonly Guid ETFilterCopyNever =
+        new(0xC4C4C4F0, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterDataFormatOK </summary>
-        public static readonly Guid DTFilterDataFormatOK = new Guid(0xC4C4C4EC, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterDataFormatOK </summary>
+    public static readonly Guid DTFilterDataFormatOK =
+        new(0xC4C4C4EC, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_DTFilterDataFormatFailure </summary>
-        public static readonly Guid DTFilterDataFormatFailure = new Guid(0xC4C4C4ED, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_DTFilterDataFormatFailure </summary>
+    public static readonly Guid DTFilterDataFormatFailure =
+        new(0xC4C4C4ED, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_ETDTFilterLicenseOK </summary>
-        public static readonly Guid ETDTFilterLicenseOK = new Guid(0xC4C4C4EE, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_ETDTFilterLicenseOK </summary>
+    public static readonly Guid ETDTFilterLicenseOK =
+        new(0xC4C4C4EE, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_ETDTFilterLicenseFailure </summary>
-        public static readonly Guid ETDTFilterLicenseFailure = new Guid(0xC4C4C4EF, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
+    /// <summary> EVENTID_ETDTFilterLicenseFailure </summary>
+    public static readonly Guid ETDTFilterLicenseFailure =
+        new(0xC4C4C4EF, 0x0049, 0x4E2B, 0x98, 0xFB, 0x95, 0x37, 0xF6, 0xCE, 0x51, 0x6D);
 
-        /// <summary> EVENTID_EncDecFilterEvent </summary>
-        public static readonly Guid EncDecFilterEvent = new Guid(0x4a1b465b, 0xfb9, 0x4159, 0xaf, 0xbd, 0xe3, 0x30, 0x6, 0xa0, 0xf9, 0xf4);
+    /// <summary> EVENTID_EncDecFilterEvent </summary>
+    public static readonly Guid EncDecFilterEvent =
+        new(0x4a1b465b, 0xfb9, 0x4159, 0xaf, 0xbd, 0xe3, 0x30, 0x6, 0xa0, 0xf9, 0xf4);
 
-        /// <summary> EVENTID_FormatNotSupportedEvent </summary>
-        public static readonly Guid FormatNotSupportedEvent = new Guid(0x24b2280a, 0xb2aa, 0x4777, 0xbf, 0x65, 0x63, 0xf3, 0x5e, 0x7b, 0x2, 0x4a);
+    /// <summary> EVENTID_FormatNotSupportedEvent </summary>
+    public static readonly Guid FormatNotSupportedEvent =
+        new(0x24b2280a, 0xb2aa, 0x4777, 0xbf, 0x65, 0x63, 0xf3, 0x5e, 0x7b, 0x2, 0x4a);
 
-        /// <summary> EVENTID_DemultiplexerFilterDiscontinuity </summary>
-        public static readonly Guid DemultiplexerFilterDiscontinuity = new Guid(0x16155770, 0xaed5, 0x475c, 0xbb, 0x98, 0x95, 0xa3, 0x30, 0x70, 0xdf, 0xc);
-    }
+    /// <summary> EVENTID_DemultiplexerFilterDiscontinuity </summary>
+    public static readonly Guid DemultiplexerFilterDiscontinuity =
+        new(0x16155770, 0xaed5, 0x475c, 0xbb, 0x98, 0x95, 0xa3, 0x30, 0x70, 0xdf, 0xc);
+}
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     Guid("FAF37694-909C-49cd-886F-C7382E5DB596"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -459,266 +485,266 @@ namespace DirectShowLib.BDA
         [PreserveSig]
         int GetLastErrorCode();
     }
-
 #endif
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("C4C4C4D3-0049-4E2B-98FB-9537F6CE516D"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IXDSCodecConfig
-    {
-        [PreserveSig]
-        int GetSecureChannelObject(
-            [MarshalAs(UnmanagedType.IUnknown)] out object ppUnkDRMSecureChannel
-            );
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("C4C4C4D3-0049-4E2B-98FB-9537F6CE516D")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IXDSCodecConfig
+{
+    [PreserveSig]
+    int GetSecureChannelObject(
+        [MarshalAs(UnmanagedType.IUnknown)] out object ppUnkDRMSecureChannel
+    );
 
-        [PreserveSig]
-        int SetPauseBufferTime(
-            int dwPauseBufferTime
-            );
-    }
+    [PreserveSig]
+    int SetPauseBufferTime(
+        int dwPauseBufferTime
+    );
+}
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("C4C4C4B2-0049-4E2B-98FB-9537F6CE516D"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDTFilter
-    {
-        [PreserveSig]
-        int get_EvalRatObjOK(
-            out int pHrCoCreateRetVal
-            );
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("C4C4C4B2-0049-4E2B-98FB-9537F6CE516D")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDTFilter
+{
+    [PreserveSig]
+    int get_EvalRatObjOK(
+        out int pHrCoCreateRetVal
+    );
 
-        [PreserveSig]
-        int GetCurrRating(
-            out EnTvRat_System pEnSystem,
-            out EnTvRat_GenericLevel pEnRating,
-            out BfEnTvRat_GenericAttributes plbfEnAttr
-            );
+    [PreserveSig]
+    int GetCurrRating(
+        out EnTvRat_System pEnSystem,
+        out EnTvRat_GenericLevel pEnRating,
+        out BfEnTvRat_GenericAttributes plbfEnAttr
+    );
 
-        [PreserveSig]
-        int get_BlockedRatingAttributes(
-            EnTvRat_System enSystem,
-            EnTvRat_GenericLevel enLevel,
-            out BfEnTvRat_GenericAttributes plbfEnAttr
-            );
+    [PreserveSig]
+    int get_BlockedRatingAttributes(
+        EnTvRat_System enSystem,
+        EnTvRat_GenericLevel enLevel,
+        out BfEnTvRat_GenericAttributes plbfEnAttr
+    );
 
-        [PreserveSig]
-        int put_BlockedRatingAttributes(
-            EnTvRat_System enSystem,
-            EnTvRat_GenericLevel enLevel,
-            BfEnTvRat_GenericAttributes lbfAttrs
-            );
+    [PreserveSig]
+    int put_BlockedRatingAttributes(
+        EnTvRat_System enSystem,
+        EnTvRat_GenericLevel enLevel,
+        BfEnTvRat_GenericAttributes lbfAttrs
+    );
 
-        [PreserveSig]
-        int get_BlockUnRated(
-            [MarshalAs(UnmanagedType.Bool)] out bool pfBlockUnRatedShows
-            );
+    [PreserveSig]
+    int get_BlockUnRated(
+        [MarshalAs(UnmanagedType.Bool)] out bool pfBlockUnRatedShows
+    );
 
-        [PreserveSig]
-        int put_BlockUnRated(
-            [MarshalAs(UnmanagedType.Bool)] bool fBlockUnRatedShows
-            );
+    [PreserveSig]
+    int put_BlockUnRated(
+        [MarshalAs(UnmanagedType.Bool)] bool fBlockUnRatedShows
+    );
 
-        [PreserveSig]
-        int get_BlockUnRatedDelay(
-            out int pmsecsDelayBeforeBlock
-            );
+    [PreserveSig]
+    int get_BlockUnRatedDelay(
+        out int pmsecsDelayBeforeBlock
+    );
 
-        [PreserveSig]
-        int put_BlockUnRatedDelay(
-            int msecsDelayBeforeBlock
-            );
-    }
+    [PreserveSig]
+    int put_BlockUnRatedDelay(
+        int msecsDelayBeforeBlock
+    );
+}
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("C4C4C4B4-0049-4E2B-98FB-9537F6CE516D"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDTFilter2 : IDTFilter
-    {
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("C4C4C4B4-0049-4E2B-98FB-9537F6CE516D")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDTFilter2 : IDTFilter
+{
+    #region IDTFilter methods
 
-        #region IDTFilter methods
+    [PreserveSig]
+    new int get_EvalRatObjOK(
+        out int pHrCoCreateRetVal
+    );
 
-        [PreserveSig]
-        new int get_EvalRatObjOK(
-            out int pHrCoCreateRetVal
-            );
+    [PreserveSig]
+    new int GetCurrRating(
+        out EnTvRat_System pEnSystem,
+        out EnTvRat_GenericLevel pEnRating,
+        out BfEnTvRat_GenericAttributes plbfEnAttr
+    );
 
-        [PreserveSig]
-        new int GetCurrRating(
-            out EnTvRat_System pEnSystem,
-            out EnTvRat_GenericLevel pEnRating,
-            out BfEnTvRat_GenericAttributes plbfEnAttr
-            );
+    [PreserveSig]
+    new int get_BlockedRatingAttributes(
+        EnTvRat_System enSystem,
+        EnTvRat_GenericLevel enLevel,
+        out BfEnTvRat_GenericAttributes plbfEnAttr
+    );
 
-        [PreserveSig]
-        new int get_BlockedRatingAttributes(
-            EnTvRat_System enSystem,
-            EnTvRat_GenericLevel enLevel,
-            out BfEnTvRat_GenericAttributes plbfEnAttr
-            );
+    [PreserveSig]
+    new int put_BlockedRatingAttributes(
+        EnTvRat_System enSystem,
+        EnTvRat_GenericLevel enLevel,
+        BfEnTvRat_GenericAttributes lbfAttrs
+    );
 
-        [PreserveSig]
-        new int put_BlockedRatingAttributes(
-            EnTvRat_System enSystem,
-            EnTvRat_GenericLevel enLevel,
-            BfEnTvRat_GenericAttributes lbfAttrs
-            );
+    [PreserveSig]
+    new int get_BlockUnRated(
+        [MarshalAs(UnmanagedType.Bool)] out bool pfBlockUnRatedShows
+    );
 
-        [PreserveSig]
-        new int get_BlockUnRated(
-            [MarshalAs(UnmanagedType.Bool)] out bool pfBlockUnRatedShows
-            );
+    [PreserveSig]
+    new int put_BlockUnRated(
+        [MarshalAs(UnmanagedType.Bool)] bool fBlockUnRatedShows
+    );
 
-        [PreserveSig]
-        new int put_BlockUnRated(
-            [MarshalAs(UnmanagedType.Bool)] bool fBlockUnRatedShows
-            );
+    [PreserveSig]
+    new int get_BlockUnRatedDelay(
+        out int pmsecsDelayBeforeBlock
+    );
 
-        [PreserveSig]
-        new int get_BlockUnRatedDelay(
-            out int pmsecsDelayBeforeBlock
-            );
-
-        [PreserveSig]
-        new int put_BlockUnRatedDelay(
-            int msecsDelayBeforeBlock
-            );
-
-        #endregion
-
-        [PreserveSig]
-        int get_ChallengeUrl(
-            [MarshalAs(UnmanagedType.BStr)] out string pbstrChallengeUrl
-            );
-
-        [PreserveSig]
-        int GetCurrLicenseExpDate(
-            ProtType protType,
-           out int lpDateTime
-            );
-
-        [PreserveSig]
-        int GetLastErrorCode();
-
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("C4C4C4D1-0049-4E2B-98FB-9537F6CE516D"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IETFilterConfig
-    {
-        [PreserveSig]
-        int InitLicense(
-            int LicenseId
-            );
-
-        [PreserveSig]
-        int GetSecureChannelObject(
-            [MarshalAs(UnmanagedType.IUnknown)] out object ppUnkDRMSecureChannel
-            );
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("C4C4C4D2-0049-4E2B-98FB-9537F6CE516D"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDTFilterConfig
-    {
-        [PreserveSig]
-        int GetSecureChannelObject(
-            [MarshalAs(UnmanagedType.IUnknown)] out object ppUnkDRMSecureChannel
-            );
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("513998cc-e929-4cdf-9fbd-bad1e0314866"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDTFilter3 : IDTFilter2
-    {
-
-        #region IDTFilter methods
-
-        [PreserveSig]
-        new int get_EvalRatObjOK(
-            out int pHrCoCreateRetVal
-            );
-
-        [PreserveSig]
-        new int GetCurrRating(
-            out EnTvRat_System pEnSystem,
-            out EnTvRat_GenericLevel pEnRating,
-            out BfEnTvRat_GenericAttributes plbfEnAttr
-            );
-
-        [PreserveSig]
-        new int get_BlockedRatingAttributes(
-            EnTvRat_System enSystem,
-            EnTvRat_GenericLevel enLevel,
-            out BfEnTvRat_GenericAttributes plbfEnAttr
-            );
-
-        [PreserveSig]
-        new int put_BlockedRatingAttributes(
-            EnTvRat_System enSystem,
-            EnTvRat_GenericLevel enLevel,
-            BfEnTvRat_GenericAttributes lbfAttrs
-            );
-
-        [PreserveSig]
-        new int get_BlockUnRated(
-            [MarshalAs(UnmanagedType.Bool)] out bool pfBlockUnRatedShows
-            );
-
-        [PreserveSig]
-        new int put_BlockUnRated(
-            [MarshalAs(UnmanagedType.Bool)] bool fBlockUnRatedShows
-            );
-
-        [PreserveSig]
-        new int get_BlockUnRatedDelay(
-            out int pmsecsDelayBeforeBlock
-            );
-
-        [PreserveSig]
-        new int put_BlockUnRatedDelay(
-            int msecsDelayBeforeBlock
-            );
-
-        #endregion
-
-        #region IDTFilter2 methods
-
-        [PreserveSig]
-        new int get_ChallengeUrl(
-            [MarshalAs(UnmanagedType.BStr)] out string pbstrChallengeUrl
-            );
-
-        [PreserveSig]
-        new int GetCurrLicenseExpDate(
-            ProtType protType,
-            out int lpDateTime
-            );
-
-        [PreserveSig]
-        new int GetLastErrorCode();
-
-        #endregion
-
-        [PreserveSig]
-        int GetProtectionType(
-            out ProtType pProtectionType
-            );
-
-        [PreserveSig]
-        int LicenseHasExpirationDate(
-            [MarshalAs(UnmanagedType.Bool)] out bool pfLicenseHasExpirationDate
-            );
-
-        [PreserveSig]
-        int SetRights(
-            [MarshalAs(UnmanagedType.BStr)] string bstrRights
-            );
-    }
+    [PreserveSig]
+    new int put_BlockUnRatedDelay(
+        int msecsDelayBeforeBlock
+    );
 
     #endregion
 
+    [PreserveSig]
+    int get_ChallengeUrl(
+        [MarshalAs(UnmanagedType.BStr)] out string pbstrChallengeUrl
+    );
+
+    [PreserveSig]
+    int GetCurrLicenseExpDate(
+        ProtType protType,
+        out int lpDateTime
+    );
+
+    [PreserveSig]
+    int GetLastErrorCode();
 }
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("C4C4C4D1-0049-4E2B-98FB-9537F6CE516D")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IETFilterConfig
+{
+    [PreserveSig]
+    int InitLicense(
+        int LicenseId
+    );
+
+    [PreserveSig]
+    int GetSecureChannelObject(
+        [MarshalAs(UnmanagedType.IUnknown)] out object ppUnkDRMSecureChannel
+    );
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("C4C4C4D2-0049-4E2B-98FB-9537F6CE516D")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDTFilterConfig
+{
+    [PreserveSig]
+    int GetSecureChannelObject(
+        [MarshalAs(UnmanagedType.IUnknown)] out object ppUnkDRMSecureChannel
+    );
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("513998cc-e929-4cdf-9fbd-bad1e0314866")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDTFilter3 : IDTFilter2
+{
+    #region IDTFilter methods
+
+    [PreserveSig]
+    new int get_EvalRatObjOK(
+        out int pHrCoCreateRetVal
+    );
+
+    [PreserveSig]
+    new int GetCurrRating(
+        out EnTvRat_System pEnSystem,
+        out EnTvRat_GenericLevel pEnRating,
+        out BfEnTvRat_GenericAttributes plbfEnAttr
+    );
+
+    [PreserveSig]
+    new int get_BlockedRatingAttributes(
+        EnTvRat_System enSystem,
+        EnTvRat_GenericLevel enLevel,
+        out BfEnTvRat_GenericAttributes plbfEnAttr
+    );
+
+    [PreserveSig]
+    new int put_BlockedRatingAttributes(
+        EnTvRat_System enSystem,
+        EnTvRat_GenericLevel enLevel,
+        BfEnTvRat_GenericAttributes lbfAttrs
+    );
+
+    [PreserveSig]
+    new int get_BlockUnRated(
+        [MarshalAs(UnmanagedType.Bool)] out bool pfBlockUnRatedShows
+    );
+
+    [PreserveSig]
+    new int put_BlockUnRated(
+        [MarshalAs(UnmanagedType.Bool)] bool fBlockUnRatedShows
+    );
+
+    [PreserveSig]
+    new int get_BlockUnRatedDelay(
+        out int pmsecsDelayBeforeBlock
+    );
+
+    [PreserveSig]
+    new int put_BlockUnRatedDelay(
+        int msecsDelayBeforeBlock
+    );
+
+    #endregion
+
+    #region IDTFilter2 methods
+
+    [PreserveSig]
+    new int get_ChallengeUrl(
+        [MarshalAs(UnmanagedType.BStr)] out string pbstrChallengeUrl
+    );
+
+    [PreserveSig]
+    new int GetCurrLicenseExpDate(
+        ProtType protType,
+        out int lpDateTime
+    );
+
+    [PreserveSig]
+    new int GetLastErrorCode();
+
+    #endregion
+
+    [PreserveSig]
+    int GetProtectionType(
+        out ProtType pProtectionType
+    );
+
+    [PreserveSig]
+    int LicenseHasExpirationDate(
+        [MarshalAs(UnmanagedType.Bool)] out bool pfLicenseHasExpirationDate
+    );
+
+    [PreserveSig]
+    int SetRights(
+        [MarshalAs(UnmanagedType.BStr)] string bstrRights
+    );
+}
+
+#endregion

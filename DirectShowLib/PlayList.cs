@@ -22,15 +22,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
-using System;
-using System.Runtime.InteropServices;
+namespace DirectShowLib;
 
-namespace DirectShowLib
-{
-    #region Declarations
+#region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
-
     /// <summary>
     /// From AMPlayListItemFlags
     /// </summary>
@@ -50,15 +46,13 @@ namespace DirectShowLib
         StartInScanMode = 0x1,
         ForceBanner = 0x2
     }
-
 #endif
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     Guid("56a868ff-0ad4-11ce-b03a-0020af0ba770"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -166,8 +160,6 @@ namespace DirectShowLib
     {
         int RebuildNow( );
     };
-
 #endif
 
-    #endregion
-}
+#endregion

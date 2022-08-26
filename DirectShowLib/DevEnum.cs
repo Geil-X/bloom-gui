@@ -34,7 +34,7 @@ namespace DirectShowLib
     #region Declarations
 
     /// <summary>
-    /// From CDEF_CLASS_* defines
+    ///     From CDEF_CLASS_* defines
     /// </summary>
     [Flags]
     public enum CDef
@@ -55,14 +55,16 @@ namespace DirectShowLib
 
     #region Interfaces
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("29840822-5B84-11D0-BD3B-00A0C911CE86"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [ComImport]
+    [SuppressUnmanagedCodeSecurity]
+    [Guid("29840822-5B84-11D0-BD3B-00A0C911CE86")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     public interface ICreateDevEnum
     {
         [PreserveSig]
         int CreateClassEnumerator(
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid pType,
+            [In] [MarshalAs(UnmanagedType.LPStruct)]
+            Guid pType,
 #if USING_NET11
             [Out] out UCOMIEnumMoniker ppEnumMoniker,
 #else

@@ -25,86 +25,58 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 using System;
 using System.Runtime.InteropServices;
 
-namespace DirectShowLib.BDA
+namespace DirectShowLib.BDA;
+
+#region Declarations
+
+// From Mpeg2Bits.h
+
+/// <summary>
+///     From PID_BITS & PID_BITS_MIDL
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 2)]
+public struct PidBits
 {
-    #region Declarations
+    public short Bits;
 
-    // From Mpeg2Bits.h
+    public short Reserved => (short) (Bits & 0x0007);
 
-    /// <summary>
-    /// From PID_BITS & PID_BITS_MIDL
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 2)]
-    public struct PidBits
-    {
-        public short Bits;
+    public short ProgramId => (short) ((Bits & 0xfff8) >> 3);
+}
 
-        public short Reserved
-        {
-            get { return (short)((int)Bits & 0x0007); }
-        }
+/// <summary>
+///     From MPEG_HEADER_BITS & MPEG_HEADER_BITS_MIDL
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 2)]
+public struct MpegHeaderBits
+{
+    public short Bits;
 
-        public short ProgramId
-        {
-            get { return (short)(((int)Bits & 0xfff8) >> 3); }
-        }
-    }
+    public short SectionLength => (short) (Bits & 0x0fff);
 
-    /// <summary>
-    /// From MPEG_HEADER_BITS & MPEG_HEADER_BITS_MIDL
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 2)]
-    public struct MpegHeaderBits
-    {
-        public short Bits;
+    public short Reserved => (short) ((Bits & 0x3000) >> 12);
 
-        public short SectionLength
-        {
-            get { return (short)((int)Bits & 0x0fff); }
-        }
+    public short PrivateIndicator => (short) ((Bits & 0x4000) >> 14);
 
-        public short Reserved
-        {
-            get { return (short)(((int)Bits & 0x3000) >> 12); }
-        }
+    public short SectionSyntaxIndicator => (short) ((Bits & 0x8000) >> 15);
+}
 
-        public short PrivateIndicator
-        {
-            get { return (short)(((int)Bits & 0x4000) >> 14); }
-        }
+/// <summary>
+///     From MPEG_HEADER_VERSION_BITS & MPEG_HEADER_VERSION_BITS_MIDL
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct MpegHeaderVersionBits
+{
+    public byte Bits;
 
-        public short SectionSyntaxIndicator
-        {
-            get { return (short)(((int)Bits & 0x8000) >> 15); }
-        }
-    }
+    public byte CurrentNextIndicator => (byte) (Bits & 0x1);
 
-    /// <summary>
-    /// From MPEG_HEADER_VERSION_BITS & MPEG_HEADER_VERSION_BITS_MIDL
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct MpegHeaderVersionBits
-    {
-        public byte Bits;
+    public byte VersionNumber => (byte) ((Bits & 0x3e) >> 1);
 
-        public byte CurrentNextIndicator
-        {
-            get { return (byte)((int)Bits & 0x1); }
-        }
-
-        public byte VersionNumber
-        {
-            get { return (byte)(((int)Bits & 0x3e) >> 1); }
-        }
-
-        public byte Reserved
-        {
-            get { return (byte)(((int)Bits & 0xc0) >> 6); }
-        }
-    }
+    public byte Reserved => (byte) ((Bits & 0xc0) >> 6);
+}
 
 #if ALLOW_UNTESTED_INTERFACES
-
     /// <summary>
     /// From MPEG_CURRENT_NEXT_BIT, MPEG_SECTION_IS_*
     /// </summary>
@@ -240,75 +212,73 @@ namespace DirectShowLib.BDA
     }
 #endif
 
-    /// <summary>
-    /// From MPEG_DURATION & MPEG_TIME
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct MpegDuration
+/// <summary>
+///     From MPEG_DURATION & MPEG_TIME
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct MpegDuration
+{
+    public byte Hours;
+    public byte Minutes;
+    public byte Seconds;
+
+    public TimeSpan ToTimeSpan()
     {
-        public byte Hours;
-        public byte Minutes;
-        public byte Seconds;
-
-        public TimeSpan ToTimeSpan()
-        {
-            return new TimeSpan(this.Hours, this.Minutes, this.Seconds);
-        }
+        return new TimeSpan(Hours, Minutes, Seconds);
     }
+}
 
-    /// <summary>
-    /// From MPEG_DATE_AND_TIME
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct MpegDateAndTime
+/// <summary>
+///     From MPEG_DATE_AND_TIME
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct MpegDateAndTime
+{
+    //public MpegDate D;
+    //public MpegTime T;
+    // Marshaling is faster like that...
+    public byte Date;
+    public byte Month;
+    public short Year;
+    public byte Hours;
+    public byte Minutes;
+    public byte Seconds;
+
+    public DateTime ToDateTime()
     {
-        //public MpegDate D;
-        //public MpegTime T;
-        // Marshaling is faster like that...
-        public byte Date;
-        public byte Month;
-        public short Year;
-        public byte Hours;
-        public byte Minutes;
-        public byte Seconds;
-
-        public DateTime ToDateTime()
-        {
-            return new DateTime(this.Year, this.Month, this.Date, this.Hours, this.Minutes, this.Seconds);
-        }
+        return new DateTime(Year, Month, Date, Hours, Minutes, Seconds);
     }
+}
 
-    /// <summary>
-    /// From DSMCC_ELEMENT
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public class DsmccElement
-    {
-        public short pid;
-        public byte bComponentTag;
-        public int dwCarouselId;
-        public int dwTransactionId;
-        public DsmccElement pNext;
-    }
+/// <summary>
+///     From DSMCC_ELEMENT
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public class DsmccElement
+{
+    public byte bComponentTag;
+    public int dwCarouselId;
+    public int dwTransactionId;
+    public short pid;
+    public DsmccElement pNext;
+}
 
-    /// <summary>
-    /// From MPE_ELEMENT
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public class MpeElement
-    {
-        public short pid;
-        public byte bComponentTag;
-        public MpeElement pNext;
-    }
+/// <summary>
+///     From MPE_ELEMENT
+/// </summary>
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public class MpeElement
+{
+    public byte bComponentTag;
+    public short pid;
+    public MpeElement pNext;
+}
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
 #endif
 
-    #endregion
-}
+#endregion

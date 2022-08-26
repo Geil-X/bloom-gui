@@ -26,21 +26,23 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace DirectShowLib
+namespace DirectShowLib;
+
+#region Interfaces
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("52d6f586-9f0f-4824-8fc8-e32ca04930c2")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDMOWrapperFilter
 {
-    #region Interfaces
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("52d6f586-9f0f-4824-8fc8-e32ca04930c2"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDMOWrapperFilter
-    {
-        [PreserveSig]
-        int Init(
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid clsidDMO,
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid catDMO
-            );
-    }
-
-    #endregion
+    [PreserveSig]
+    int Init(
+        [In] [MarshalAs(UnmanagedType.LPStruct)]
+        Guid clsidDMO,
+        [In] [MarshalAs(UnmanagedType.LPStruct)]
+        Guid catDMO
+    );
 }
+
+#endregion

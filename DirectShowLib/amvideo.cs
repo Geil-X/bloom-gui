@@ -22,17 +22,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endregion
 
-using System;
-using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace DirectShowLib
-{
-    #region Declarations
+namespace DirectShowLib;
+
+#region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
-
     /// <summary>
     /// From AMDDS_* defines
     /// </summary>
@@ -59,7 +56,7 @@ namespace DirectShowLib
     /// </summary>
     public enum PropertyFrameStep
     {
-        Step   = 0x01,
+        Step = 0x01,
         Cancel = 0x02,
         CanStep = 0x03,
         CanStepMultiple = 0x04
@@ -98,15 +95,13 @@ namespace DirectShowLib
         public int            dwActiveHeight;
         public long  AvgTimePerFrame;
     }
-
 #endif
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     Guid("36d39eb0-dd75-11ce-bf0e-00aa0055595a"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -319,32 +314,31 @@ namespace DirectShowLib
         [PreserveSig]
         int SetClockPeriod(int bValue);
     }
-
 #endif
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("1bd0ecb0-f8e2-11ce-aac6-0020af0b99a3"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IQualProp
-    {
-        [PreserveSig]
-        int get_FramesDroppedInRenderer(out int pcFrames);
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("1bd0ecb0-f8e2-11ce-aac6-0020af0b99a3")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IQualProp
+{
+    [PreserveSig]
+    int get_FramesDroppedInRenderer(out int pcFrames);
 
-        [PreserveSig]
-        int get_FramesDrawn(out int pcFramesDrawn);
+    [PreserveSig]
+    int get_FramesDrawn(out int pcFramesDrawn);
 
-        [PreserveSig]
-        int get_AvgFrameRate(out int piAvgFrameRate);
+    [PreserveSig]
+    int get_AvgFrameRate(out int piAvgFrameRate);
 
-        [PreserveSig]
-        int get_Jitter(out int iJitter);
+    [PreserveSig]
+    int get_Jitter(out int iJitter);
 
-        [PreserveSig]
-        int get_AvgSyncOffset(out int piAvg);
+    [PreserveSig]
+    int get_AvgSyncOffset(out int piAvg);
 
-        [PreserveSig]
-        int get_DevSyncOffset(out int piDev);
-    }
-
-    #endregion
+    [PreserveSig]
+    int get_DevSyncOffset(out int piDev);
 }
+
+#endregion

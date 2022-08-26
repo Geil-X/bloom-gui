@@ -26,12 +26,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace DirectShowLib.BDA
-{
-    #region Declarations
+namespace DirectShowLib.BDA;
+
+#region Declarations
 
 #if ALLOW_UNTESTED_INTERFACES
-
     /// <summary>
     /// From DVB_STRCONV_MODE
     /// </summary>
@@ -42,32 +41,30 @@ namespace DirectShowLib.BDA
         DVB_WITHOUT_EMPHASIS = (DVB_EMPHASIS + 1),
         ISDB = (DVB_WITHOUT_EMPHASIS + 1)
     }
-
 #endif
 
 
-    /// <summary>
-    /// Define possible values for a running_status field according to ETSI EN 300 468
-    /// This enum doesn't exist in the c++ headers
-    /// </summary>
-    public enum RunningStatus : byte
-    {
-        Undefined = 0,
-        NotRunning = 1,
-        StartInAFewSeconds = 2,
-        Pausing = 3,
-        Running = 4,
-        Reserved1 = 5,
-        Reserved2 = 6,
-        Reserved3 = 7
-    }
+/// <summary>
+///     Define possible values for a running_status field according to ETSI EN 300 468
+///     This enum doesn't exist in the c++ headers
+/// </summary>
+public enum RunningStatus : byte
+{
+    Undefined = 0,
+    NotRunning = 1,
+    StartInAFewSeconds = 2,
+    Pausing = 3,
+    Running = 4,
+    Reserved1 = 5,
+    Reserved2 = 6,
+    Reserved3 = 7
+}
 
-    #endregion
+#endregion
 
-    #region Interfaces
+#region Interfaces
 
 #if ALLOW_UNTESTED_INTERFACES
-
     [ComImport, SuppressUnmanagedCodeSecurity,
     Guid("B758A7BD-14DC-449d-B828-35909ACB3B1E"),
     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -3398,493 +3395,496 @@ namespace DirectShowLib.BDA
             );
         
     };
-    
 #endif
 
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("C64935F4-29E4-4e22-911A-63F7F55CB097"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDVB_NIT
-    {
-        [PreserveSig]
-        int Initialize(
-          [In] ISectionList pSectionList,
-          [In] IMpeg2Data pMPEGData
-          );
-
-        [PreserveSig]
-        int GetVersionNumber([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetNetworkId([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetCountOfTableDescriptors([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetTableDescriptorByIndex(
-          [In] int dwIndex,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetTableDescriptorByTag(
-          [In] byte bTag,
-          [In] DsInt pdwCookie,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetCountOfRecords([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetRecordTransportStreamId(
-          [In] int dwRecordIndex,
-          [Out] out short pwVal
-          );
-
-        [PreserveSig]
-        int GetRecordOriginalNetworkId(
-          [In] int dwRecordIndex,
-          [Out] out short pwVal
-          );
-
-        [PreserveSig]
-        int GetRecordCountOfDescriptors(
-          [In] int dwRecordIndex,
-          [Out] out int pdwVal
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByIndex(
-          [In] int dwRecordIndex,
-          [In] int dwIndex,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByTag(
-          [In] int dwRecordIndex,
-          [In] byte bTag,
-          [In, Out] DsInt pdwCookie,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int RegisterForNextTable([In] IntPtr hNextTableAvailable);
-
-        [PreserveSig]
-        int GetNextTable([Out] out IDVB_NIT ppNIT);
-
-        [PreserveSig]
-        int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
-
-        [PreserveSig]
-        int ConvertNextToCurrent();
-
-        [PreserveSig]
-        int GetVersionHash([Out] out int pdwVersionHash);
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("ECE9BB0C-43B6-4558-A0EC-1812C34CD6CA"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDVB_BAT
-    {
-        [PreserveSig]
-        int Initialize(
-          [In] ISectionList pSectionList,
-          [In] IMpeg2Data pMPEGData
-          );
-
-        [PreserveSig]
-        int GetVersionNumber([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetBouquetId([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetCountOfTableDescriptors([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetTableDescriptorByIndex(
-          [In] int dwIndex,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetTableDescriptorByTag(
-          [In] byte bTag,
-          [In] DsInt pdwCookie,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetCountOfRecords([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetRecordTransportStreamId(
-          [In] int dwRecordIndex,
-          [Out] out short pwVal);
-
-        [PreserveSig]
-        int GetRecordOriginalNetworkId(
-          [In] int dwRecordIndex,
-          [Out] out short pwVal
-          );
-
-        [PreserveSig]
-        int GetRecordCountOfDescriptors(
-          [In] int dwRecordIndex,
-          [Out] out int pdwVal
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByIndex(
-          [In] int dwRecordIndex,
-          [In] int dwIndex,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByTag(
-          [In] int dwRecordIndex,
-          [In] byte bTag,
-          [In, Out] DsInt pdwCookie,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int RegisterForNextTable([In] IntPtr hNextTableAvailable);
-
-        [PreserveSig]
-        int GetNextTable([Out] out IDVB_BAT ppBAT);
-
-        [PreserveSig]
-        int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
-
-        [PreserveSig]
-        int ConvertNextToCurrent();
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("ED7E1B91-D12E-420c-B41D-A49D84FE1823"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDvbTerrestrialDeliverySystemDescriptor
-    {
-        [PreserveSig]
-        int GetTag([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetLength([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetCentreFrequency([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetBandwidth([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetConstellation([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetHierarchyInformation([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetCodeRateHPStream([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetCodeRateLPStream([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetGuardInterval([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetTransmissionMode([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetOtherFrequencyFlag([Out] out byte pbVal);
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("442DB029-02CB-4495-8B92-1C13375BCE99"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDVB_EIT
-    {
-        [PreserveSig]
-        int Initialize(
-          [In] ISectionList pSectionList,
-          [In] IMpeg2Data pMPEGData
-          );
-
-        [PreserveSig]
-        int GetVersionNumber([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetServiceId([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetTransportStreamId([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetOriginalNetworkId([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetSegmentLastSectionNumber([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetLastTableId([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetCountOfRecords([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetRecordEventId(
-          [In] int dwRecordIndex,
-          [Out] out short pwVal
-          );
-
-        [PreserveSig]
-        int GetRecordStartTime(
-          [In] int dwRecordIndex,
-          [Out] out MpegDateAndTime pmdtVal
-          );
-
-        [PreserveSig]
-        int GetRecordDuration(
-          [In] int dwRecordIndex,
-          [Out] out MpegDuration pmdVal
-          );
-
-        [PreserveSig]
-        int GetRecordRunningStatus(
-          [In] int dwRecordIndex,
-          [Out] out RunningStatus pbVal
-          );
-
-        [PreserveSig]
-        int GetRecordFreeCAMode(
-          [In] int dwRecordIndex,
-          [Out, MarshalAs(UnmanagedType.Bool)] out bool pfVal
-          );
-
-        [PreserveSig]
-        int GetRecordCountOfDescriptors(
-          [In] int dwRecordIndex,
-          [Out] out int pdwVal
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByIndex(
-          [In] int dwRecordIndex,
-          [In] int dwIndex,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByTag(
-          [In] int dwRecordIndex,
-          [In] byte bTag,
-          [In, Out] DsInt pdwCookie,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int RegisterForNextTable([In] IntPtr hNextTableAvailable);
-
-        [PreserveSig]
-        int GetNextTable([Out] out IDVB_EIT ppEIT);
-
-        [PreserveSig]
-        int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
-
-        [PreserveSig]
-        int ConvertNextToCurrent();
-
-        [PreserveSig]
-        int GetVersionHash([Out] out int pdwVersionHash);
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("02F2225A-805B-4ec5-A9A6-F9B5913CD470"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDvbSatelliteDeliverySystemDescriptor
-    {
-        [PreserveSig]
-        int GetTag([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetLength([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetFrequency([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetOrbitalPosition([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetWestEastFlag([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetPolarization([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetModulation([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetSymbolRate([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetFECInner([Out] out byte pbVal);
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("02CAD8D3-FE43-48e2-90BD-450ED9A8A5FD"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDVB_SDT
-    {
-        [PreserveSig]
-        int Initialize(
-          [In] ISectionList pSectionList,
-          [In] IMpeg2Data pMPEGData
-          );
-
-        [PreserveSig]
-        int GetVersionNumber([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetTransportStreamId([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetOriginalNetworkId([Out] out short pwVal);
-
-        [PreserveSig]
-        int GetCountOfRecords([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetRecordServiceId(
-          [In] int dwRecordIndex,
-          [Out] out short pwVal
-          );
-
-        [PreserveSig]
-        int GetRecordEITScheduleFlag(
-          [In] int dwRecordIndex,
-          [Out, MarshalAs(UnmanagedType.Bool)] out bool pfVal
-          );
-
-        [PreserveSig]
-        int GetRecordEITPresentFollowingFlag(
-          [In] int dwRecordIndex,
-          [Out, MarshalAs(UnmanagedType.Bool)] out bool pfVal
-          );
-
-        [PreserveSig]
-        int GetRecordRunningStatus(
-          [In] int dwRecordIndex,
-          [Out] out RunningStatus pbVal
-          );
-
-        [PreserveSig]
-        int GetRecordFreeCAMode(
-          [In] int dwRecordIndex,
-          [Out, MarshalAs(UnmanagedType.Bool)] out bool pfVal
-          );
-
-        [PreserveSig]
-        int GetRecordCountOfDescriptors(
-          [In] int dwRecordIndex,
-          [Out] out int pdwVal
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByIndex(
-          [In] int dwRecordIndex,
-          [In] int dwIndex,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetRecordDescriptorByTag(
-          [In] int dwRecordIndex,
-          [In] byte bTag,
-          [In, Out] DsInt pdwCookie,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int RegisterForNextTable([In] IntPtr hNextTableAvailable);
-
-        [PreserveSig]
-        int GetNextTable([Out] out IDVB_SDT ppSDT);
-
-        [PreserveSig]
-        int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
-
-        [PreserveSig]
-        int ConvertNextToCurrent();
-
-        [PreserveSig]
-        int GetVersionHash([Out] out int pdwVersionHash);
-
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("CF1EDAFF-3FFD-4cf7-8201-35756ACBF85F"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDvbLogicalChannelDescriptor
-    {
-        [PreserveSig]
-        int GetTag([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetLength([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetCountOfRecords([Out] out byte pbVal);
-
-        [PreserveSig]
-        int GetRecordServiceId(
-          [In] byte bRecordIndex,
-          [Out] out short pwVal
-          );
-
-        [PreserveSig]
-        int GetRecordLogicalChannelNumber(
-          [In] byte bRecordIndex,
-          [Out] out short pwVal
-          );
-    }
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("83295D6A-FABA-4ee1-9B15-8067696910AE"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IDVB_TOT
-    {
-        [PreserveSig]
-        int Initialize([In] ISectionList pSectionList);
-
-        [PreserveSig]
-        int GetUTCTime([Out] out MpegDateAndTime pmdtVal);
-
-        [PreserveSig]
-        int GetCountOfTableDescriptors([Out] out int pdwVal);
-
-        [PreserveSig]
-        int GetTableDescriptorByIndex(
-          [In] int dwIndex,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-
-        [PreserveSig]
-        int GetTableDescriptorByTag(
-          [In] byte bTag,
-          [In, Out] DsInt pdwCookie,
-          [Out] out IGenericDescriptor ppDescriptor
-          );
-    }
-
-
-    #endregion
-
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("C64935F4-29E4-4e22-911A-63F7F55CB097")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDVB_NIT
+{
+    [PreserveSig]
+    int Initialize(
+        [In] ISectionList pSectionList,
+        [In] IMpeg2Data pMPEGData
+    );
+
+    [PreserveSig]
+    int GetVersionNumber([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetNetworkId([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetCountOfTableDescriptors([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetTableDescriptorByIndex(
+        [In] int dwIndex,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetTableDescriptorByTag(
+        [In] byte bTag,
+        [In] DsInt pdwCookie,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetCountOfRecords([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetRecordTransportStreamId(
+        [In] int dwRecordIndex,
+        [Out] out short pwVal
+    );
+
+    [PreserveSig]
+    int GetRecordOriginalNetworkId(
+        [In] int dwRecordIndex,
+        [Out] out short pwVal
+    );
+
+    [PreserveSig]
+    int GetRecordCountOfDescriptors(
+        [In] int dwRecordIndex,
+        [Out] out int pdwVal
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByIndex(
+        [In] int dwRecordIndex,
+        [In] int dwIndex,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByTag(
+        [In] int dwRecordIndex,
+        [In] byte bTag,
+        [In] [Out] DsInt pdwCookie,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int RegisterForNextTable([In] IntPtr hNextTableAvailable);
+
+    [PreserveSig]
+    int GetNextTable([Out] out IDVB_NIT ppNIT);
+
+    [PreserveSig]
+    int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
+
+    [PreserveSig]
+    int ConvertNextToCurrent();
+
+    [PreserveSig]
+    int GetVersionHash([Out] out int pdwVersionHash);
 }
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("ECE9BB0C-43B6-4558-A0EC-1812C34CD6CA")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDVB_BAT
+{
+    [PreserveSig]
+    int Initialize(
+        [In] ISectionList pSectionList,
+        [In] IMpeg2Data pMPEGData
+    );
+
+    [PreserveSig]
+    int GetVersionNumber([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetBouquetId([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetCountOfTableDescriptors([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetTableDescriptorByIndex(
+        [In] int dwIndex,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetTableDescriptorByTag(
+        [In] byte bTag,
+        [In] DsInt pdwCookie,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetCountOfRecords([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetRecordTransportStreamId(
+        [In] int dwRecordIndex,
+        [Out] out short pwVal);
+
+    [PreserveSig]
+    int GetRecordOriginalNetworkId(
+        [In] int dwRecordIndex,
+        [Out] out short pwVal
+    );
+
+    [PreserveSig]
+    int GetRecordCountOfDescriptors(
+        [In] int dwRecordIndex,
+        [Out] out int pdwVal
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByIndex(
+        [In] int dwRecordIndex,
+        [In] int dwIndex,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByTag(
+        [In] int dwRecordIndex,
+        [In] byte bTag,
+        [In] [Out] DsInt pdwCookie,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int RegisterForNextTable([In] IntPtr hNextTableAvailable);
+
+    [PreserveSig]
+    int GetNextTable([Out] out IDVB_BAT ppBAT);
+
+    [PreserveSig]
+    int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
+
+    [PreserveSig]
+    int ConvertNextToCurrent();
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("ED7E1B91-D12E-420c-B41D-A49D84FE1823")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDvbTerrestrialDeliverySystemDescriptor
+{
+    [PreserveSig]
+    int GetTag([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetLength([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetCentreFrequency([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetBandwidth([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetConstellation([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetHierarchyInformation([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetCodeRateHPStream([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetCodeRateLPStream([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetGuardInterval([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetTransmissionMode([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetOtherFrequencyFlag([Out] out byte pbVal);
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("442DB029-02CB-4495-8B92-1C13375BCE99")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDVB_EIT
+{
+    [PreserveSig]
+    int Initialize(
+        [In] ISectionList pSectionList,
+        [In] IMpeg2Data pMPEGData
+    );
+
+    [PreserveSig]
+    int GetVersionNumber([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetServiceId([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetTransportStreamId([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetOriginalNetworkId([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetSegmentLastSectionNumber([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetLastTableId([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetCountOfRecords([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetRecordEventId(
+        [In] int dwRecordIndex,
+        [Out] out short pwVal
+    );
+
+    [PreserveSig]
+    int GetRecordStartTime(
+        [In] int dwRecordIndex,
+        [Out] out MpegDateAndTime pmdtVal
+    );
+
+    [PreserveSig]
+    int GetRecordDuration(
+        [In] int dwRecordIndex,
+        [Out] out MpegDuration pmdVal
+    );
+
+    [PreserveSig]
+    int GetRecordRunningStatus(
+        [In] int dwRecordIndex,
+        [Out] out RunningStatus pbVal
+    );
+
+    [PreserveSig]
+    int GetRecordFreeCAMode(
+        [In] int dwRecordIndex,
+        [Out] [MarshalAs(UnmanagedType.Bool)] out bool pfVal
+    );
+
+    [PreserveSig]
+    int GetRecordCountOfDescriptors(
+        [In] int dwRecordIndex,
+        [Out] out int pdwVal
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByIndex(
+        [In] int dwRecordIndex,
+        [In] int dwIndex,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByTag(
+        [In] int dwRecordIndex,
+        [In] byte bTag,
+        [In] [Out] DsInt pdwCookie,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int RegisterForNextTable([In] IntPtr hNextTableAvailable);
+
+    [PreserveSig]
+    int GetNextTable([Out] out IDVB_EIT ppEIT);
+
+    [PreserveSig]
+    int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
+
+    [PreserveSig]
+    int ConvertNextToCurrent();
+
+    [PreserveSig]
+    int GetVersionHash([Out] out int pdwVersionHash);
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("02F2225A-805B-4ec5-A9A6-F9B5913CD470")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDvbSatelliteDeliverySystemDescriptor
+{
+    [PreserveSig]
+    int GetTag([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetLength([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetFrequency([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetOrbitalPosition([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetWestEastFlag([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetPolarization([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetModulation([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetSymbolRate([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetFECInner([Out] out byte pbVal);
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("02CAD8D3-FE43-48e2-90BD-450ED9A8A5FD")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDVB_SDT
+{
+    [PreserveSig]
+    int Initialize(
+        [In] ISectionList pSectionList,
+        [In] IMpeg2Data pMPEGData
+    );
+
+    [PreserveSig]
+    int GetVersionNumber([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetTransportStreamId([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetOriginalNetworkId([Out] out short pwVal);
+
+    [PreserveSig]
+    int GetCountOfRecords([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetRecordServiceId(
+        [In] int dwRecordIndex,
+        [Out] out short pwVal
+    );
+
+    [PreserveSig]
+    int GetRecordEITScheduleFlag(
+        [In] int dwRecordIndex,
+        [Out] [MarshalAs(UnmanagedType.Bool)] out bool pfVal
+    );
+
+    [PreserveSig]
+    int GetRecordEITPresentFollowingFlag(
+        [In] int dwRecordIndex,
+        [Out] [MarshalAs(UnmanagedType.Bool)] out bool pfVal
+    );
+
+    [PreserveSig]
+    int GetRecordRunningStatus(
+        [In] int dwRecordIndex,
+        [Out] out RunningStatus pbVal
+    );
+
+    [PreserveSig]
+    int GetRecordFreeCAMode(
+        [In] int dwRecordIndex,
+        [Out] [MarshalAs(UnmanagedType.Bool)] out bool pfVal
+    );
+
+    [PreserveSig]
+    int GetRecordCountOfDescriptors(
+        [In] int dwRecordIndex,
+        [Out] out int pdwVal
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByIndex(
+        [In] int dwRecordIndex,
+        [In] int dwIndex,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetRecordDescriptorByTag(
+        [In] int dwRecordIndex,
+        [In] byte bTag,
+        [In] [Out] DsInt pdwCookie,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int RegisterForNextTable([In] IntPtr hNextTableAvailable);
+
+    [PreserveSig]
+    int GetNextTable([Out] out IDVB_SDT ppSDT);
+
+    [PreserveSig]
+    int RegisterForWhenCurrent([In] IntPtr hNextTableIsCurrent);
+
+    [PreserveSig]
+    int ConvertNextToCurrent();
+
+    [PreserveSig]
+    int GetVersionHash([Out] out int pdwVersionHash);
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("CF1EDAFF-3FFD-4cf7-8201-35756ACBF85F")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDvbLogicalChannelDescriptor
+{
+    [PreserveSig]
+    int GetTag([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetLength([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetCountOfRecords([Out] out byte pbVal);
+
+    [PreserveSig]
+    int GetRecordServiceId(
+        [In] byte bRecordIndex,
+        [Out] out short pwVal
+    );
+
+    [PreserveSig]
+    int GetRecordLogicalChannelNumber(
+        [In] byte bRecordIndex,
+        [Out] out short pwVal
+    );
+}
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("83295D6A-FABA-4ee1-9B15-8067696910AE")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IDVB_TOT
+{
+    [PreserveSig]
+    int Initialize([In] ISectionList pSectionList);
+
+    [PreserveSig]
+    int GetUTCTime([Out] out MpegDateAndTime pmdtVal);
+
+    [PreserveSig]
+    int GetCountOfTableDescriptors([Out] out int pdwVal);
+
+    [PreserveSig]
+    int GetTableDescriptorByIndex(
+        [In] int dwIndex,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+
+    [PreserveSig]
+    int GetTableDescriptorByTag(
+        [In] byte bTag,
+        [In] [Out] DsInt pdwCookie,
+        [Out] out IGenericDescriptor ppDescriptor
+    );
+}
+
+#endregion

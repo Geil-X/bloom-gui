@@ -26,25 +26,27 @@ using System;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace DirectShowLib
+namespace DirectShowLib;
+
+#region Interfaces
+
+[ComImport]
+[SuppressUnmanagedCodeSecurity]
+[Guid("8A674B48-1F63-11d3-B64C-00C04F79498E")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface ICreatePropBagOnRegKey
 {
-    #region Interfaces
-
-    [ComImport, SuppressUnmanagedCodeSecurity,
-    Guid("8A674B48-1F63-11d3-B64C-00C04F79498E"),
-    InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface ICreatePropBagOnRegKey
-    {
-        [PreserveSig]
-        int Create(
-            [In] IntPtr hkey,
-            [In, MarshalAs(UnmanagedType.LPWStr)] string subkey,
-            [In] int ulOptions,
-            [In] int samDesired,
-            [In, MarshalAs(UnmanagedType.LPStruct)] Guid iid,
-            [Out, MarshalAs(UnmanagedType.IUnknown)] out object ppBag
-            );
-    }
-
-    #endregion
+    [PreserveSig]
+    int Create(
+        [In] IntPtr hkey,
+        [In] [MarshalAs(UnmanagedType.LPWStr)] string subkey,
+        [In] int ulOptions,
+        [In] int samDesired,
+        [In] [MarshalAs(UnmanagedType.LPStruct)]
+        Guid iid,
+        [Out] [MarshalAs(UnmanagedType.IUnknown)]
+        out object ppBag
+    );
 }
+
+#endregion

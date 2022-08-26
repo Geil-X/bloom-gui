@@ -29,12 +29,9 @@ using System.Collections;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Reflection;
 using System.Security;
-
+using System.Text;
 using DirectShowLib.Dvd;
-
 #if !USING_NET11
 using System.Runtime.InteropServices.ComTypes;
 #endif
@@ -44,7 +41,7 @@ namespace DirectShowLib
     #region Declarations
 
     /// <summary>
-    /// Not from DirectShow
+    ///     Not from DirectShow
     /// </summary>
     public enum PinConnectedStatus
     {
@@ -54,7 +51,7 @@ namespace DirectShowLib
     }
 
     /// <summary>
-    /// From BITMAPINFO
+    ///     From BITMAPINFO
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct BitmapInfo
@@ -65,94 +62,76 @@ namespace DirectShowLib
     }
 
     /// <summary>
-    /// From BITMAPINFOHEADER
+    ///     From BITMAPINFOHEADER
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 2)]
     public class BitmapInfoHeader
     {
+        public short BitCount;
+
+        public int ClrImportant;
+
+        public int ClrUsed;
+
+        public int Compression;
+
+        public int Height;
+
+        public int ImageSize;
+
+        public short Planes;
         public int Size;
 
         public int Width;
 
-        public int Height;
-
-        public short Planes;
-
-        public short BitCount;
-
-        public int Compression;
-
-        public int ImageSize;
-
         public int XPelsPerMeter;
 
         public int YPelsPerMeter;
-
-        public int ClrUsed;
-
-        public int ClrImportant;
     }
 
     /// <summary>
-    /// From DDPIXELFORMAT
+    ///     From DDPIXELFORMAT
     /// </summary>
     [StructLayout(LayoutKind.Explicit)]
     public struct DDPixelFormat
     {
-        [FieldOffset(0)]
-        public int dwSize;
+        [FieldOffset(0)] public int dwSize;
 
-        [FieldOffset(4)]
-        public int dwFlags;
+        [FieldOffset(4)] public int dwFlags;
 
-        [FieldOffset(8)]
-        public int dwFourCC;
+        [FieldOffset(8)] public int dwFourCC;
 
-        [FieldOffset(12)]
-        public int dwRGBBitCount;
+        [FieldOffset(12)] public int dwRGBBitCount;
 
-        [FieldOffset(12)]
-        public int dwYUVBitCount;
+        [FieldOffset(12)] public int dwYUVBitCount;
 
-        [FieldOffset(12)]
-        public int dwZBufferBitDepth;
+        [FieldOffset(12)] public int dwZBufferBitDepth;
 
-        [FieldOffset(12)]
-        public int dwAlphaBitDepth;
+        [FieldOffset(12)] public int dwAlphaBitDepth;
 
-        [FieldOffset(16)]
-        public int dwRBitMask;
+        [FieldOffset(16)] public int dwRBitMask;
 
-        [FieldOffset(16)]
-        public int dwYBitMask;
+        [FieldOffset(16)] public int dwYBitMask;
 
-        [FieldOffset(20)]
-        public int dwGBitMask;
+        [FieldOffset(20)] public int dwGBitMask;
 
-        [FieldOffset(20)]
-        public int dwUBitMask;
+        [FieldOffset(20)] public int dwUBitMask;
 
-        [FieldOffset(24)]
-        public int dwBBitMask;
+        [FieldOffset(24)] public int dwBBitMask;
 
-        [FieldOffset(24)]
-        public int dwVBitMask;
+        [FieldOffset(24)] public int dwVBitMask;
 
-        [FieldOffset(28)]
-        public int dwRGBAlphaBitMask;
+        [FieldOffset(28)] public int dwRGBAlphaBitMask;
 
-        [FieldOffset(28)]
-        public int dwYUVAlphaBitMask;
+        [FieldOffset(28)] public int dwYUVAlphaBitMask;
 
-        [FieldOffset(28)]
-        public int dwRGBZBitMask;
+        [FieldOffset(28)] public int dwRGBZBitMask;
 
-        [FieldOffset(28)]
-        public int dwYUVZBitMask;
+        [FieldOffset(28)] public int dwYUVZBitMask;
     }
 
     /// <summary>
-    /// From CAUUID
+    ///     From CAUUID
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct DsCAUUID
@@ -162,18 +141,18 @@ namespace DirectShowLib
         public IntPtr pElems;
 
         /// <summary>
-        /// Perform a manual marshaling of pElems to retrieve an array of System.Guid.
-        /// Assume this structure has been already filled by the ISpecifyPropertyPages.GetPages() method.
+        ///     Perform a manual marshaling of pElems to retrieve an array of System.Guid.
+        ///     Assume this structure has been already filled by the ISpecifyPropertyPages.GetPages() method.
         /// </summary>
         /// <returns>A managed representation of pElems (cElems items)</returns>
         public Guid[] ToGuidArray()
         {
-            Guid[] retval = new Guid[this.cElems];
+            var retval = new Guid[cElems];
 
-            for (int i = 0; i < this.cElems; i++)
+            for (var i = 0; i < cElems; i++)
             {
-                IntPtr ptr = new IntPtr(this.pElems.ToInt64() + (Marshal.SizeOf(typeof(Guid)) * i));
-                retval[i] = (Guid)Marshal.PtrToStructure(ptr, typeof(Guid));
+                var ptr = new IntPtr(pElems.ToInt64() + Marshal.SizeOf(typeof(Guid)) * i);
+                retval[i] = (Guid) Marshal.PtrToStructure(ptr, typeof(Guid));
             }
 
             return retval;
@@ -181,19 +160,19 @@ namespace DirectShowLib
     }
 
     /// <summary>
-    /// DirectShowLib.DsLong is a wrapper class around a <see cref="System.Int64"/> value type.
+    ///     DirectShowLib.DsLong is a wrapper class around a <see cref="System.Int64" /> value type.
     /// </summary>
     /// <remarks>
-    /// This class is necessary to enable null paramters passing.
+    ///     This class is necessary to enable null paramters passing.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     public class DsLong
     {
-        private long Value;
+        private readonly long Value;
 
         /// <summary>
-        /// Constructor
-        /// Initialize a new instance of DirectShowLib.DsLong with the Value parameter
+        ///     Constructor
+        ///     Initialize a new instance of DirectShowLib.DsLong with the Value parameter
         /// </summary>
         /// <param name="Value">Value to assign to this new instance</param>
         public DsLong(long Value)
@@ -202,28 +181,28 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get a string representation of this DirectShowLib.DsLong Instance.
+        ///     Get a string representation of this DirectShowLib.DsLong Instance.
         /// </summary>
         /// <returns>A string representing this instance</returns>
         public override string ToString()
         {
-            return this.Value.ToString();
+            return Value.ToString();
         }
 
         public override int GetHashCode()
         {
-            return this.Value.GetHashCode();
+            return Value.GetHashCode();
         }
 
         /// <summary>
-        /// Define implicit cast between DirectShowLib.DsLong and System.Int64 for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsLong.ToInt64"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between DirectShowLib.DsLong and System.Int64 for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsLong.ToInt64" /> for similar functionality.
+        ///     <code>
         ///   // Define a new DsLong instance
         ///   DsLong dsL = new DsLong(9876543210);
         ///   // Do implicit cast between DsLong and Int64
         ///   long l = dsL;
-        ///
+        /// 
         ///   Console.WriteLine(l.ToString());
         /// </code>
         /// </summary>
@@ -235,14 +214,14 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Define implicit cast between System.Int64 and DirectShowLib.DsLong for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromInt64"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between System.Int64 and DirectShowLib.DsLong for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromInt64" /> for similar functionality.
+        ///     <code>
         ///   // Define a new Int64 instance
         ///   long l = 9876543210;
         ///   // Do implicit cast between Int64 and DsLong
         ///   DsLong dsl = l;
-        ///
+        /// 
         ///   Console.WriteLine(dsl.ToString());
         /// </code>
         /// </summary>
@@ -254,16 +233,16 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get the System.Int64 equivalent to this DirectShowLib.DsLong instance.
+        ///     Get the System.Int64 equivalent to this DirectShowLib.DsLong instance.
         /// </summary>
         /// <returns>A System.Int64</returns>
         public long ToInt64()
         {
-            return this.Value;
+            return Value;
         }
 
         /// <summary>
-        /// Get a new DirectShowLib.DsLong instance for a given System.Int64
+        ///     Get a new DirectShowLib.DsLong instance for a given System.Int64
         /// </summary>
         /// <param name="g">The System.Int64 to wrap into a DirectShowLib.DsLong</param>
         /// <returns>A new instance of DirectShowLib.DsLong</returns>
@@ -274,81 +253,80 @@ namespace DirectShowLib
     }
 
     /// <summary>
-    /// DirectShowLib.DsGuid is a wrapper class around a System.Guid value type.
+    ///     DirectShowLib.DsGuid is a wrapper class around a System.Guid value type.
     /// </summary>
     /// <remarks>
-    /// This class is necessary to enable null paramters passing.
+    ///     This class is necessary to enable null paramters passing.
     /// </remarks>
     [StructLayout(LayoutKind.Explicit)]
     public class DsGuid
     {
-        [FieldOffset(0)]
-        private Guid guid;
-
         public static readonly DsGuid Empty = Guid.Empty;
 
+        [FieldOffset(0)] private readonly Guid guid;
+
         /// <summary>
-        /// Empty constructor. 
-        /// Initialize it with System.Guid.Empty
+        ///     Empty constructor.
+        ///     Initialize it with System.Guid.Empty
         /// </summary>
         public DsGuid()
         {
-            this.guid = Guid.Empty;
+            guid = Guid.Empty;
         }
 
         /// <summary>
-        /// Constructor.
-        /// Initialize this instance with a given System.Guid string representation.
+        ///     Constructor.
+        ///     Initialize this instance with a given System.Guid string representation.
         /// </summary>
         /// <param name="g">A valid System.Guid as string</param>
         public DsGuid(string g)
         {
-            this.guid = new Guid(g);
+            guid = new Guid(g);
         }
 
         /// <summary>
-        /// Constructor.
-        /// Initialize this instance with a given System.Guid.
+        ///     Constructor.
+        ///     Initialize this instance with a given System.Guid.
         /// </summary>
         /// <param name="g">A System.Guid value type</param>
         public DsGuid(Guid g)
         {
-            this.guid = g;
+            guid = g;
         }
 
         /// <summary>
-        /// Get a string representation of this DirectShowLib.DsGuid Instance.
+        ///     Get a string representation of this DirectShowLib.DsGuid Instance.
         /// </summary>
         /// <returns>A string representing this instance</returns>
         public override string ToString()
         {
-            return this.guid.ToString();
+            return guid.ToString();
         }
 
         /// <summary>
-        /// Get a string representation of this DirectShowLib.DsGuid Instance with a specific format.
+        ///     Get a string representation of this DirectShowLib.DsGuid Instance with a specific format.
         /// </summary>
-        /// <param name="format"><see cref="System.Guid.ToString"/> for a description of the format parameter.</param>
+        /// <param name="format"><see cref="System.Guid.ToString" /> for a description of the format parameter.</param>
         /// <returns>A string representing this instance according to the format parameter</returns>
         public string ToString(string format)
         {
-            return this.guid.ToString(format);
+            return guid.ToString(format);
         }
 
         public override int GetHashCode()
         {
-            return this.guid.GetHashCode();
+            return guid.GetHashCode();
         }
 
         /// <summary>
-        /// Define implicit cast between DirectShowLib.DsGuid and System.Guid for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.ToGuid"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between DirectShowLib.DsGuid and System.Guid for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.ToGuid" /> for similar functionality.
+        ///     <code>
         ///   // Define a new DsGuid instance
         ///   DsGuid dsG = new DsGuid("{33D57EBF-7C9D-435e-A15E-D300B52FBD91}");
         ///   // Do implicit cast between DsGuid and Guid
         ///   Guid g = dsG;
-        ///
+        /// 
         ///   Console.WriteLine(g.ToString());
         /// </code>
         /// </summary>
@@ -360,14 +338,14 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Define implicit cast between System.Guid and DirectShowLib.DsGuid for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromGuid"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between System.Guid and DirectShowLib.DsGuid for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromGuid" /> for similar functionality.
+        ///     <code>
         ///   // Define a new Guid instance
         ///   Guid g = new Guid("{B9364217-366E-45f8-AA2D-B0ED9E7D932D}");
         ///   // Do implicit cast between Guid and DsGuid
         ///   DsGuid dsG = g;
-        ///
+        /// 
         ///   Console.WriteLine(dsG.ToString());
         /// </code>
         /// </summary>
@@ -379,16 +357,16 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get the System.Guid equivalent to this DirectShowLib.DsGuid instance.
+        ///     Get the System.Guid equivalent to this DirectShowLib.DsGuid instance.
         /// </summary>
         /// <returns>A System.Guid</returns>
         public Guid ToGuid()
         {
-            return this.guid;
+            return guid;
         }
 
         /// <summary>
-        /// Get a new DirectShowLib.DsGuid instance for a given System.Guid
+        ///     Get a new DirectShowLib.DsGuid instance for a given System.Guid
         /// </summary>
         /// <param name="g">The System.Guid to wrap into a DirectShowLib.DsGuid</param>
         /// <returns>A new instance of DirectShowLib.DsGuid</returns>
@@ -399,19 +377,19 @@ namespace DirectShowLib
     }
 
     /// <summary>
-    /// DirectShowLib.DsInt is a wrapper class around a <see cref="System.Int32"/> value type.
+    ///     DirectShowLib.DsInt is a wrapper class around a <see cref="System.Int32" /> value type.
     /// </summary>
     /// <remarks>
-    /// This class is necessary to enable null paramters passing.
+    ///     This class is necessary to enable null paramters passing.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     public class DsInt
     {
-        private int Value;
+        private readonly int Value;
 
         /// <summary>
-        /// Constructor
-        /// Initialize a new instance of DirectShowLib.DsInt with the Value parameter
+        ///     Constructor
+        ///     Initialize a new instance of DirectShowLib.DsInt with the Value parameter
         /// </summary>
         /// <param name="Value">Value to assign to this new instance</param>
         public DsInt(int Value)
@@ -420,28 +398,28 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get a string representation of this DirectShowLib.DsInt Instance.
+        ///     Get a string representation of this DirectShowLib.DsInt Instance.
         /// </summary>
         /// <returns>A string representing this instance</returns>
         public override string ToString()
         {
-            return this.Value.ToString();
+            return Value.ToString();
         }
 
         public override int GetHashCode()
         {
-            return this.Value.GetHashCode();
+            return Value.GetHashCode();
         }
 
         /// <summary>
-        /// Define implicit cast between DirectShowLib.DsInt and System.Int64 for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsInt.ToInt64"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between DirectShowLib.DsInt and System.Int64 for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsInt.ToInt64" /> for similar functionality.
+        ///     <code>
         ///   // Define a new DsInt instance
         ///   DsInt dsI = new DsInt(0x12345678);
         ///   // Do implicit cast between DsInt and Int32
         ///   int i = dsI;
-        ///
+        /// 
         ///   Console.WriteLine(i.ToString());
         /// </code>
         /// </summary>
@@ -453,14 +431,14 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Define implicit cast between System.Int32 and DirectShowLib.DsInt for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromInt32"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between System.Int32 and DirectShowLib.DsInt for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromInt32" /> for similar functionality.
+        ///     <code>
         ///   // Define a new Int32 instance
         ///   int i = 0x12345678;
         ///   // Do implicit cast between Int64 and DsInt
         ///   DsInt dsI = i;
-        ///
+        /// 
         ///   Console.WriteLine(dsI.ToString());
         /// </code>
         /// </summary>
@@ -472,16 +450,16 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get the System.Int32 equivalent to this DirectShowLib.DsInt instance.
+        ///     Get the System.Int32 equivalent to this DirectShowLib.DsInt instance.
         /// </summary>
         /// <returns>A System.Int32</returns>
         public int ToInt32()
         {
-            return this.Value;
+            return Value;
         }
 
         /// <summary>
-        /// Get a new DirectShowLib.DsInt instance for a given System.Int32
+        ///     Get a new DirectShowLib.DsInt instance for a given System.Int32
         /// </summary>
         /// <param name="g">The System.Int32 to wrap into a DirectShowLib.DsInt</param>
         /// <returns>A new instance of DirectShowLib.DsInt</returns>
@@ -492,19 +470,19 @@ namespace DirectShowLib
     }
 
     /// <summary>
-    /// DirectShowLib.DsShort is a wrapper class around a <see cref="System.Int16"/> value type.
+    ///     DirectShowLib.DsShort is a wrapper class around a <see cref="System.Int16" /> value type.
     /// </summary>
     /// <remarks>
-    /// This class is necessary to enable null paramters passing.
+    ///     This class is necessary to enable null paramters passing.
     /// </remarks>
     [StructLayout(LayoutKind.Sequential)]
     public class DsShort
     {
-        private short Value;
+        private readonly short Value;
 
         /// <summary>
-        /// Constructor
-        /// Initialize a new instance of DirectShowLib.DsShort with the Value parameter
+        ///     Constructor
+        ///     Initialize a new instance of DirectShowLib.DsShort with the Value parameter
         /// </summary>
         /// <param name="Value">Value to assign to this new instance</param>
         public DsShort(short Value)
@@ -513,28 +491,28 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get a string representation of this DirectShowLib.DsShort Instance.
+        ///     Get a string representation of this DirectShowLib.DsShort Instance.
         /// </summary>
         /// <returns>A string representing this instance</returns>
         public override string ToString()
         {
-            return this.Value.ToString();
+            return Value.ToString();
         }
 
         public override int GetHashCode()
         {
-            return this.Value.GetHashCode();
+            return Value.GetHashCode();
         }
 
         /// <summary>
-        /// Define implicit cast between DirectShowLib.DsShort and System.Int16 for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsShort.ToInt64"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between DirectShowLib.DsShort and System.Int16 for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsShort.ToInt64" /> for similar functionality.
+        ///     <code>
         ///   // Define a new DsShort instance
         ///   DsShort dsS = new DsShort(0x1234);
         ///   // Do implicit cast between DsShort and Int16
         ///   short s = dsS;
-        ///
+        /// 
         ///   Console.WriteLine(s.ToString());
         /// </code>
         /// </summary>
@@ -546,14 +524,14 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Define implicit cast between System.Int16 and DirectShowLib.DsShort for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromInt16"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between System.Int16 and DirectShowLib.DsShort for languages supporting this feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsGuid.FromInt16" /> for similar functionality.
+        ///     <code>
         ///   // Define a new Int16 instance
         ///   short s = 0x1234;
         ///   // Do implicit cast between Int64 and DsShort
         ///   DsShort dsS = s;
-        ///
+        /// 
         ///   Console.WriteLine(dsS.ToString());
         /// </code>
         /// </summary>
@@ -565,16 +543,16 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get the System.Int16 equivalent to this DirectShowLib.DsShort instance.
+        ///     Get the System.Int16 equivalent to this DirectShowLib.DsShort instance.
         /// </summary>
         /// <returns>A System.Int16</returns>
         public short ToInt16()
         {
-            return this.Value;
+            return Value;
         }
 
         /// <summary>
-        /// Get a new DirectShowLib.DsShort instance for a given System.Int64
+        ///     Get a new DirectShowLib.DsShort instance for a given System.Int64
         /// </summary>
         /// <param name="g">The System.Int16 to wrap into a DirectShowLib.DsShort</param>
         /// <returns>A new instance of DirectShowLib.DsShort</returns>
@@ -585,32 +563,31 @@ namespace DirectShowLib
     }
 
     /// <summary>
-    /// DirectShowLib.DsRect is a managed representation of the Win32 RECT structure.
+    ///     DirectShowLib.DsRect is a managed representation of the Win32 RECT structure.
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public class DsRect
     {
+        public int bottom;
         public int left;
-
-        public int top;
 
         public int right;
 
-        public int bottom;
+        public int top;
 
         /// <summary>
-        /// Empty contructor. Initialize all fields to 0
+        ///     Empty contructor. Initialize all fields to 0
         /// </summary>
         public DsRect()
         {
-            this.left = 0;
-            this.top = 0;
-            this.right = 0;
-            this.bottom = 0;
+            left = 0;
+            top = 0;
+            right = 0;
+            bottom = 0;
         }
 
         /// <summary>
-        /// A parametred constructor. Initialize fields with given values.
+        ///     A parametred constructor. Initialize fields with given values.
         /// </summary>
         /// <param name="left">the left value</param>
         /// <param name="top">the top value</param>
@@ -625,47 +602,48 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// A parametred constructor. Initialize fields with a given <see cref="System.Drawing.Rectangle"/>.
+        ///     A parametred constructor. Initialize fields with a given <see cref="System.Drawing.Rectangle" />.
         /// </summary>
-        /// <param name="rectangle">A <see cref="System.Drawing.Rectangle"/></param>
+        /// <param name="rectangle">A <see cref="System.Drawing.Rectangle" /></param>
         /// <remarks>
-        /// Warning, DsRect define a rectangle by defining two of his corners and <see cref="System.Drawing.Rectangle"/> define a rectangle with his upper/left corner, his width and his height.
+        ///     Warning, DsRect define a rectangle by defining two of his corners and <see cref="System.Drawing.Rectangle" />
+        ///     define a rectangle with his upper/left corner, his width and his height.
         /// </remarks>
         public DsRect(Rectangle rectangle)
         {
-            this.left = rectangle.Left;
-            this.top = rectangle.Top;
-            this.right = rectangle.Right;
-            this.bottom = rectangle.Bottom;
+            left = rectangle.Left;
+            top = rectangle.Top;
+            right = rectangle.Right;
+            bottom = rectangle.Bottom;
         }
 
         /// <summary>
-        /// Provide de string representation of this DsRect instance
+        ///     Provide de string representation of this DsRect instance
         /// </summary>
         /// <returns>A string formated like this : [left, top - right, bottom]</returns>
         public override string ToString()
         {
-            return string.Format("[{0}, {1} - {2}, {3}]", this.left, this.top, this.right, this.bottom);
+            return string.Format("[{0}, {1} - {2}, {3}]", left, top, right, bottom);
         }
 
         public override int GetHashCode()
         {
-            return this.left.GetHashCode() | this.top.GetHashCode() | this.right.GetHashCode()
-                   | this.bottom.GetHashCode();
+            return left.GetHashCode() | top.GetHashCode() | right.GetHashCode()
+                   | bottom.GetHashCode();
         }
 
         public override bool Equals(object obj)
         {
             if (obj is DsRect)
             {
-                DsRect cmp = (DsRect)obj;
+                var cmp = (DsRect) obj;
 
                 return right == cmp.right && bottom == cmp.bottom && left == cmp.left && top == cmp.top;
             }
 
             if (obj is Rectangle)
             {
-                Rectangle cmp = (Rectangle)obj;
+                var cmp = (Rectangle) obj;
 
                 return right == cmp.Right && bottom == cmp.Bottom && left == cmp.Left && top == cmp.Top;
             }
@@ -674,14 +652,15 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Define implicit cast between DirectShowLib.DsRect and System.Drawing.Rectangle for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.ToRectangle"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between DirectShowLib.DsRect and System.Drawing.Rectangle for languages supporting this
+        ///     feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.ToRectangle" /> for similar functionality.
+        ///     <code>
         ///   // Define a new Rectangle instance
         ///   Rectangle r = new Rectangle(0, 0, 100, 100);
         ///   // Do implicit cast between Rectangle and DsRect
         ///   DsRect dsR = r;
-        ///
+        /// 
         ///   Console.WriteLine(dsR.ToString());
         /// </code>
         /// </summary>
@@ -693,14 +672,15 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Define implicit cast between System.Drawing.Rectangle and DirectShowLib.DsRect for languages supporting this feature.
-        /// VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.FromRectangle"/> for similar functionality.
-        /// <code>
+        ///     Define implicit cast between System.Drawing.Rectangle and DirectShowLib.DsRect for languages supporting this
+        ///     feature.
+        ///     VB.Net doesn't support implicit cast. <see cref="DirectShowLib.DsRect.FromRectangle" /> for similar functionality.
+        ///     <code>
         ///   // Define a new DsRect instance
         ///   DsRect dsR = new DsRect(0, 0, 100, 100);
         ///   // Do implicit cast between DsRect and Rectangle
         ///   Rectangle r = dsR;
-        ///
+        /// 
         ///   Console.WriteLine(r.ToString());
         /// </code>
         /// </summary>
@@ -712,18 +692,18 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Get the System.Drawing.Rectangle equivalent to this DirectShowLib.DsRect instance.
+        ///     Get the System.Drawing.Rectangle equivalent to this DirectShowLib.DsRect instance.
         /// </summary>
         /// <returns>A System.Drawing.Rectangle</returns>
         public Rectangle ToRectangle()
         {
-            return new Rectangle(this.left, this.top, (this.right - this.left), (this.bottom - this.top));
+            return new Rectangle(left, top, right - left, bottom - top);
         }
 
         /// <summary>
-        /// Get a new DirectShowLib.DsRect instance for a given <see cref="System.Drawing.Rectangle"/>
+        ///     Get a new DirectShowLib.DsRect instance for a given <see cref="System.Drawing.Rectangle" />
         /// </summary>
-        /// <param name="r">The <see cref="System.Drawing.Rectangle"/> used to initialize this new DirectShowLib.DsGuid</param>
+        /// <param name="r">The <see cref="System.Drawing.Rectangle" /> used to initialize this new DirectShowLib.DsGuid</param>
         /// <returns>A new instance of DirectShowLib.DsGuid</returns>
         public static DsRect FromRectangle(Rectangle r)
         {
@@ -744,29 +724,29 @@ namespace DirectShowLib
 
         public NormalizedRect(float l, float t, float r, float b)
         {
-            this.left = l;
-            this.top = t;
-            this.right = r;
-            this.bottom = b;
+            left = l;
+            top = t;
+            right = r;
+            bottom = b;
         }
 
         public NormalizedRect(RectangleF r)
         {
-            this.left = r.Left;
-            this.top = r.Top;
-            this.right = r.Right;
-            this.bottom = r.Bottom;
+            left = r.Left;
+            top = r.Top;
+            right = r.Right;
+            bottom = r.Bottom;
         }
 
         public override string ToString()
         {
-            return string.Format("[{0}, {1} - {2}, {3}]", this.left, this.top, this.right, this.bottom);
+            return string.Format("[{0}, {1} - {2}, {3}]", left, top, right, bottom);
         }
 
         public override int GetHashCode()
         {
-            return this.left.GetHashCode() | this.top.GetHashCode() | this.right.GetHashCode()
-                   | this.bottom.GetHashCode();
+            return left.GetHashCode() | top.GetHashCode() | right.GetHashCode()
+                   | bottom.GetHashCode();
         }
 
         public static implicit operator RectangleF(NormalizedRect r)
@@ -781,26 +761,26 @@ namespace DirectShowLib
 
         public static bool operator ==(NormalizedRect r1, NormalizedRect r2)
         {
-            return ((r1.left == r2.left) && (r1.top == r2.top) && (r1.right == r2.right) && (r1.bottom == r2.bottom));
+            return r1.left == r2.left && r1.top == r2.top && r1.right == r2.right && r1.bottom == r2.bottom;
         }
 
         public static bool operator !=(NormalizedRect r1, NormalizedRect r2)
         {
-            return ((r1.left != r2.left) || (r1.top != r2.top) || (r1.right != r2.right) || (r1.bottom != r2.bottom));
+            return r1.left != r2.left || r1.top != r2.top || r1.right != r2.right || r1.bottom != r2.bottom;
         }
 
         public override bool Equals(object obj)
         {
             if (!(obj is NormalizedRect)) return false;
 
-            NormalizedRect other = (NormalizedRect)obj;
-            return (this == other);
+            var other = (NormalizedRect) obj;
+            return this == other;
         }
 
 
         public RectangleF ToRectangleF()
         {
-            return new RectangleF(this.left, this.top, (this.right - this.left), (this.bottom - this.top));
+            return new RectangleF(left, top, right - left, bottom - top);
         }
 
         public static NormalizedRect FromRectangle(RectangleF r)
@@ -815,305 +795,305 @@ namespace DirectShowLib
 
     public static class DsResults
     {
-        public const int E_InvalidMediaType = unchecked((int)0x80040200);
+        public const int E_InvalidMediaType = unchecked((int) 0x80040200);
 
-        public const int E_InvalidSubType = unchecked((int)0x80040201);
+        public const int E_InvalidSubType = unchecked((int) 0x80040201);
 
-        public const int E_NeedOwner = unchecked((int)0x80040202);
+        public const int E_NeedOwner = unchecked((int) 0x80040202);
 
-        public const int E_EnumOutOfSync = unchecked((int)0x80040203);
+        public const int E_EnumOutOfSync = unchecked((int) 0x80040203);
 
-        public const int E_AlreadyConnected = unchecked((int)0x80040204);
+        public const int E_AlreadyConnected = unchecked((int) 0x80040204);
 
-        public const int E_FilterActive = unchecked((int)0x80040205);
+        public const int E_FilterActive = unchecked((int) 0x80040205);
 
-        public const int E_NoTypes = unchecked((int)0x80040206);
+        public const int E_NoTypes = unchecked((int) 0x80040206);
 
-        public const int E_NoAcceptableTypes = unchecked((int)0x80040207);
+        public const int E_NoAcceptableTypes = unchecked((int) 0x80040207);
 
-        public const int E_InvalidDirection = unchecked((int)0x80040208);
+        public const int E_InvalidDirection = unchecked((int) 0x80040208);
 
-        public const int E_NotConnected = unchecked((int)0x80040209);
+        public const int E_NotConnected = unchecked((int) 0x80040209);
 
-        public const int E_NoAllocator = unchecked((int)0x8004020A);
+        public const int E_NoAllocator = unchecked((int) 0x8004020A);
 
-        public const int E_RunTimeError = unchecked((int)0x8004020B);
+        public const int E_RunTimeError = unchecked((int) 0x8004020B);
 
-        public const int E_BufferNotSet = unchecked((int)0x8004020C);
+        public const int E_BufferNotSet = unchecked((int) 0x8004020C);
 
-        public const int E_BufferOverflow = unchecked((int)0x8004020D);
+        public const int E_BufferOverflow = unchecked((int) 0x8004020D);
 
-        public const int E_BadAlign = unchecked((int)0x8004020E);
+        public const int E_BadAlign = unchecked((int) 0x8004020E);
 
-        public const int E_AlreadyCommitted = unchecked((int)0x8004020F);
+        public const int E_AlreadyCommitted = unchecked((int) 0x8004020F);
 
-        public const int E_BuffersOutstanding = unchecked((int)0x80040210);
+        public const int E_BuffersOutstanding = unchecked((int) 0x80040210);
 
-        public const int E_NotCommitted = unchecked((int)0x80040211);
+        public const int E_NotCommitted = unchecked((int) 0x80040211);
 
-        public const int E_SizeNotSet = unchecked((int)0x80040212);
+        public const int E_SizeNotSet = unchecked((int) 0x80040212);
 
-        public const int E_NoClock = unchecked((int)0x80040213);
+        public const int E_NoClock = unchecked((int) 0x80040213);
 
-        public const int E_NoSink = unchecked((int)0x80040214);
+        public const int E_NoSink = unchecked((int) 0x80040214);
 
-        public const int E_NoInterface = unchecked((int)0x80040215);
+        public const int E_NoInterface = unchecked((int) 0x80040215);
 
-        public const int E_NotFound = unchecked((int)0x80040216);
+        public const int E_NotFound = unchecked((int) 0x80040216);
 
-        public const int E_CannotConnect = unchecked((int)0x80040217);
+        public const int E_CannotConnect = unchecked((int) 0x80040217);
 
-        public const int E_CannotRender = unchecked((int)0x80040218);
+        public const int E_CannotRender = unchecked((int) 0x80040218);
 
-        public const int E_ChangingFormat = unchecked((int)0x80040219);
+        public const int E_ChangingFormat = unchecked((int) 0x80040219);
 
-        public const int E_NoColorKeySet = unchecked((int)0x8004021A);
+        public const int E_NoColorKeySet = unchecked((int) 0x8004021A);
 
-        public const int E_NotOverlayConnection = unchecked((int)0x8004021B);
+        public const int E_NotOverlayConnection = unchecked((int) 0x8004021B);
 
-        public const int E_NotSampleConnection = unchecked((int)0x8004021C);
+        public const int E_NotSampleConnection = unchecked((int) 0x8004021C);
 
-        public const int E_PaletteSet = unchecked((int)0x8004021D);
+        public const int E_PaletteSet = unchecked((int) 0x8004021D);
 
-        public const int E_ColorKeySet = unchecked((int)0x8004021E);
+        public const int E_ColorKeySet = unchecked((int) 0x8004021E);
 
-        public const int E_NoColorKeyFound = unchecked((int)0x8004021F);
+        public const int E_NoColorKeyFound = unchecked((int) 0x8004021F);
 
-        public const int E_NoPaletteAvailable = unchecked((int)0x80040220);
+        public const int E_NoPaletteAvailable = unchecked((int) 0x80040220);
 
-        public const int E_NoDisplayPalette = unchecked((int)0x80040221);
+        public const int E_NoDisplayPalette = unchecked((int) 0x80040221);
 
-        public const int E_TooManyColors = unchecked((int)0x80040222);
+        public const int E_TooManyColors = unchecked((int) 0x80040222);
 
-        public const int E_StateChanged = unchecked((int)0x80040223);
+        public const int E_StateChanged = unchecked((int) 0x80040223);
 
-        public const int E_NotStopped = unchecked((int)0x80040224);
+        public const int E_NotStopped = unchecked((int) 0x80040224);
 
-        public const int E_NotPaused = unchecked((int)0x80040225);
+        public const int E_NotPaused = unchecked((int) 0x80040225);
 
-        public const int E_NotRunning = unchecked((int)0x80040226);
+        public const int E_NotRunning = unchecked((int) 0x80040226);
 
-        public const int E_WrongState = unchecked((int)0x80040227);
+        public const int E_WrongState = unchecked((int) 0x80040227);
 
-        public const int E_StartTimeAfterEnd = unchecked((int)0x80040228);
+        public const int E_StartTimeAfterEnd = unchecked((int) 0x80040228);
 
-        public const int E_InvalidRect = unchecked((int)0x80040229);
+        public const int E_InvalidRect = unchecked((int) 0x80040229);
 
-        public const int E_TypeNotAccepted = unchecked((int)0x8004022A);
+        public const int E_TypeNotAccepted = unchecked((int) 0x8004022A);
 
-        public const int E_SampleRejected = unchecked((int)0x8004022B);
+        public const int E_SampleRejected = unchecked((int) 0x8004022B);
 
-        public const int E_SampleRejectedEOS = unchecked((int)0x8004022C);
+        public const int E_SampleRejectedEOS = unchecked((int) 0x8004022C);
 
-        public const int E_DuplicateName = unchecked((int)0x8004022D);
+        public const int E_DuplicateName = unchecked((int) 0x8004022D);
 
-        public const int S_DuplicateName = unchecked((int)0x0004022D);
+        public const int S_DuplicateName = 0x0004022D;
 
-        public const int E_Timeout = unchecked((int)0x8004022E);
+        public const int E_Timeout = unchecked((int) 0x8004022E);
 
-        public const int E_InvalidFileFormat = unchecked((int)0x8004022F);
+        public const int E_InvalidFileFormat = unchecked((int) 0x8004022F);
 
-        public const int E_EnumOutOfRange = unchecked((int)0x80040230);
+        public const int E_EnumOutOfRange = unchecked((int) 0x80040230);
 
-        public const int E_CircularGraph = unchecked((int)0x80040231);
+        public const int E_CircularGraph = unchecked((int) 0x80040231);
 
-        public const int E_NotAllowedToSave = unchecked((int)0x80040232);
+        public const int E_NotAllowedToSave = unchecked((int) 0x80040232);
 
-        public const int E_TimeAlreadyPassed = unchecked((int)0x80040233);
+        public const int E_TimeAlreadyPassed = unchecked((int) 0x80040233);
 
-        public const int E_AlreadyCancelled = unchecked((int)0x80040234);
+        public const int E_AlreadyCancelled = unchecked((int) 0x80040234);
 
-        public const int E_CorruptGraphFile = unchecked((int)0x80040235);
+        public const int E_CorruptGraphFile = unchecked((int) 0x80040235);
 
-        public const int E_AdviseAlreadySet = unchecked((int)0x80040236);
+        public const int E_AdviseAlreadySet = unchecked((int) 0x80040236);
 
-        public const int S_StateIntermediate = unchecked((int)0x00040237);
+        public const int S_StateIntermediate = 0x00040237;
 
-        public const int E_NoModexAvailable = unchecked((int)0x80040238);
+        public const int E_NoModexAvailable = unchecked((int) 0x80040238);
 
-        public const int E_NoAdviseSet = unchecked((int)0x80040239);
+        public const int E_NoAdviseSet = unchecked((int) 0x80040239);
 
-        public const int E_NoFullScreen = unchecked((int)0x8004023A);
+        public const int E_NoFullScreen = unchecked((int) 0x8004023A);
 
-        public const int E_InFullScreenMode = unchecked((int)0x8004023B);
+        public const int E_InFullScreenMode = unchecked((int) 0x8004023B);
 
-        public const int E_UnknownFileType = unchecked((int)0x80040240);
+        public const int E_UnknownFileType = unchecked((int) 0x80040240);
 
-        public const int E_CannotLoadSourceFilter = unchecked((int)0x80040241);
+        public const int E_CannotLoadSourceFilter = unchecked((int) 0x80040241);
 
-        public const int S_PartialRender = unchecked((int)0x00040242);
+        public const int S_PartialRender = 0x00040242;
 
-        public const int E_FileTooShort = unchecked((int)0x80040243);
+        public const int E_FileTooShort = unchecked((int) 0x80040243);
 
-        public const int E_InvalidFileVersion = unchecked((int)0x80040244);
+        public const int E_InvalidFileVersion = unchecked((int) 0x80040244);
 
-        public const int S_SomeDataIgnored = unchecked((int)0x00040245);
+        public const int S_SomeDataIgnored = 0x00040245;
 
-        public const int S_ConnectionsDeferred = unchecked((int)0x00040246);
+        public const int S_ConnectionsDeferred = 0x00040246;
 
-        public const int E_InvalidCLSID = unchecked((int)0x80040247);
+        public const int E_InvalidCLSID = unchecked((int) 0x80040247);
 
-        public const int E_InvalidMediaType2 = unchecked((int)0x80040248);
+        public const int E_InvalidMediaType2 = unchecked((int) 0x80040248);
 
-        public const int E_BabKey = unchecked((int)0x800403F2);
+        public const int E_BabKey = unchecked((int) 0x800403F2);
 
-        public const int S_NoMoreItems = unchecked((int)0x00040103);
+        public const int S_NoMoreItems = 0x00040103;
 
-        public const int E_SampleTimeNotSet = unchecked((int)0x80040249);
+        public const int E_SampleTimeNotSet = unchecked((int) 0x80040249);
 
-        public const int S_ResourceNotNeeded = unchecked((int)0x00040250);
+        public const int S_ResourceNotNeeded = 0x00040250;
 
-        public const int E_MediaTimeNotSet = unchecked((int)0x80040251);
+        public const int E_MediaTimeNotSet = unchecked((int) 0x80040251);
 
-        public const int E_NoTimeFormatSet = unchecked((int)0x80040252);
+        public const int E_NoTimeFormatSet = unchecked((int) 0x80040252);
 
-        public const int E_MonoAudioHW = unchecked((int)0x80040253);
+        public const int E_MonoAudioHW = unchecked((int) 0x80040253);
 
-        public const int S_MediaTypeIgnored = unchecked((int)0x00040254);
+        public const int S_MediaTypeIgnored = 0x00040254;
 
-        public const int E_NoDecompressor = unchecked((int)0x80040255);
+        public const int E_NoDecompressor = unchecked((int) 0x80040255);
 
-        public const int E_NoAudioHardware = unchecked((int)0x80040256);
+        public const int E_NoAudioHardware = unchecked((int) 0x80040256);
 
-        public const int S_VideoNotRendered = unchecked((int)0x00040257);
+        public const int S_VideoNotRendered = 0x00040257;
 
-        public const int S_AudioNotRendered = unchecked((int)0x00040258);
+        public const int S_AudioNotRendered = 0x00040258;
 
-        public const int E_RPZA = unchecked((int)0x80040259);
+        public const int E_RPZA = unchecked((int) 0x80040259);
 
-        public const int S_RPZA = unchecked((int)0x0004025A);
+        public const int S_RPZA = 0x0004025A;
 
-        public const int E_ProcessorNotSuitable = unchecked((int)0x8004025B);
+        public const int E_ProcessorNotSuitable = unchecked((int) 0x8004025B);
 
-        public const int E_UnsupportedAudio = unchecked((int)0x8004025C);
+        public const int E_UnsupportedAudio = unchecked((int) 0x8004025C);
 
-        public const int E_UnsupportedVideo = unchecked((int)0x8004025D);
+        public const int E_UnsupportedVideo = unchecked((int) 0x8004025D);
 
-        public const int E_MPEGNotConstrained = unchecked((int)0x8004025E);
+        public const int E_MPEGNotConstrained = unchecked((int) 0x8004025E);
 
-        public const int E_NotInGraph = unchecked((int)0x8004025F);
+        public const int E_NotInGraph = unchecked((int) 0x8004025F);
 
-        public const int S_Estimated = unchecked((int)0x00040260);
+        public const int S_Estimated = 0x00040260;
 
-        public const int E_NoTimeFormat = unchecked((int)0x80040261);
+        public const int E_NoTimeFormat = unchecked((int) 0x80040261);
 
-        public const int E_ReadOnly = unchecked((int)0x80040262);
+        public const int E_ReadOnly = unchecked((int) 0x80040262);
 
-        public const int S_Reserved = unchecked((int)0x00040263);
+        public const int S_Reserved = 0x00040263;
 
-        public const int E_BufferUnderflow = unchecked((int)0x80040264);
+        public const int E_BufferUnderflow = unchecked((int) 0x80040264);
 
-        public const int E_UnsupportedStream = unchecked((int)0x80040265);
+        public const int E_UnsupportedStream = unchecked((int) 0x80040265);
 
-        public const int E_NoTransport = unchecked((int)0x80040266);
+        public const int E_NoTransport = unchecked((int) 0x80040266);
 
-        public const int S_StreamOff = unchecked((int)0x00040267);
+        public const int S_StreamOff = 0x00040267;
 
-        public const int S_CantCue = unchecked((int)0x00040268);
+        public const int S_CantCue = 0x00040268;
 
-        public const int E_BadVideoCD = unchecked((int)0x80040269);
+        public const int E_BadVideoCD = unchecked((int) 0x80040269);
 
-        public const int S_NoStopTime = unchecked((int)0x00040270);
+        public const int S_NoStopTime = 0x00040270;
 
-        public const int E_OutOfVideoMemory = unchecked((int)0x80040271);
+        public const int E_OutOfVideoMemory = unchecked((int) 0x80040271);
 
-        public const int E_VPNegotiationFailed = unchecked((int)0x80040272);
+        public const int E_VPNegotiationFailed = unchecked((int) 0x80040272);
 
-        public const int E_DDrawCapsNotSuitable = unchecked((int)0x80040273);
+        public const int E_DDrawCapsNotSuitable = unchecked((int) 0x80040273);
 
-        public const int E_NoVPHardware = unchecked((int)0x80040274);
+        public const int E_NoVPHardware = unchecked((int) 0x80040274);
 
-        public const int E_NoCaptureHardware = unchecked((int)0x80040275);
+        public const int E_NoCaptureHardware = unchecked((int) 0x80040275);
 
-        public const int E_DVDOperationInhibited = unchecked((int)0x80040276);
+        public const int E_DVDOperationInhibited = unchecked((int) 0x80040276);
 
-        public const int E_DVDInvalidDomain = unchecked((int)0x80040277);
+        public const int E_DVDInvalidDomain = unchecked((int) 0x80040277);
 
-        public const int E_DVDNoButton = unchecked((int)0x80040278);
+        public const int E_DVDNoButton = unchecked((int) 0x80040278);
 
-        public const int E_DVDGraphNotReady = unchecked((int)0x80040279);
+        public const int E_DVDGraphNotReady = unchecked((int) 0x80040279);
 
-        public const int E_DVDRenderFail = unchecked((int)0x8004027A);
+        public const int E_DVDRenderFail = unchecked((int) 0x8004027A);
 
-        public const int E_DVDDecNotEnough = unchecked((int)0x8004027B);
+        public const int E_DVDDecNotEnough = unchecked((int) 0x8004027B);
 
-        public const int E_DDrawVersionNotSuitable = unchecked((int)0x8004027C);
+        public const int E_DDrawVersionNotSuitable = unchecked((int) 0x8004027C);
 
-        public const int E_CopyProtFailed = unchecked((int)0x8004027D);
+        public const int E_CopyProtFailed = unchecked((int) 0x8004027D);
 
-        public const int S_NoPreviewPin = unchecked((int)0x0004027E);
+        public const int S_NoPreviewPin = 0x0004027E;
 
-        public const int E_TimeExpired = unchecked((int)0x8004027F);
+        public const int E_TimeExpired = unchecked((int) 0x8004027F);
 
-        public const int S_DVDNonOneSequential = unchecked((int)0x00040280);
+        public const int S_DVDNonOneSequential = 0x00040280;
 
-        public const int E_DVDWrongSpeed = unchecked((int)0x80040281);
+        public const int E_DVDWrongSpeed = unchecked((int) 0x80040281);
 
-        public const int E_DVDMenuDoesNotExist = unchecked((int)0x80040282);
+        public const int E_DVDMenuDoesNotExist = unchecked((int) 0x80040282);
 
-        public const int E_DVDCmdCancelled = unchecked((int)0x80040283);
+        public const int E_DVDCmdCancelled = unchecked((int) 0x80040283);
 
-        public const int E_DVDStateWrongVersion = unchecked((int)0x80040284);
+        public const int E_DVDStateWrongVersion = unchecked((int) 0x80040284);
 
-        public const int E_DVDStateCorrupt = unchecked((int)0x80040285);
+        public const int E_DVDStateCorrupt = unchecked((int) 0x80040285);
 
-        public const int E_DVDStateWrongDisc = unchecked((int)0x80040286);
+        public const int E_DVDStateWrongDisc = unchecked((int) 0x80040286);
 
-        public const int E_DVDIncompatibleRegion = unchecked((int)0x80040287);
+        public const int E_DVDIncompatibleRegion = unchecked((int) 0x80040287);
 
-        public const int E_DVDNoAttributes = unchecked((int)0x80040288);
+        public const int E_DVDNoAttributes = unchecked((int) 0x80040288);
 
-        public const int E_DVDNoGoupPGC = unchecked((int)0x80040289);
+        public const int E_DVDNoGoupPGC = unchecked((int) 0x80040289);
 
-        public const int E_DVDLowParentalLevel = unchecked((int)0x8004028A);
+        public const int E_DVDLowParentalLevel = unchecked((int) 0x8004028A);
 
-        public const int E_DVDNotInKaraokeMode = unchecked((int)0x8004028B);
+        public const int E_DVDNotInKaraokeMode = unchecked((int) 0x8004028B);
 
-        public const int S_DVDChannelContentsNotAvailable = unchecked((int)0x0004028C);
+        public const int S_DVDChannelContentsNotAvailable = 0x0004028C;
 
-        public const int S_DVDNotAccurate = unchecked((int)0x0004028D);
+        public const int S_DVDNotAccurate = 0x0004028D;
 
-        public const int E_FrameStepUnsupported = unchecked((int)0x8004028E);
+        public const int E_FrameStepUnsupported = unchecked((int) 0x8004028E);
 
-        public const int E_DVDStreamDisabled = unchecked((int)0x8004028F);
+        public const int E_DVDStreamDisabled = unchecked((int) 0x8004028F);
 
-        public const int E_DVDTitleUnknown = unchecked((int)0x80040290);
+        public const int E_DVDTitleUnknown = unchecked((int) 0x80040290);
 
-        public const int E_DVDInvalidDisc = unchecked((int)0x80040291);
+        public const int E_DVDInvalidDisc = unchecked((int) 0x80040291);
 
-        public const int E_DVDNoResumeInformation = unchecked((int)0x80040292);
+        public const int E_DVDNoResumeInformation = unchecked((int) 0x80040292);
 
-        public const int E_PinAlreadyBlockedOnThisThread = unchecked((int)0x80040293);
+        public const int E_PinAlreadyBlockedOnThisThread = unchecked((int) 0x80040293);
 
-        public const int E_PinAlreadyBlocked = unchecked((int)0x80040294);
+        public const int E_PinAlreadyBlocked = unchecked((int) 0x80040294);
 
-        public const int E_CertificationFailure = unchecked((int)0x80040295);
+        public const int E_CertificationFailure = unchecked((int) 0x80040295);
 
-        public const int E_VMRNotInMixerMode = unchecked((int)0x80040296);
+        public const int E_VMRNotInMixerMode = unchecked((int) 0x80040296);
 
-        public const int E_VMRNoApSupplied = unchecked((int)0x80040297);
+        public const int E_VMRNoApSupplied = unchecked((int) 0x80040297);
 
-        public const int E_VMRNoDeinterlace_HW = unchecked((int)0x80040298);
+        public const int E_VMRNoDeinterlace_HW = unchecked((int) 0x80040298);
 
-        public const int E_VMRNoProcAMPHW = unchecked((int)0x80040299);
+        public const int E_VMRNoProcAMPHW = unchecked((int) 0x80040299);
 
-        public const int E_DVDVMR9IncompatibleDec = unchecked((int)0x8004029A);
+        public const int E_DVDVMR9IncompatibleDec = unchecked((int) 0x8004029A);
 
-        public const int E_NoCOPPHW = unchecked((int)0x8004029B);
+        public const int E_NoCOPPHW = unchecked((int) 0x8004029B);
     }
 
 
     public static class DsError
     {
-        [DllImport("quartz.dll", CharSet = CharSet.Unicode, ExactSpelling = true, EntryPoint = "AMGetErrorTextW"),
-         SuppressUnmanagedCodeSecurity]
+        [DllImport("quartz.dll", CharSet = CharSet.Unicode, ExactSpelling = true, EntryPoint = "AMGetErrorTextW")]
+        [SuppressUnmanagedCodeSecurity]
         public static extern int AMGetErrorText(int hr, StringBuilder buf, int max);
 
         /// <summary>
-        /// If hr has a "failed" status code (E_*), throw an exception.  Note that status
-        /// messages (S_*) are not considered failure codes.  If DirectShow error text
-        /// is available, it is used to build the exception, otherwise a generic com error
-        /// is thrown.
+        ///     If hr has a "failed" status code (E_*), throw an exception.  Note that status
+        ///     messages (S_*) are not considered failure codes.  If DirectShow error text
+        ///     is available, it is used to build the exception, otherwise a generic com error
+        ///     is thrown.
         /// </summary>
         /// <param name="hr">The HRESULT to check</param>
         public static void ThrowExceptionForHR(int hr)
@@ -1121,24 +1101,19 @@ namespace DirectShowLib
             // If a severe error has occurred
             if (hr < 0)
             {
-                string s = GetErrorText(hr);
+                var s = GetErrorText(hr);
 
                 // If a string is returned, build a com error from it
                 if (s != null)
-                {
                     throw new COMException(s, hr);
-                }
-                else
-                {
-                    // No string, just use standard com error
-                    Marshal.ThrowExceptionForHR(hr);
-                }
+                // No string, just use standard com error
+                Marshal.ThrowExceptionForHR(hr);
             }
         }
 
         /// <summary>
-        /// Returns a string describing a DS error.  Works for both error codes
-        /// (values < 0) and Status codes (values >= 0)
+        ///     Returns a string describing a DS error.  Works for both error codes
+        ///     (values < 0) and Status codes ( values>= 0)
         /// </summary>
         /// <param name="hr">HRESULT for which to get description</param>
         /// <returns>The string, or null if no error text can be found</returns>
@@ -1147,13 +1122,10 @@ namespace DirectShowLib
             const int MAX_ERROR_TEXT_LEN = 160;
 
             // Make a buffer to hold the string
-            StringBuilder buf = new StringBuilder(MAX_ERROR_TEXT_LEN, MAX_ERROR_TEXT_LEN);
+            var buf = new StringBuilder(MAX_ERROR_TEXT_LEN, MAX_ERROR_TEXT_LEN);
 
             // If a string is returned, build a com error from it
-            if (AMGetErrorText(hr, buf, MAX_ERROR_TEXT_LEN) > 0)
-            {
-                return buf.ToString();
-            }
+            if (AMGetErrorText(hr, buf, MAX_ERROR_TEXT_LEN) > 0) return buf.ToString();
 
             return null;
         }
@@ -1163,35 +1135,35 @@ namespace DirectShowLib
     public static class DsUtils
     {
         /// <summary>
-        /// Returns the PinCategory of the specified pin.  Usually a member of PinCategory.  Not all pins have a category.
+        ///     Returns the PinCategory of the specified pin.  Usually a member of PinCategory.  Not all pins have a category.
         /// </summary>
         /// <param name="pPin"></param>
         /// <returns>Guid indicating pin category or Guid.Empty on no category.  Usually a member of PinCategory</returns>
         public static Guid GetPinCategory(IPin pPin)
         {
-            Guid guidRet = Guid.Empty;
+            var guidRet = Guid.Empty;
 
             // Memory to hold the returned guid
-            int iSize = Marshal.SizeOf(typeof(Guid));
-            IntPtr ipOut = Marshal.AllocCoTaskMem(iSize);
+            var iSize = Marshal.SizeOf(typeof(Guid));
+            var ipOut = Marshal.AllocCoTaskMem(iSize);
 
             try
             {
                 int hr;
                 int cbBytes;
-                Guid g = PropSetID.Pin;
+                var g = PropSetID.Pin;
 
                 // Get an IKsPropertySet from the pin
-                IKsPropertySet pKs = pPin as IKsPropertySet;
+                var pKs = pPin as IKsPropertySet;
 
                 if (pKs != null)
                 {
                     // Query for the Category
-                    hr = pKs.Get(g, (int)AMPropertyPin.Category, IntPtr.Zero, 0, ipOut, iSize, out cbBytes);
+                    hr = pKs.Get(g, (int) AMPropertyPin.Category, IntPtr.Zero, 0, ipOut, iSize, out cbBytes);
                     DsError.ThrowExceptionForHR(hr);
 
                     // Marshal it to the return variable
-                    guidRet = (Guid)Marshal.PtrToStructure(ipOut, typeof(Guid));
+                    guidRet = (Guid) Marshal.PtrToStructure(ipOut, typeof(Guid));
                 }
             }
             finally
@@ -1204,8 +1176,8 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        ///  Free the nested structures and release any
-        ///  COM objects within an AMMediaType struct.
+        ///     Free the nested structures and release any
+        ///     COM objects within an AMMediaType struct.
         /// </summary>
         public static void FreeAMMediaType(AMMediaType mediaType)
         {
@@ -1217,6 +1189,7 @@ namespace DirectShowLib
                     mediaType.formatSize = 0;
                     mediaType.formatPtr = IntPtr.Zero;
                 }
+
                 if (mediaType.unkPtr != IntPtr.Zero)
                 {
                     Marshal.Release(mediaType.unkPtr);
@@ -1226,7 +1199,7 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        ///  Free the nested interfaces within a PinInfo struct.
+        ///     Free the nested interfaces within a PinInfo struct.
         /// </summary>
         public static void FreePinInfo(PinInfo pinInfo)
         {
@@ -1248,49 +1221,18 @@ namespace DirectShowLib
 
         public static void ReleaseComObject(object obj)
         {
-            if (obj != null)
-            {
-                Marshal.ReleaseComObject(obj);
-            }
+            if (obj != null) Marshal.ReleaseComObject(obj);
         }
     }
 
 
     public class DsROTEntry : IDisposable
     {
-        [Flags]
-        private enum ROTFlags
-        {
-            RegistrationKeepsAlive = 0x1,
-
-            AllowAnyClient = 0x2
-        }
-
-        private int m_cookie = 0;
-
-        #region APIs
-
-        [DllImport("ole32.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-#if USING_NET11
-        private static extern int GetRunningObjectTable(int r, out UCOMIRunningObjectTable pprot);
-#else
-        private static extern int GetRunningObjectTable(int r, out IRunningObjectTable pprot);
-
-#endif
-
-        [DllImport("ole32.dll", CharSet = CharSet.Unicode, ExactSpelling = true), SuppressUnmanagedCodeSecurity]
-#if USING_NET11
-        private static extern int CreateItemMoniker(string delim, string item, out UCOMIMoniker ppmk);
-#else
-        private static extern int CreateItemMoniker(string delim, string item, out IMoniker ppmk);
-
-#endif
-
-        #endregion
+        private int m_cookie;
 
         public DsROTEntry(IFilterGraph graph)
         {
-            int hr = 0;
+            var hr = 0;
 #if USING_NET11
             UCOMIRunningObjectTable rot = null;
             UCOMIMoniker mk = null;
@@ -1305,8 +1247,8 @@ namespace DirectShowLib
                 DsError.ThrowExceptionForHR(hr);
 
                 // Build up the object to add to the table
-                int id = Process.GetCurrentProcess().Id;
-                IntPtr iuPtr = Marshal.GetIUnknownForObject(graph);
+                var id = Process.GetCurrentProcess().Id;
+                var iuPtr = Marshal.GetIUnknownForObject(graph);
                 string s;
                 try
                 {
@@ -1320,7 +1262,8 @@ namespace DirectShowLib
                 {
                     Marshal.Release(iuPtr);
                 }
-                string item = string.Format("FilterGraph {0} pid {1:x8}", s, id);
+
+                var item = string.Format("FilterGraph {0} pid {1:x8}", s, id);
                 hr = CreateItemMoniker("!", item, out mk);
                 DsError.ThrowExceptionForHR(hr);
 
@@ -1328,7 +1271,7 @@ namespace DirectShowLib
 #if USING_NET11
                 rot.Register((int)ROTFlags.RegistrationKeepsAlive, graph, mk, out m_cookie);
 #else
-                m_cookie = rot.Register((int)ROTFlags.RegistrationKeepsAlive, graph, mk);
+                m_cookie = rot.Register((int) ROTFlags.RegistrationKeepsAlive, graph, mk);
 #endif
             }
             finally
@@ -1336,11 +1279,6 @@ namespace DirectShowLib
                 DsUtils.ReleaseComObject(mk);
                 DsUtils.ReleaseComObject(rot);
             }
-        }
-
-        ~DsROTEntry()
-        {
-            Dispose();
         }
 
         public void Dispose()
@@ -1355,7 +1293,7 @@ namespace DirectShowLib
 #endif
 
                 // Get a pointer to the running object table
-                int hr = GetRunningObjectTable(0, out rot);
+                var hr = GetRunningObjectTable(0, out rot);
                 DsError.ThrowExceptionForHR(hr);
 
                 try
@@ -1370,6 +1308,41 @@ namespace DirectShowLib
                 }
             }
         }
+
+        ~DsROTEntry()
+        {
+            Dispose();
+        }
+
+        [Flags]
+        private enum ROTFlags
+        {
+            RegistrationKeepsAlive = 0x1,
+
+            AllowAnyClient = 0x2
+        }
+
+        #region APIs
+
+        [DllImport("ole32.dll", ExactSpelling = true)]
+        [SuppressUnmanagedCodeSecurity]
+#if USING_NET11
+        private static extern int GetRunningObjectTable(int r, out UCOMIRunningObjectTable pprot);
+#else
+        private static extern int GetRunningObjectTable(int r, out IRunningObjectTable pprot);
+
+#endif
+
+        [DllImport("ole32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+        [SuppressUnmanagedCodeSecurity]
+#if USING_NET11
+        private static extern int CreateItemMoniker(string delim, string item, out UCOMIMoniker ppmk);
+#else
+        private static extern int CreateItemMoniker(string delim, string item, out IMoniker ppmk);
+
+#endif
+
+        #endregion
     }
 
 
@@ -1410,16 +1383,13 @@ namespace DirectShowLib
         {
             get
             {
-                if (m_Name == null)
-                {
-                    m_Name = GetPropBagValue("FriendlyName");
-                }
+                if (m_Name == null) m_Name = GetPropBagValue("FriendlyName");
                 return m_Name;
             }
         }
 
         /// <summary>
-        /// Returns a unique identifier for a device
+        ///     Returns a unique identifier for a device
         /// </summary>
         public string DevicePath
         {
@@ -1440,7 +1410,7 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Returns the ClassID for a device
+        ///     Returns the ClassID for a device
         /// </summary>
         public Guid ClassID
         {
@@ -1456,7 +1426,7 @@ namespace DirectShowLib
 
 
         /// <summary>
-        /// Returns an array of DsDevices of type devcat.
+        ///     Returns an array of DsDevices of type devcat.
         /// </summary>
         /// <param name="cat">Any one of FilterCategory</param>
         public static DsDevice[] GetDevicesOfCat(Guid FilterCategory)
@@ -1465,20 +1435,19 @@ namespace DirectShowLib
 
             // Use arrayList to build the retun list since it is easily resizable
             DsDevice[] devret;
-            ArrayList devs = new ArrayList();
+            var devs = new ArrayList();
 #if USING_NET11
             UCOMIEnumMoniker enumMon;
 #else
             IEnumMoniker enumMon;
 #endif
 
-            ICreateDevEnum enumDev = (ICreateDevEnum)new CreateDevEnum();
+            var enumDev = (ICreateDevEnum) new CreateDevEnum();
             hr = enumDev.CreateClassEnumerator(FilterCategory, out enumMon, 0);
             DsError.ThrowExceptionForHR(hr);
 
             // CreateClassEnumerator returns null for enumMon if there are no entries
             if (hr != 1)
-            {
                 try
                 {
                     try
@@ -1486,16 +1455,15 @@ namespace DirectShowLib
 #if USING_NET11
                         UCOMIMoniker[] mon = new UCOMIMoniker[1];
 #else
-                        IMoniker[] mon = new IMoniker[1];
+                        var mon = new IMoniker[1];
 #endif
 
 #if USING_NET11
                         int j;
                         while ((enumMon.Next(1, mon, out j) == 0))
 #else
-                        while ((enumMon.Next(1, mon, IntPtr.Zero) == 0))
+                        while (enumMon.Next(1, mon, IntPtr.Zero) == 0)
 #endif
-                        {
                             try
                             {
                                 // The devs array now owns this object.  Don't
@@ -1508,7 +1476,6 @@ namespace DirectShowLib
                                 DsUtils.ReleaseComObject(mon[0]);
                                 throw;
                             }
-                        }
                     }
                     finally
                     {
@@ -1521,23 +1488,17 @@ namespace DirectShowLib
                 }
                 catch
                 {
-                    foreach (DsDevice d in devs)
-                    {
-                        d.Dispose();
-                    }
+                    foreach (DsDevice d in devs) d.Dispose();
                     throw;
                 }
-            }
             else
-            {
                 devret = new DsDevice[0];
-            }
 
             return devret;
         }
 
         /// <summary>
-        /// Get a specific PropertyBag value from a moniker
+        ///     Get a specific PropertyBag value from a moniker
         /// </summary>
         /// <param name="sPropName">The name of the value to retrieve</param>
         /// <returns>String or null on error</returns>
@@ -1550,12 +1511,12 @@ namespace DirectShowLib
 
             try
             {
-                Guid bagId = typeof(IPropertyBag).GUID;
+                var bagId = typeof(IPropertyBag).GUID;
                 m_Mon.BindToStorage(null, null, ref bagId, out bagObj);
 
-                bag = (IPropertyBag)bagObj;
+                bag = (IPropertyBag) bagObj;
 
-                int hr = bag.Read(sPropName, out val, null);
+                var hr = bag.Read(sPropName, out val, null);
                 DsError.ThrowExceptionForHR(hr);
 
                 ret = val as string;
@@ -1585,6 +1546,7 @@ namespace DirectShowLib
                 m_Mon = null;
                 GC.SuppressFinalize(this);
             }
+
             m_Name = null;
         }
     }
@@ -1593,7 +1555,7 @@ namespace DirectShowLib
     public static class DsFindPin
     {
         /// <summary>
-        /// Scans a filter's pins looking for a pin in the specified direction
+        ///     Scans a filter's pins looking for a pin in the specified direction
         /// </summary>
         /// <param name="vSource">The filter to scan</param>
         /// <param name="vDir">The direction to find</param>
@@ -1605,12 +1567,9 @@ namespace DirectShowLib
             IEnumPins ppEnum;
             PinDirection ppindir;
             IPin pRet = null;
-            IPin[] pPins = new IPin[1];
+            var pPins = new IPin[1];
 
-            if (vSource == null)
-            {
-                return null;
-            }
+            if (vSource == null) return null;
 
             // Get the pin enumerator
             hr = vSource.EnumPins(out ppEnum);
@@ -1634,6 +1593,7 @@ namespace DirectShowLib
                             pRet = pPins[0];
                             break;
                         }
+
                         iIndex--;
                     }
 
@@ -1649,7 +1609,7 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Scans a filter's pins looking for a pin with the specified name
+        ///     Scans a filter's pins looking for a pin with the specified name
         /// </summary>
         /// <param name="vSource">The filter to scan</param>
         /// <param name="vPinName">The pin name to find</param>
@@ -1660,12 +1620,9 @@ namespace DirectShowLib
             IEnumPins ppEnum;
             PinInfo ppinfo;
             IPin pRet = null;
-            IPin[] pPins = new IPin[1];
+            var pPins = new IPin[1];
 
-            if (vSource == null)
-            {
-                return null;
-            }
+            if (vSource == null) return null;
 
             // Get the pin enumerator
             hr = vSource.EnumPins(out ppEnum);
@@ -1701,7 +1658,7 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Scan's a filter's pins looking for a pin with the specified category
+        ///     Scan's a filter's pins looking for a pin with the specified category
         /// </summary>
         /// <param name="vSource">The filter to scan</param>
         /// <param name="guidPinCat">The guid from PinCategory to scan for</param>
@@ -1712,12 +1669,9 @@ namespace DirectShowLib
             int hr;
             IEnumPins ppEnum;
             IPin pRet = null;
-            IPin[] pPins = new IPin[1];
+            var pPins = new IPin[1];
 
-            if (vSource == null)
-            {
-                return null;
-            }
+            if (vSource == null) return null;
 
             // Get the pin enumerator
             hr = vSource.EnumPins(out ppEnum);
@@ -1737,6 +1691,7 @@ namespace DirectShowLib
                             pRet = pPins[0];
                             break;
                         }
+
                         iIndex--;
                     }
 
@@ -1752,7 +1707,7 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Scans a filter's pins looking for a pin with the specified connection status
+        ///     Scans a filter's pins looking for a pin with the specified connection status
         /// </summary>
         /// <param name="vSource">The filter to scan</param>
         /// <param name="vStat">The status to find (connected/unconnected)</param>
@@ -1764,12 +1719,9 @@ namespace DirectShowLib
             IEnumPins ppEnum;
             IPin pRet = null;
             IPin pOutPin;
-            IPin[] pPins = new IPin[1];
+            var pPins = new IPin[1];
 
-            if (vSource == null)
-            {
-                return null;
-            }
+            if (vSource == null) return null;
 
             // Get the pin enumerator
             hr = vSource.EnumPins(out ppEnum);
@@ -1793,7 +1745,8 @@ namespace DirectShowLib
                     }
 
                     // Is it the right status?
-                    if ((hr == 0 && vStat == PinConnectedStatus.Connected) || (hr == DsResults.E_NotConnected && vStat == PinConnectedStatus.Unconnected))
+                    if ((hr == 0 && vStat == PinConnectedStatus.Connected) ||
+                        (hr == DsResults.E_NotConnected && vStat == PinConnectedStatus.Unconnected))
                     {
                         // Is is the right index?
                         if (iIndex == 0)
@@ -1821,7 +1774,7 @@ namespace DirectShowLib
     public static class DsToString
     {
         /// <summary>
-        /// Produces a usable string that describes the MediaType object
+        ///     Produces a usable string that describes the MediaType object
         /// </summary>
         /// <returns>Concatenation of MajorType + SubType + FormatType + Fixed + Temporal + SampleSize.ToString</returns>
         public static string AMMediaTypeToString(AMMediaType pmt)
@@ -1831,13 +1784,13 @@ namespace DirectShowLib
                 MediaTypeToString(pmt.majorType),
                 MediaSubTypeToString(pmt.subType),
                 MediaFormatTypeToString(pmt.formatType),
-                (pmt.fixedSizeSamples ? "FixedSamples" : "NotFixedSamples"),
-                (pmt.temporalCompression ? "temporalCompression" : "NottemporalCompression"),
+                pmt.fixedSizeSamples ? "FixedSamples" : "NotFixedSamples",
+                pmt.temporalCompression ? "temporalCompression" : "NottemporalCompression",
                 pmt.sampleSize.ToString());
         }
 
         /// <summary>
-        /// Converts AMMediaType.MajorType Guid to a readable string
+        ///     Converts AMMediaType.MajorType Guid to a readable string
         /// </summary>
         /// <returns>MajorType Guid as a readable string or Guid if unrecognized</returns>
         public static string MediaTypeToString(Guid guid)
@@ -1847,13 +1800,13 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Converts the AMMediaType.SubType Guid to a readable string
+        ///     Converts the AMMediaType.SubType Guid to a readable string
         /// </summary>
         /// <returns>SubType Guid as a readable string or Guid if unrecognized</returns>
         public static string MediaSubTypeToString(Guid guid)
         {
             // Walk the MediaSubType class looking for a match
-            string s = WalkClass(typeof(MediaSubType), guid);
+            var s = WalkClass(typeof(MediaSubType), guid);
 
             // There is a special set of Guids that contain the FourCC code
             // as part of the Guid.  Check to see if it is one of those.
@@ -1861,10 +1814,10 @@ namespace DirectShowLib
             {
                 // Parse out the FourCC code
                 byte[] asc =
-                    {
-                        Convert.ToByte(s.Substring(6, 2), 16), Convert.ToByte(s.Substring(4, 2), 16),
-                        Convert.ToByte(s.Substring(2, 2), 16), Convert.ToByte(s.Substring(0, 2), 16)
-                    };
+                {
+                    Convert.ToByte(s.Substring(6, 2), 16), Convert.ToByte(s.Substring(4, 2), 16),
+                    Convert.ToByte(s.Substring(2, 2), 16), Convert.ToByte(s.Substring(0, 2), 16)
+                };
                 s = Encoding.ASCII.GetString(asc);
             }
 
@@ -1872,7 +1825,7 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Converts the AMMediaType.FormatType Guid to a readable string
+        ///     Converts the AMMediaType.FormatType Guid to a readable string
         /// </summary>
         /// <returns>FormatType Guid as a readable string or Guid if unrecognized</returns>
         public static string MediaFormatTypeToString(Guid guid)
@@ -1882,7 +1835,7 @@ namespace DirectShowLib
         }
 
         /// <summary>
-        /// Use reflection to walk a class looking for a property containing a specified guid
+        ///     Use reflection to walk a class looking for a property containing a specified guid
         /// </summary>
         /// <param name="MyType">Class to scan</param>
         /// <param name="guid">Guid to scan for</param>
@@ -1892,19 +1845,16 @@ namespace DirectShowLib
             object o = null;
 
             // Read the fields from the class
-            FieldInfo[] Fields = MyType.GetFields();
+            var Fields = MyType.GetFields();
 
             // Walk the returned array
-            foreach (FieldInfo m in Fields)
+            foreach (var m in Fields)
             {
                 // Read the value of the property.  The parameter is ignored.
                 o = m.GetValue(o);
 
                 // Compare it with the sought value
-                if ((Guid)o == guid)
-                {
-                    return m.Name;
-                }
+                if ((Guid) o == guid) return m.Name;
             }
 
             return guid.ToString();
@@ -1920,16 +1870,6 @@ namespace DirectShowLib
 
     internal abstract class DsMarshaler : ICustomMarshaler
     {
-        #region Data Members
-
-        // The cookie isn't currently being used.
-        protected string m_cookie;
-
-        // The managed object passed in to MarshalManagedToNative, and modified in MarshalNativeToManaged
-        protected object m_obj;
-
-        #endregion
-
         // The constructor.  This is called from GetInstance (below)
         public DsMarshaler(string cookie)
         {
@@ -1946,13 +1886,10 @@ namespace DirectShowLib
 
             // Create an appropriately sized buffer, blank it, and send it to the marshaler to
             // make the COM call with.
-            int iSize = GetNativeDataSize() + 3;
-            IntPtr p = Marshal.AllocCoTaskMem(iSize);
+            var iSize = GetNativeDataSize() + 3;
+            var p = Marshal.AllocCoTaskMem(iSize);
 
-            for (int x = 0; x < iSize / 4; x++)
-            {
-                Marshal.WriteInt32(p, x * 4, 0);
-            }
+            for (var x = 0; x < iSize / 4; x++) Marshal.WriteInt32(p, x * 4, 0);
 
             return p;
         }
@@ -1967,10 +1904,7 @@ namespace DirectShowLib
         // Release the (now unused) buffer
         public virtual void CleanUpNativeData(IntPtr pNativeData)
         {
-            if (pNativeData != IntPtr.Zero)
-            {
-                Marshal.FreeCoTaskMem(pNativeData);
-            }
+            if (pNativeData != IntPtr.Zero) Marshal.FreeCoTaskMem(pNativeData);
         }
 
         // Release the (now unused) managed object
@@ -1981,6 +1915,16 @@ namespace DirectShowLib
 
         // This routine is (apparently) never called by the marshaler.  However it can be useful.
         public abstract int GetNativeDataSize();
+
+        #region Data Members
+
+        // The cookie isn't currently being used.
+        protected string m_cookie;
+
+        // The managed object passed in to MarshalManagedToNative, and modified in MarshalNativeToManaged
+        protected object m_obj;
+
+        #endregion
 
         // GetInstance is called by the marshaler in preparation to doing custom marshaling.  The (optional)
         // cookie is the value specified in MarshalCookie="asdf", or "" is none is specified.
@@ -2003,20 +1947,16 @@ namespace DirectShowLib
         // from MarshalManagedToNative.  The return value is unused.
         public override object MarshalNativeToManaged(IntPtr pNativeData)
         {
-            AMMediaType[] emt = m_obj as AMMediaType[];
+            var emt = m_obj as AMMediaType[];
 
-            for (int x = 0; x < emt.Length; x++)
+            for (var x = 0; x < emt.Length; x++)
             {
                 // Copy in the value, and advance the pointer
-                IntPtr p = Marshal.ReadIntPtr(pNativeData, x * IntPtr.Size);
+                var p = Marshal.ReadIntPtr(pNativeData, x * IntPtr.Size);
                 if (p != IntPtr.Zero)
-                {
-                    emt[x] = (AMMediaType)Marshal.PtrToStructure(p, typeof(AMMediaType));
-                }
+                    emt[x] = (AMMediaType) Marshal.PtrToStructure(p, typeof(AMMediaType));
                 else
-                {
                     emt[x] = null;
-                }
             }
 
             return null;
@@ -2026,10 +1966,10 @@ namespace DirectShowLib
         public override int GetNativeDataSize()
         {
             // Get the array size
-            int i = ((Array)m_obj).Length;
+            var i = ((Array) m_obj).Length;
 
             // Multiply that times the size of a pointer
-            int j = i * IntPtr.Size;
+            var j = i * IntPtr.Size;
 
             return j;
         }
@@ -2066,72 +2006,72 @@ namespace DirectShowLib
         // from MarshalManagedToNative.  The return value is unused.
         public override object MarshalNativeToManaged(IntPtr pNativeData)
         {
-            DvdTitleAttributes dta = m_obj as DvdTitleAttributes;
+            var dta = m_obj as DvdTitleAttributes;
 
             // Copy in the value, and advance the pointer
-            dta.AppMode = (DvdTitleAppMode)Marshal.ReadInt32(pNativeData);
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(int)));
+            dta.AppMode = (DvdTitleAppMode) Marshal.ReadInt32(pNativeData);
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(int)));
 
             // Copy in the value, and advance the pointer
-            dta.VideoAttributes = (DvdVideoAttributes)Marshal.PtrToStructure(pNativeData, typeof(DvdVideoAttributes));
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdVideoAttributes)));
+            dta.VideoAttributes = (DvdVideoAttributes) Marshal.PtrToStructure(pNativeData, typeof(DvdVideoAttributes));
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdVideoAttributes)));
 
             // Copy in the value, and advance the pointer
             dta.ulNumberOfAudioStreams = Marshal.ReadInt32(pNativeData);
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(int)));
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(int)));
 
             // Allocate a large enough array to hold all the returned structs.
             dta.AudioAttributes = new DvdAudioAttributes[8];
-            for (int x = 0; x < 8; x++)
+            for (var x = 0; x < 8; x++)
             {
                 // Copy in the value, and advance the pointer
                 dta.AudioAttributes[x] =
-                    (DvdAudioAttributes)Marshal.PtrToStructure(pNativeData, typeof(DvdAudioAttributes));
-                pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdAudioAttributes)));
+                    (DvdAudioAttributes) Marshal.PtrToStructure(pNativeData, typeof(DvdAudioAttributes));
+                pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdAudioAttributes)));
             }
 
             // Allocate a large enough array to hold all the returned structs.
             dta.MultichannelAudioAttributes = new DvdMultichannelAudioAttributes[8];
-            for (int x = 0; x < 8; x++)
+            for (var x = 0; x < 8; x++)
             {
                 // MultichannelAudioAttributes has nested ByValArrays.  They need to be individually copied.
 
                 dta.MultichannelAudioAttributes[x].Info = new DvdMUAMixingInfo[8];
 
-                for (int y = 0; y < 8; y++)
+                for (var y = 0; y < 8; y++)
                 {
                     // Copy in the value, and advance the pointer
                     dta.MultichannelAudioAttributes[x].Info[y] =
-                        (DvdMUAMixingInfo)Marshal.PtrToStructure(pNativeData, typeof(DvdMUAMixingInfo));
-                    pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdMUAMixingInfo)));
+                        (DvdMUAMixingInfo) Marshal.PtrToStructure(pNativeData, typeof(DvdMUAMixingInfo));
+                    pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdMUAMixingInfo)));
                 }
 
                 dta.MultichannelAudioAttributes[x].Coeff = new DvdMUACoeff[8];
 
-                for (int y = 0; y < 8; y++)
+                for (var y = 0; y < 8; y++)
                 {
                     // Copy in the value, and advance the pointer
                     dta.MultichannelAudioAttributes[x].Coeff[y] =
-                        (DvdMUACoeff)Marshal.PtrToStructure(pNativeData, typeof(DvdMUACoeff));
-                    pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdMUACoeff)));
+                        (DvdMUACoeff) Marshal.PtrToStructure(pNativeData, typeof(DvdMUACoeff));
+                    pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdMUACoeff)));
                 }
             }
 
             // The DvdMultichannelAudioAttributes needs to be 16 byte aligned
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + 4);
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + 4);
 
             // Copy in the value, and advance the pointer
             dta.ulNumberOfSubpictureStreams = Marshal.ReadInt32(pNativeData);
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(int)));
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(int)));
 
             // Allocate a large enough array to hold all the returned structs.
             dta.SubpictureAttributes = new DvdSubpictureAttributes[32];
-            for (int x = 0; x < 32; x++)
+            for (var x = 0; x < 32; x++)
             {
                 // Copy in the value, and advance the pointer
                 dta.SubpictureAttributes[x] =
-                    (DvdSubpictureAttributes)Marshal.PtrToStructure(pNativeData, typeof(DvdSubpictureAttributes));
-                pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdSubpictureAttributes)));
+                    (DvdSubpictureAttributes) Marshal.PtrToStructure(pNativeData, typeof(DvdSubpictureAttributes));
+                pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(DvdSubpictureAttributes)));
             }
 
             // Note that 4 bytes (more alignment) are unused at the end
@@ -2168,38 +2108,38 @@ namespace DirectShowLib
         // from MarshalManagedToNative.  The return value is unused.
         public override object MarshalNativeToManaged(IntPtr pNativeData)
         {
-            DvdKaraokeAttributes dka = m_obj as DvdKaraokeAttributes;
+            var dka = m_obj as DvdKaraokeAttributes;
 
             // Copy in the value, and advance the pointer
-            dka.bVersion = (byte)Marshal.ReadByte(pNativeData);
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(byte)));
+            dka.bVersion = Marshal.ReadByte(pNativeData);
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(byte)));
 
             // DWORD Align
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + 3);
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + 3);
 
             // Copy in the value, and advance the pointer
             dka.fMasterOfCeremoniesInGuideVocal1 = Marshal.ReadInt32(pNativeData) != 0;
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(bool)));
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(bool)));
 
             // Copy in the value, and advance the pointer
             dka.fDuet = Marshal.ReadInt32(pNativeData) != 0;
-            pNativeData = (IntPtr)(pNativeData.ToInt64() + Marshal.SizeOf(typeof(bool)));
+            pNativeData = (IntPtr) (pNativeData.ToInt64() + Marshal.SizeOf(typeof(bool)));
 
             // Copy in the value, and advance the pointer
-            dka.ChannelAssignment = (DvdKaraokeAssignment)Marshal.ReadInt32(pNativeData);
-            pNativeData = (IntPtr)(pNativeData.ToInt64()
-                                   + Marshal.SizeOf(
-                                       DvdKaraokeAssignment.GetUnderlyingType(typeof(DvdKaraokeAssignment))));
+            dka.ChannelAssignment = (DvdKaraokeAssignment) Marshal.ReadInt32(pNativeData);
+            pNativeData = (IntPtr) (pNativeData.ToInt64()
+                                    + Marshal.SizeOf(
+                                        Enum.GetUnderlyingType(typeof(DvdKaraokeAssignment))));
 
             // Allocate a large enough array to hold all the returned structs.
             dka.wChannelContents = new DvdKaraokeContents[8];
-            for (int x = 0; x < 8; x++)
+            for (var x = 0; x < 8; x++)
             {
                 // Copy in the value, and advance the pointer
-                dka.wChannelContents[x] = (DvdKaraokeContents)Marshal.ReadInt16(pNativeData);
-                pNativeData = (IntPtr)(pNativeData.ToInt64()
-                                       + Marshal.SizeOf(
-                                           DvdKaraokeContents.GetUnderlyingType(typeof(DvdKaraokeContents))));
+                dka.wChannelContents[x] = (DvdKaraokeContents) Marshal.ReadInt16(pNativeData);
+                pNativeData = (IntPtr) (pNativeData.ToInt64()
+                                        + Marshal.SizeOf(
+                                            Enum.GetUnderlyingType(typeof(DvdKaraokeContents))));
             }
 
             return null;
