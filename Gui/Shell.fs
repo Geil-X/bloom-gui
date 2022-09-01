@@ -23,6 +23,7 @@ type Tab =
     | Simulation
     | Inputs
 
+[<StructuralEquality; NoComparison>]
 type State =
     { CanvasSize: Size<Pixels>
       Flowers: Map<Flower Id, Flower>
@@ -32,7 +33,9 @@ type State =
       SerialPorts: string list
       Rerender: int
       Tab: Tab
-      AppConfig: AppConfig }
+      AppConfig: AppConfig
+      // Tabs
+      EaTab: EaTab.State }
 
 and FlowerInteraction =
     | Hovering of Flower Id
@@ -75,6 +78,7 @@ type Msg =
     | WroteAppConfig of Result<FileInfo, File.WriteError>
 
     // Msg Mapping
+    | EaTabMsg of EaTab.Msg
     | SimulationEvent of SimulationEvent
     | MenuMsg of Menu.Msg
     | IconDockMsg of IconDock.Msg
@@ -113,7 +117,8 @@ let init () : State * Cmd<Msg> =
       SerialPorts = []
       Rerender = 0
       Tab = Simulation
-      AppConfig = AppConfig.init },
+      AppConfig = AppConfig.init
+      EaTab = EaTab.init () },
     Cmd.batch [
         loadAppConfigFile
         Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
@@ -663,6 +668,12 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
 
     // Msg Mapping
+    | EaTabMsg eaTabMsg ->
+        let eaTabState, eaTabCmd =
+            EaTab.update eaTabMsg state.EaTab
+
+        { state with EaTab = eaTabState }, Cmd.map EaTabMsg eaTabCmd
+
     | MenuMsg menuMsg -> updateMenu menuMsg state window
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
     | SimulationEvent event -> updateSimulationEvent event state
@@ -746,4 +757,19 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
     ]
 
 
-let view (state: State) (dispatch: Msg -> unit) = simulationView state dispatch
+let view (state: State) (dispatch: Msg -> unit) =
+    let simulationTab =
+        TabItem.create [
+            TabItem.header "Simulation"
+            TabItem.content (simulationView state dispatch)
+        ]
+
+    let eaTab =
+        TabItem.create [
+            TabItem.header "Evolutionary Algorithm"
+            TabItem.content (EaTab.view state.EaTab (EaTabMsg >> dispatch))
+        ]
+
+    TabControl.create [
+        TabControl.viewItems [ simulationTab; eaTab ]
+    ]

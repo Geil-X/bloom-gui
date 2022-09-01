@@ -1,5 +1,7 @@
 namespace Gui.DataTypes
 
+open System
+
 // ---- Types ------------------------------------------------------------------
 
 /// This describes how to create the individuals within the starting population.
@@ -18,6 +20,9 @@ type Fitness = float
 type Evaluated<'Model> = 'Model * Fitness
 
 /// All the information that is needed to run an evolutionary algorithm.
+/// Custom equality is needed because of the three stored functions.
+/// These functions cannot be compared for equality.
+[<CustomEquality; NoComparison>]
 type EvolutionaryAlgorithmParameters<'Model> =
     { Initializer: Initialization<'Model>
       Mutator: Mutation<'Model>
@@ -25,6 +30,21 @@ type EvolutionaryAlgorithmParameters<'Model> =
       PopulationSize: int
       Survivors: int
       MutationRate: float }
+
+    override this.Equals(other: obj) =
+        match other with
+        | :? EvolutionaryAlgorithmParameters<'Model> as otherEa -> this.Equals(otherEa)
+        | _ -> false
+
+    member this.Equals(other: EvolutionaryAlgorithmParameters<'Model>) =
+        this.PopulationSize = other.PopulationSize
+        && this.Survivors = other.Survivors
+        && this.MutationRate = other.MutationRate
+
+    override this.GetHashCode() =
+        HashCode.Combine(hash this.PopulationSize, hash this.Survivors, hash this.MutationRate)
+
+
 
 /// The currently running evolutionary algorithm. This contains all the
 /// parameters needed to run the evolutionary algorithm as well as
@@ -47,7 +67,7 @@ module EvolutionaryAlgorithm =
     /// multiple instantiations of random modules. This can be moved into the
     /// evolutionary algorithm if seeded randomness is something that is
     /// needed.
-    let private random = System.Random()
+    let private random = Random()
 
 
     // ---- Builders ---------------------------------------------------------------

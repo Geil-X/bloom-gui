@@ -85,6 +85,7 @@
         <Compile Include="Views\Panels\FlowerPanel.fs" />
         <Compile Include="Views\Panels\IconDock.fs" />
         <Compile Include="Views\Flower.fs" />
+        <Compile Include="Views\EaTab.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>

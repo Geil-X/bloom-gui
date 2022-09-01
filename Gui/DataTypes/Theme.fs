@@ -85,7 +85,10 @@ let spacing =
        medium = 8.
        large = 16. |}
 
-let size = {| small = 150. |}
+let size =
+    {| small = 150.
+       medium = 250.
+       large = 400. |}
 
 let drawing =
     {| strokeWidth = 1.
