@@ -107,8 +107,10 @@ let loadAppConfigFile: Cmd<Msg> =
 // ---- Init -------------------------------------------------------------------
 
 let init () : State * Cmd<Msg> =
+    let webcamState, webcamCmd = Webcam.init ()
+
     { AppConfig = AppConfig.init
-      WebcamState = Webcam.init ()
+      WebcamState = webcamState
       CanvasSize = Size.create Length.zero Length.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
@@ -118,6 +120,7 @@ let init () : State * Cmd<Msg> =
       Rerender = 0
       Tab = Simulation },
     Cmd.batch [
+        Cmd.map WebcamMsg webcamCmd
         loadAppConfigFile
         Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
     ]
@@ -666,7 +669,14 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
 
     // Msg Mapping
-    | WebcamMsg webcamMsg -> { state with WebcamState = Webcam.update state.WebcamState webcamMsg }, Cmd.none
+    | WebcamMsg webcamMsg ->
+        Log.debug $"Webcam msg {webcamMsg}"
+
+        let webcamState, webcamCmd =
+            Webcam.update state.WebcamState webcamMsg
+
+        { state with WebcamState = webcamState }, Cmd.map WebcamMsg webcamCmd
+
     | MenuMsg menuMsg -> updateMenu menuMsg state window
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
     | SimulationEvent event -> updateSimulationEvent event state

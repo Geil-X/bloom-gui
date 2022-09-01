@@ -15,6 +15,11 @@ type VideoState =
     | Pause
     | Stop
 
+/// Based off the LibVLC project support for LibVLC.Avalonia.VideoView
+///     https://code.videolan.org/videolan/LibVLCSharp
+/// 
+/// Additional work done with video displays was done in the project
+///     https://github.com/donandren/vlcsharpavalonia
 type VideoView() =
     inherit NativeControlHost()
     with

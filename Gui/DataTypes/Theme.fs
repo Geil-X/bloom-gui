@@ -3,10 +3,19 @@ module Gui.DataTypes.Theme
 open Avalonia.Controls
 open Avalonia.Media
 
+
+// ---- Text Defaults ----------------------------------------------------------
+
 let program = "Bloom"
 let title = "Bloom"
 
+
+// ---- Icons ------------------------------------------------------------------
+
 let icon () : WindowIcon = WindowIcon "icon.ico"
+
+
+// ---- Colors -----------------------------------------------------------------
 
 /// Color palette is based off of the yellow color with a 150° tetradic color scheme
 /// https://paletton.com/#uid=70I2m0krBw0hcHpmp-MvIrjzmlr
@@ -70,6 +79,9 @@ let darker = Color.darken 0.075
 let darkest = Color.darken 0.15
 let fade = Color.fadeOut 0.15
 
+
+// ---- Sizing information --------------------------------------------------------
+
 let window =
     {| height = 800.; width = 1200. |}
 
@@ -85,7 +97,10 @@ let spacing =
        medium = 8.
        large = 16. |}
 
-let size = {| small = 150. |}
+let size =
+    {| small = 150.
+       medium = 250.
+       large = 500. |}
 
 let drawing =
     {| strokeWidth = 1.

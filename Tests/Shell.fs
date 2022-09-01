@@ -117,3 +117,13 @@ let ``Basic flower actions`` (initialState: State) (messages: Shell.SimulationEv
         |> Tuple2.first
 
     List.fold updateWithoutCmd initialState messages
+
+
+[<Test>]
+let Cameras () =
+    let cameras =
+        Webcam.getAllConnectedCameras ()
+
+    printfn $"{cameras}"
+
+    Assert.AreEqual([ "WebCam" ], cameras)
