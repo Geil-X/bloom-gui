@@ -43,13 +43,7 @@ let mutator (model: BloomModel) : BloomModel =
         let mutationIndex =
             random.Next(0, model.Length - 1)
 
-        Log.debug "3"
-
-        let a =
-            Array.updateAt mutationIndex (random.Next(0, maxValue)) model
-
-        Log.debug "4"
-        a
+        Array.updateAt mutationIndex (random.Next(0, maxValue)) model
 
 /// Performing crossover take the first chunk of the first array and the last
 /// chunk of the second array. The chunk size is is randomly picked based on
