@@ -1,5 +1,6 @@
 namespace Gui
 
+open System
 open Elmish
 open Avalonia
 open Avalonia.Controls
@@ -11,6 +12,7 @@ open LibVLCSharp.Shared
 
 open Gui.DataTypes
 open Gui.Views.Menu
+open OpenCvSharp
 
 type MainWindow() as this =
     inherit HostWindow()
@@ -60,13 +62,23 @@ type App() =
 
 module Program =
     let skiaOptions = SkiaOptions()
-    skiaOptions.MaxGpuResourceSizeBytes <- 8096000
+    skiaOptions.MaxGpuResourceSizeBytes <- 8096000L
 
     [<EntryPoint>]
     let main (args: string []) =
-        AppBuilder
-            .Configure<App>()
-            .UsePlatformDetect()
-            .With(skiaOptions)
-            .UseSkia()
-            .StartWithClassicDesktopLifetime(args)
+        // AppBuilder
+        //     .Configure<App>()
+        //     .UsePlatformDetect()
+        //     .With(skiaOptions)
+        //     .UseSkia()
+        //     .StartWithClassicDesktopLifetime(args)
+
+        use src =
+            new Mat("lenna.png", ImreadModes.Grayscale)
+
+        use dst = new Mat()
+
+        Cv2.Canny(src, dst, 50, 200)
+        use cv1 = new Window("src image", src)
+        use cv2 = new Window("dst image", dst)
+        Cv2.WaitKey()
