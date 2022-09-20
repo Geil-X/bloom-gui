@@ -195,18 +195,18 @@ let create (attrs: IAttr<RadialSlider> list) : IView<RadialSlider> = ViewBuilder
 
 //// ---- Elmish Stuff ---------------------------------------------------------------------
 //
-//type Model = { Percentage: ClampedPercentage }
+//type Model = { Percentage: Percent }
 //
 //type Msg = ValueChanged of float
 //
 //let init: Model * Cmd<Msg> =
-//    { Percentage = ClampedPercentage.zero }, Cmd.none
+//    { Percentage = Percent.zero }, Cmd.none
 //
 //let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
 //    match msg with
 //    | ValueChanged newValue ->
 //        { model with
-//              Percentage = ClampedPercentage.decimal newValue },
+//              Percentage = Percent.decimal newValue },
 //        Cmd.none
 //
 //
@@ -224,7 +224,7 @@ let create (attrs: IAttr<RadialSlider> list) : IView<RadialSlider> = ViewBuilder
 //                let angleRad =
 //                    Math.PI
 //                    + (Math.PI
-//                       * ClampedPercentage.inDecimal model.Percentage)
+//                       * Percent.inDecimal model.Percentage)
 //
 //                let xOffset =
 //                    (radius - sliderThickness / 2.) * cos angleRad
@@ -245,7 +245,7 @@ let create (attrs: IAttr<RadialSlider> list) : IView<RadialSlider> = ViewBuilder
 //
 //            let label =
 //                let percentage =
-//                    ClampedPercentage.inPercentage model.Percentage
+//                    Percent.inPercentage model.Percentage
 //                    |> round
 //
 //                TextBlock.create [ TextBlock.text $"{percentage}%%" ]
@@ -254,7 +254,7 @@ let create (attrs: IAttr<RadialSlider> list) : IView<RadialSlider> = ViewBuilder
 //                Slider.create [
 //                    Slider.minimum 0.
 //                    Slider.maximum 1.
-//                    Slider.value (ClampedPercentage.inDecimal model.Percentage)
+//                    Slider.value (Percent.inDecimal model.Percentage)
 //                    Slider.onValueChanged (fun newPercentage -> ValueChanged newPercentage |> dispatch)
 //                ]
 //
@@ -269,7 +269,7 @@ let create (attrs: IAttr<RadialSlider> list) : IView<RadialSlider> = ViewBuilder
 //                    Arc.startAngle 180.
 //                    Arc.sweepAngle (
 //                        180.
-//                        * ClampedPercentage.inDecimal model.Percentage
+//                        * Percent.inDecimal model.Percentage
 //                    )
 //                ]
 //

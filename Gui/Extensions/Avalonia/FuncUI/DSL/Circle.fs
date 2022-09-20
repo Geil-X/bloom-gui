@@ -3,7 +3,8 @@ namespace Avalonia.FuncUI.DSL
 open Avalonia.Controls.Shapes
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
-open Geometry
+open Math.Geometry
+open Math.Units
 
 /// This type alias allows for the use of the `Ellipse` class functions from
 /// the Circle module.
@@ -13,12 +14,19 @@ module Circle =
 
     let create = Ellipse.create
 
-    let from (circle: Circle2D<'Unit, 'Coordinates>) attr : IView =
+    let from (circle: Circle2D<Meters, 'Coordinates>) attr : IView =
         create (
-            [ Circle.width (circle.Radius.value () * 2.)
-              Circle.height (circle.Radius.value () * 2.)
-              Circle.left ((circle.Center.X - circle.Radius).value ())
-              Circle.top ((circle.Center.Y - circle.Radius).value ()) ]
+            [ Circle.width
+              <| Length.inCssPixels circle.Radius * 2.
+
+              Circle.height
+              <| Length.inCssPixels circle.Radius * 2.
+
+              Circle.left
+              <| Length.inCssPixels (circle.Center.X - circle.Radius)
+
+              Circle.top
+              <| Length.inCssPixels (circle.Center.Y - circle.Radius) ]
             @ attr
         )
         :> IView

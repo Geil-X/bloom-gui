@@ -1,7 +1,8 @@
 namespace Avalonia.Input
 
 open Avalonia.Interactivity
-open Geometry
+open Math.Geometry
+open Math.Units
 
 type MouseEvent<'Unit, 'Coordinates> =
     { Position: Point2D<'Unit, 'Coordinates>
@@ -14,7 +15,7 @@ type MouseButtonEvent<'Unit, 'Coordinates> =
 
 module MouseEvent =
     let empty () : MouseEvent<'Unit, 'Coordinates> =
-        { Position = Point2D.origin ()
+        { Position = Point2D.origin
           BaseEvent = null }
 
     let atPosition pos : MouseEvent<'Unit, 'Coordinates> = { Position = pos; BaseEvent = null }
@@ -22,7 +23,7 @@ module MouseEvent =
 module MouseButtonEvent =
     let empty () : MouseButtonEvent<'Unit, 'Coordinates> =
         { MouseButton = MouseButton.None
-          Position = Point2D.origin ()
+          Position = Point2D.origin
           BaseEvent = null }
 
     let atPosition pos : MouseButtonEvent<'Unit, 'Coordinates> =
@@ -32,7 +33,7 @@ module MouseButtonEvent =
 
     let withButton button : MouseButtonEvent<'Unit, 'Coordinates> =
         { MouseButton = button
-          Position = Point2D.origin ()
+          Position = Point2D.origin
           BaseEvent = null }
 
 
@@ -79,7 +80,7 @@ module Event =
             | Some visual -> e.GetPosition(visual)
             | None -> Point(infinity, infinity)
 
-        Point2D.xy (Length<'Unit>.create point.X) (Length<'Unit>.create point.Y)
+        Point2D.xy (Length.create point.X) (Length.create point.Y)
 
     /// Convert an Avalonia pointer event into a one that is using geometric points.
     /// Position is given relative to the screen element given by the id string.

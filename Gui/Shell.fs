@@ -6,9 +6,10 @@ open System.IO.Ports
 open Avalonia.Controls
 open Avalonia.Input
 open Elmish
+open Math.Geometry
+open Math.Units
 
 open Extensions
-open Geometry
 open Gui
 open Gui.DataTypes
 open Gui.Views.Components
@@ -25,7 +26,7 @@ type Tab =
 
 [<StructuralEquality; NoComparison>]
 type State =
-    { CanvasSize: Size<Pixels>
+    { CanvasSize: Size2D<Length>
       Flowers: Map<Flower Id, Flower>
       FlowerInteraction: FlowerInteraction
       Selected: Flower Id option
@@ -45,26 +46,26 @@ and FlowerInteraction =
 
 and PressedData =
     { Id: Flower Id
-      MousePressedLocation: Point2D<Pixels, UserSpace>
-      InitialFlowerPosition: Point2D<Pixels, UserSpace> }
+      MousePressedLocation: Point2D<Meters, ScreenSpace>
+      InitialFlowerPosition: Point2D<Meters, ScreenSpace> }
 
 and DraggingData =
     { Id: Flower Id
-      DraggingDelta: Vector2D<Pixels, UserSpace> }
+      DraggingDelta: Vector2D<Meters, ScreenSpace> }
 
 
 // ---- Messaging ----
 
 [<RequireQualifiedAccess>]
-type BackgroundEvent = OnReleased of MouseButtonEvent<Pixels, UserSpace>
+type BackgroundEvent = OnReleased of MouseButtonEvent<Meters, ScreenSpace>
 
 [<RequireQualifiedAccess>]
 type public FlowerPointerEvent =
-    | OnEnter of Flower Id * MouseEvent<Pixels, UserSpace>
-    | OnLeave of Flower Id * MouseEvent<Pixels, UserSpace>
-    | OnMoved of Flower Id * MouseEvent<Pixels, UserSpace>
-    | OnPressed of Flower Id * MouseButtonEvent<Pixels, UserSpace>
-    | OnReleased of Flower Id * MouseButtonEvent<Pixels, UserSpace>
+    | OnEnter of Flower Id * MouseEvent<Meters, ScreenSpace>
+    | OnLeave of Flower Id * MouseEvent<Meters, ScreenSpace>
+    | OnMoved of Flower Id * MouseEvent<Meters, ScreenSpace>
+    | OnPressed of Flower Id * MouseButtonEvent<Meters, ScreenSpace>
+    | OnReleased of Flower Id * MouseButtonEvent<Meters, ScreenSpace>
 
 type SimulationEvent =
     | BackgroundEvent of BackgroundEvent
@@ -109,7 +110,7 @@ let loadAppConfigFile: Cmd<Msg> =
 // ---- Init -------------------------------------------------------------------
 
 let init () : State * Cmd<Msg> =
-    { CanvasSize = Size.create Length.zero Length.zero
+    { CanvasSize = Size2D.create Quantity.zero Quantity.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
       Selected = None
@@ -127,10 +128,10 @@ let init () : State * Cmd<Msg> =
 // ---- Update helper functions ------------------------------------------------
 
 let private minMouseMovement =
-    Length.pixels 10.
+    Length.cssPixels 10.
 
 let private minMouseMovementSquared =
-    Length.square minMouseMovement
+    Quantity.squared minMouseMovement
 
 // ---- Serial Port Updates ----------------------------------------------------
 
@@ -279,8 +280,8 @@ let updateFlowerFromResponse (response: Response) (state: State) : State =
         Flower.connected
         >> Flower.setOpenPercent response.Position
         >> Flower.setTargetPercent response.Position
-        >> Flower.setMaxSpeed response.MaxSpeed
-        >> Flower.setAcceleration response.Acceleration
+        >> Flower.setMaxSpeed response.MaxAngularSpeed
+        >> Flower.setAcceleration response.AngularAcceleration
 
     let updatedFlowerMap =
         Seq.fold

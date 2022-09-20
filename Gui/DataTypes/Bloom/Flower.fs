@@ -1,17 +1,18 @@
 namespace Gui.DataTypes
 
-open Geometry
+open Math.Geometry
+open Math.Units
 
 type Flower =
     { Id: Flower Id
       Name: string
       I2cAddress: I2cAddress
-      Position: Point2D<Pixels, UserSpace>
-      OpenPercent: ClampedPercentage
-      TargetPercent: ClampedPercentage
-      MaxSpeed: Speed
-      Acceleration: Acceleration
-      Radius: Length<Pixels>
+      Position: Point2D<Meters, ScreenSpace>
+      OpenPercent: Percent
+      TargetPercent: Percent
+      MaxSpeed: AngularSpeed
+      Acceleration: AngularAcceleration
+      Radius: Length
       ConnectionStatus: ConnectionStatus }
 
 module Flower =
@@ -29,11 +30,11 @@ module Flower =
         | Dragged
 
         // Events
-        | OnPointerEnter of (Flower Id * MouseEvent<Pixels, UserSpace> -> unit)
-        | OnPointerLeave of (Flower Id * MouseEvent<Pixels, UserSpace> -> unit)
-        | OnPointerMoved of (Flower Id * MouseEvent<Pixels, UserSpace> -> unit)
-        | OnPointerPressed of (Flower Id * MouseButtonEvent<Pixels, UserSpace> -> unit)
-        | OnPointerReleased of (Flower Id * MouseButtonEvent<Pixels, UserSpace> -> unit)
+        | OnPointerEnter of (Flower Id * MouseEvent<Meters, ScreenSpace> -> unit)
+        | OnPointerLeave of (Flower Id * MouseEvent<Meters, ScreenSpace> -> unit)
+        | OnPointerMoved of (Flower Id * MouseEvent<Meters, ScreenSpace> -> unit)
+        | OnPointerPressed of (Flower Id * MouseButtonEvent<Meters, ScreenSpace> -> unit)
+        | OnPointerReleased of (Flower Id * MouseButtonEvent<Meters, ScreenSpace> -> unit)
 
 
     // ---- Builders -----
@@ -47,25 +48,25 @@ module Flower =
 
         { Id = Id.create ()
           Name = name
-          Position = Point2D.origin ()
+          Position = Point2D.origin
           I2cAddress = initialI2cAddress
-          OpenPercent = ClampedPercentage.zero
-          TargetPercent = ClampedPercentage.zero
-          MaxSpeed = 5000
-          Acceleration = 1000
-          Radius = Length.pixels 20.
+          OpenPercent = Percent.zero
+          TargetPercent = Percent.zero
+          MaxSpeed = AngularSpeed.turnsPerSecond 5000.
+          Acceleration = AngularAcceleration.turnsPerSecondSquared 1000
+          Radius = Length.cssPixels 20.
           ConnectionStatus = Disconnected }
 
     // ---- Accessors ----
 
     let name (flower: Flower) : string = flower.Name
     let i2cAddress (flower: Flower) : I2cAddress = flower.I2cAddress
-    let position (flower: Flower) : Point2D<Pixels, UserSpace> = flower.Position
-    let openPercent (flower: Flower) : ClampedPercentage = flower.OpenPercent
-    let targetPercent (flower: Flower) : ClampedPercentage = flower.TargetPercent
-    let maxSpeed (flower: Flower) : Speed = flower.MaxSpeed
+    let position (flower: Flower) : Point2D<Meters, ScreenSpace> = flower.Position
+    let openPercent (flower: Flower) : Percent = flower.OpenPercent
+    let targetPercent (flower: Flower) : Percent = flower.TargetPercent
+    let maxSpeed (flower: Flower) : AngularSpeed = flower.MaxSpeed
 
-    let acceleration (flower: Flower) : Acceleration = flower.Acceleration
+    let acceleration (flower: Flower) : AngularAcceleration = flower.Acceleration
 
     // ---- Modifiers ----
 
@@ -88,7 +89,7 @@ module Flower =
 
     // ---- Queries ----
 
-    let containsPoint point (state: Flower) =
+    let containsPoint (point: Point2D<Meters, ScreenSpace>) (state: Flower) =
         Circle2D.atPoint state.Position state.Radius
         |> Circle2D.containsPoint point
 

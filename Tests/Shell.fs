@@ -3,7 +3,7 @@ module Tests.Shell
 open Avalonia.Input
 open Gui.DataTypes
 open NUnit.Framework
-open Geometry
+open Math.Geometry
 
 open Extensions
 open Gui
@@ -43,8 +43,8 @@ let ``Basic actions test cases`` =
               FlowerInteraction =
                   Pressing
                       { Id = flower.Id
-                        MousePressedLocation = Point2D.origin ()
-                        InitialFlowerPosition = Point2D.origin () } } }
+                        MousePressedLocation = Point2D.origin
+                        InitialFlowerPosition = Point2D.origin } } }
 
       { Name = "Selected on mouse press and release at same location"
         InitialState = initialState

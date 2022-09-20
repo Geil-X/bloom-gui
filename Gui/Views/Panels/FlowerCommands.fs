@@ -4,6 +4,7 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
+open Math.Units
 open System
 open System.IO.Ports
 
@@ -13,21 +14,21 @@ open Extensions
 
 type Msg =
     | ChangePort of string
-    | ChangePercentage of Flower Id * ClampedPercentage
-    | ChangeSpeed of Flower Id * int
+    | ChangePercentage of Flower Id * Percent
+    | ChangeSpeed of Flower Id * AngularSpeed
     | OpenSerialPortsDropdown
     | OpenSerialPort of SerialPort
     | CloseSerialPort of SerialPort
-    | ChangeAcceleration of Flower Id * int
+    | ChangeAcceleration of Flower Id * AngularAcceleration
     | SendCommand of Command
 
 let presets =
-    {| speedEmpty = 0
-       minSpeed = 0.
-       maxSpeed = 65000
-       accelerationEmpty = 0
-       minAcceleration = 0.
-       maxAcceleration = 10000. |}
+    {| speedEmpty = AngularSpeed.turnsPerSecond 0.
+       minSpeed = AngularSpeed.turnsPerSecond 0.
+       maxSpeed = AngularSpeed.turnsPerSecond 65000.
+       accelerationEmpty = AngularAcceleration.turnsPerSecondSquared 0.
+       minAcceleration = AngularAcceleration.turnsPerSecondSquared 0.
+       maxAcceleration = AngularAcceleration.turnsPerSecondSquared 10000. |}
 
 [<Literal>]
 let noPort = "No Serial Port"
@@ -100,36 +101,46 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                DockPanel.children [ portIcon; connectionStatus; dropdown ]
+                DockPanel.children [
+                    portIcon
+                    connectionStatus
+                    dropdown
+                ]
             ] |}
 
-type SliderProperties =
+type SliderProperties<'Units> =
     { Name: string
-      Value: float
-      Min: float
-      Max: float
-      OnChanged: Flower.Id -> float -> unit
+      Value: Quantity<'Units>
+      Min: Quantity<'Units>
+      Max: Quantity<'Units>
+      OnChanged: Flower.Id -> Quantity<'Units> -> unit
+      Display: Quantity<'Units> -> float
+      Conversion: float -> Quantity<'Units>
       FlowerId: Flower.Id option }
 
-let private sliderView (properties: SliderProperties) =
+let private sliderView (properties: SliderProperties<'Units>) =
     let slider =
         match properties.FlowerId with
         | Some flowerId ->
             Slider.create [
                 Slider.width 140.
-                Slider.minimum properties.Min
-                Slider.maximum properties.Max
-                Slider.value properties.Value
-                Slider.onValueChanged (properties.OnChanged flowerId, SubPatchOptions.OnChangeOf flowerId)
+                Slider.minimum (properties.Display properties.Min)
+                Slider.maximum (properties.Display properties.Max)
+                Slider.value (properties.Display properties.Value)
+                Slider.onValueChanged (
+                    properties.Conversion
+                    >> properties.OnChanged flowerId,
+                    SubPatchOptions.OnChangeOf flowerId
+                )
                 Slider.dock Dock.Left
             ]
 
         | None ->
             Slider.create [
                 Slider.width 140.
-                Slider.value properties.Value
-                Slider.minimum properties.Min
-                Slider.maximum properties.Max
+                Slider.value (properties.Display properties.Value)
+                Slider.minimum (properties.Display properties.Min)
+                Slider.maximum (properties.Display properties.Max)
                 Slider.isEnabled false
                 Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
                 Slider.dock Dock.Left
@@ -137,7 +148,7 @@ let private sliderView (properties: SliderProperties) =
 
     let textInput =
         TextBlock.create [
-            TextBlock.text (properties.Value |> int |> string)
+            TextBlock.text (properties.Value |> properties.Display |> string)
             TextBlock.dock Dock.Right
             TextBlock.margin (Theme.spacing.small, 0.)
         ]
@@ -147,7 +158,10 @@ let private sliderView (properties: SliderProperties) =
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                StackPanel.children [ slider; textInput ]
+                StackPanel.children [
+                    slider
+                    textInput
+                ]
             ] |}
 
 
@@ -155,14 +169,13 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> u
     sliderView
         { Name = "Open Percentage"
           Value =
-            Option.map (fun flower -> ClampedPercentage.inPercentage flower.OpenPercent) flowerOption
-            |> Option.defaultValue ClampedPercentage.minimum
-          Min = ClampedPercentage.minimum
-          Max = ClampedPercentage.maxPercentage
-          OnChanged =
-            (fun flowerId newPercent ->
-                ChangePercentage(flowerId, ClampedPercentage.percent newPercent)
-                |> dispatch)
+            Option.map (fun flower -> flower.OpenPercent) flowerOption
+            |> Option.defaultValue Quantity.zero
+          Min = Percent.decimal Percent.minimum
+          Max = Percent.decimal Percent.maxDecimal
+          OnChanged = (fun flowerId newPercent -> ChangePercentage(flowerId, newPercent) |> dispatch)
+          Display = Percent.inPercentage
+          Conversion = Percent.percent
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
@@ -171,10 +184,11 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
           Value =
             Option.map Flower.maxSpeed flowerOption
             |> Option.defaultValue presets.speedEmpty
-            |> float
           Min = presets.minSpeed
-          Max = float presets.maxSpeed
-          OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, int newSpeed) |> dispatch)
+          Max = presets.maxSpeed
+          OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, newSpeed) |> dispatch)
+          Display = AngularSpeed.inTurnsPerSecond
+          Conversion = AngularSpeed.turnsPerSecond
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> unit) =
@@ -183,13 +197,14 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> uni
           Value =
             Option.map Flower.acceleration flowerOption
             |> Option.defaultValue presets.accelerationEmpty
-            |> float
           Min = presets.minAcceleration
           Max = presets.maxAcceleration
           OnChanged =
             (fun flowerId newAcceleration ->
-                ChangeAcceleration(flowerId, int newAcceleration)
+                ChangeAcceleration(flowerId, newAcceleration)
                 |> dispatch)
+          Display = AngularAcceleration.inTurnsPerSecondSquared
+          Conversion = AngularAcceleration.turnsPerSecondSquared
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private iconButton
@@ -227,6 +242,7 @@ let view
     =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
+
           serialPortView serialPorts serialPort dispatch
           iconButton "Ping" Icon.ping (fun _ -> Ping) flowerOption serialPort dispatch
           iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
@@ -234,15 +250,30 @@ let view
           iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch
           iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption serialPort dispatch
           openPercentageView flowerOption dispatch
-          iconButton "Set Speed" Icon.speed (Flower.maxSpeed >> uint >> Speed) flowerOption serialPort dispatch
-          speedView flowerOption dispatch
+
           iconButton
-              "Set Acceleration"
-              Icon.acceleration
-              (Flower.acceleration >> uint >> Acceleration)
+              "Set Speed"
+              Icon.speed
+              (Flower.maxSpeed
+               >> AngularSpeed.inTurnsPerSecond
+               >> uint
+               >> Speed)
               flowerOption
               serialPort
               dispatch
+          speedView flowerOption dispatch
+
+          iconButton
+              "Set Acceleration"
+              Icon.acceleration
+              (Flower.acceleration
+               >> AngularAcceleration.inTurnsPerSecondSquared
+               >> uint
+               >> Acceleration)
+              flowerOption
+              serialPort
+              dispatch
+
           accelerationView flowerOption dispatch ]
 
     StackPanel.create [

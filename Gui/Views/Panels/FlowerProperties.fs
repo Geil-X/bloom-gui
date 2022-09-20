@@ -4,8 +4,9 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
+open Math.Geometry
+open Math.Units
 
-open Geometry
 open Gui.DataTypes
 open Gui.Views.Components
 
@@ -78,9 +79,9 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
 
 
 let private positionView (flowerOption: Flower option) =
-    let rounded l = (Length.roundTo 0 l).value ()
+    let rounded l = Float.roundFloatTo 0 (Length.inCssPixels l)
 
-    let positionToString (position: Point2D<Pixels, UserSpace>) =
+    let positionToString (position: Point2D<Meters, ScreenSpace>) =
         $"({rounded position.X}, {rounded position.Y})"
 
     let positionText =

@@ -3,7 +3,7 @@ namespace Gui.DataTypes
 // ---- Constants --------------------------------------------------------------
 
 
-type UserSpace = UserSpace
+type ScreenSpace = ScreenSpace
 
 module Constants =
     [<Literal>]

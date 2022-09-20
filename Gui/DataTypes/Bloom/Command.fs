@@ -2,6 +2,7 @@ namespace Gui.DataTypes
 
 open System.IO.Ports
 open System.Threading.Tasks
+open Math.Units
 
 open Gui.DataTypes
 open Extensions
@@ -12,7 +13,7 @@ type Command =
     | Home
     | Open
     | Close
-    | OpenTo of ClampedPercentage
+    | OpenTo of Percent
     | Speed of uint
     | Acceleration of uint
     | Ping
@@ -37,7 +38,7 @@ module Command =
             | Home -> [| byte Id.Home; 0uy; 0uy |]
             | Open -> [| byte Id.Open; 0uy; 0uy |]
             | Close -> [| byte Id.Close; 0uy; 0uy |]
-            | OpenTo percentage -> Array.append [| byte Id.OpenTo |] (ClampedPercentage.toBytes16 percentage)
+            | OpenTo percentage -> Array.append [| byte Id.OpenTo |] (Percent.toBytes16 percentage)
             | Speed speed -> Array.append [| byte Id.Speed |] (uint16 speed |> UInt16.inBytes)
             | Acceleration acceleration ->
                 Array.append [| byte Id.Acceleration |] (uint16 acceleration |> UInt16.inBytes)

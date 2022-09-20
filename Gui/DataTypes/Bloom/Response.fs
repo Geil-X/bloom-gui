@@ -1,13 +1,15 @@
 namespace Gui.DataTypes
 
+open Math.Units
+
 
 type Response =
     { I2cAddress: I2cAddress
       Time: Time
-      Position: ClampedPercentage
-      Target: ClampedPercentage
-      Acceleration: Acceleration
-      MaxSpeed: Speed }
+      Position: Percent
+      Target: Percent
+      AngularAcceleration: AngularAcceleration
+      MaxAngularSpeed: AngularSpeed }
 
 module Response =
 
@@ -29,10 +31,10 @@ module Response =
                 |> int
 
             let position =
-                ClampedPercentage.fromBytes packet[5] packet[6]
+                Percent.fromBytes packet[5] packet[6]
 
             let target =
-                ClampedPercentage.fromBytes packet[7] packet[8]
+                Percent.fromBytes packet[7] packet[8]
 
             let acceleration =
                 UInt16.fromBytes packet[9] packet[10] |> int
@@ -45,5 +47,5 @@ module Response =
                   Time = time
                   Position = position
                   Target = target
-                  Acceleration = acceleration
-                  MaxSpeed = speed }
+                  AngularAcceleration = AngularAcceleration.turnsPerSecondSquared acceleration
+                  MaxAngularSpeed = AngularSpeed.turnsPerSecond speed }

@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Gui", "Gui\Gui.fsproj", "{10ECFFD4-65EF-4460-ACA4-956BD438BC87}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{62DF0705-2511-4001-9FD1-7A649217FF89}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution Files", "{62DF0705-2511-4001-9FD1-7A649217FF89}"
 ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 	dotnet.yml = .github/workflows/dotnet.yml

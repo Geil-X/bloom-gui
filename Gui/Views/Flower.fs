@@ -1,17 +1,19 @@
 module Gui.Views.Flower
 
+open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.Shapes
 open Avalonia.FuncUI.DSL
 open Avalonia.Input
 open Avalonia.Media
-open Geometry
+open Math.Geometry
+open Math.Units
 
 open Gui.DataTypes
 open Gui.DataTypes.Flower
 open Extensions
 
-let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
+let outerCircle (flower: Flower) (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute list) =
     let fadedColor =
         Theme.palette.primary
         |> Color.hex
@@ -86,13 +88,13 @@ let outerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
          @ [ Circle.strokeThickness Theme.drawing.strokeWidth
              Circle.fill (string fadedColor) ])
 
-let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
+let innerCircle (flower: Flower) (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute list) =
     let color =
         Theme.palette.primary |> Color.hex
 
     let innerRadius =
         circle.Radius
-        * ClampedPercentage.inDecimal flower.OpenPercent
+        * Percent.inDecimal flower.OpenPercent
 
     let hovered () = Theme.lighter color |> string
     let pressed () = Theme.lightest color |> string
@@ -159,7 +161,7 @@ let innerCircle (flower: Flower) (circle: Circle2D<Pixels, UserSpace>) (attribut
          @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
              Ellipse.fill (string color) ])
 
-let selection (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list) =
+let selection (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute list) =
     if
         List.exists
             (fun e ->
@@ -180,10 +182,9 @@ let selection (circle: Circle2D<Pixels, UserSpace>) (attributes: Attribute list)
 let nameTag (flower: Flower) =
     TextBlock.create [
         TextBlock.text flower.Name
-        TextBlock.left (flower.Position.X.value () - 20.)
-        TextBlock.top (flower.Position.Y.value () - 35.)
+        TextBlock.left (flower.Position.X.Value - 20.)
+        TextBlock.top (flower.Position.Y.Value - 35.)
     ]
-
 
 // ---- Drawing ----------------------------------------------------------------
 
