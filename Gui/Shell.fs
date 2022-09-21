@@ -695,7 +695,7 @@ let private drawFlower (state: State) (dispatch: FlowerPointerEvent -> unit) (fl
         | Dragging dragging when dragging.Id = flower.Id -> Flower.dragged |> Some
         | _ -> None
 
-    Flower.draw
+    Flower.view
         flower
         [ if Option.contains flower.Id state.Selected then
               Flower.selected

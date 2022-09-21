@@ -15,4 +15,6 @@ module LineSegment =
     let create x y =
         let ls = LineSegment()
         ls.Point <- Point(x, y)
-        
+     
+module RotateTransform =
+    let inDegrees degrees = RotateTransform(degrees)

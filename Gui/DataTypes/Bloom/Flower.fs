@@ -67,6 +67,8 @@ module Flower =
     let maxSpeed (flower: Flower) : AngularSpeed = flower.MaxSpeed
 
     let acceleration (flower: Flower) : AngularAcceleration = flower.Acceleration
+    let circle (flower: Flower): Circle2D<Meters, ScreenSpace> = Circle2D.atPoint flower.Position flower.Radius
+   
 
     // ---- Modifiers ----
 
