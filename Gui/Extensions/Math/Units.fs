@@ -34,7 +34,7 @@ module Percent =
     // ---- Accessors ----
 
     /// Get the percentage out of 1
-    let inDecimal (p: Percent) : float = p.Value * 100.
+    let inDecimal (p: Percent) : float = p.Value
 
     /// Get the percentage out of 100
     let inPercentage (p: Percent) : float = p.Value * maxPercentage

@@ -4,6 +4,7 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.Shapes
 open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Types
 open Avalonia.Input
 open Avalonia.Media
 open Math.Geometry
@@ -13,7 +14,7 @@ open Gui.DataTypes
 open Gui.DataTypes.Flower
 open Extensions
 
-let outerCircle (flower: Flower) (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute list) =
+let outerCircle (flower: Flower) (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute list) : IView<Circle> =
     let fadedColor =
         Theme.palette.primary
         |> Color.hex
@@ -88,79 +89,6 @@ let outerCircle (flower: Flower) (circle: Circle2D<Meters, ScreenSpace>) (attrib
          @ [ Circle.strokeThickness Theme.drawing.strokeWidth
              Circle.fill (string fadedColor) ])
 
-let innerCircle (flower: Flower) (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute list) =
-    let color =
-        Theme.palette.primary |> Color.hex
-
-    let innerRadius =
-        circle.Radius
-        * Percent.inDecimal flower.OpenPercent
-
-    let hovered () = Theme.lighter color |> string
-    let pressed () = Theme.lightest color |> string
-    let dragged () = Theme.fade color |> string
-
-    let circleAttributes =
-        List.map
-            (fun attribute ->
-                match attribute with
-                | Hovered -> hovered () |> Ellipse.fill |> Some
-                | Pressed -> pressed () |> Ellipse.fill |> Some
-                | Dragged -> dragged () |> Ellipse.fill |> Some
-                | Selected -> None
-                | OnPointerEnter enterMsg ->
-                    Ellipse.onPointerEnter (
-                        Event.pointerEnter Constants.CanvasId
-                        >> Option.map (fun e -> enterMsg (flower.Id, e))
-                        >> Option.defaultValue (),
-                        SubPatchOptions.OnChangeOf flower.Id
-                    )
-                    |> Some
-
-                | OnPointerLeave leaveMsg ->
-                    Ellipse.onPointerLeave (
-                        Event.pointerLeave Constants.CanvasId
-                        >> Option.map (fun e -> leaveMsg (flower.Id, e))
-                        >> Option.defaultValue (),
-                        SubPatchOptions.OnChangeOf flower.Id
-                    )
-                    |> Some
-
-                | OnPointerMoved movedMsg ->
-                    Ellipse.onPointerMoved (
-                        Event.pointerMoved Constants.CanvasId
-                        >> Option.map (fun e -> movedMsg (flower.Id, e))
-                        >> Option.defaultValue (),
-                        SubPatchOptions.OnChangeOf flower.Id
-                    )
-                    |> Some
-
-                | OnPointerPressed pressedMsg ->
-                    Ellipse.onPointerPressed (
-                        Event.pointerPressed Constants.CanvasId
-                        >> Option.map (fun e -> pressedMsg (flower.Id, e))
-                        >> Option.defaultValue (),
-                        SubPatchOptions.OnChangeOf flower.Id
-                    )
-                    |> Some
-
-                | OnPointerReleased releasedMsg ->
-                    Ellipse.onPointerReleased (
-                        Event.pointerReleased Constants.CanvasId
-                        >> Option.map (fun e -> releasedMsg (flower.Id, e))
-                        >> Option.defaultValue (),
-                        SubPatchOptions.OnChangeOf flower.Id
-                    )
-                    |> Some)
-            attributes
-        |> List.filterNone
-
-    Circle.from
-        (Circle2D.withRadius innerRadius circle.Center)
-        (circleAttributes
-         @ [ Ellipse.strokeThickness Theme.drawing.strokeWidth
-             Ellipse.fill (string color) ])
-
 let selection (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute list) =
     if
         List.exists
@@ -182,8 +110,8 @@ let selection (circle: Circle2D<Meters, ScreenSpace>) (attributes: Attribute lis
 let nameTag (flower: Flower) =
     TextBlock.create [
         TextBlock.text flower.Name
-        TextBlock.left (flower.Position.X.Value - 20.)
-        TextBlock.top (flower.Position.Y.Value - 35.)
+        TextBlock.left (Length.inCssPixels flower.Position.X - 20.)
+        TextBlock.top (Length.inCssPixels flower.Position.Y - 35.)
     ]
 
 // ---- Drawing ----------------------------------------------------------------
@@ -192,13 +120,16 @@ let draw (flower: Flower) (attributes: Attribute list) =
     let circle =
         Circle2D.atPoint flower.Position flower.Radius
 
+    let selectionView =
+        selection circle attributes
+        |> Option.map (fun a -> a :> IView)
+        |> Option.toList
+
+
     Canvas.create [
         Canvas.children [
             outerCircle flower circle attributes
-            innerCircle flower circle attributes
-
-            yield! selection circle attributes |> Option.toList
-
+            yield! selectionView
             nameTag flower
         ]
     ]

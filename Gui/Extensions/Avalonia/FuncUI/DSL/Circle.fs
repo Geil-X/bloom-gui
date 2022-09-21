@@ -12,21 +12,14 @@ type Circle = Ellipse
 
 module Circle =
 
-    let create = Ellipse.create
+    let create: IAttr<Circle> list -> IView<Circle> =
+        Ellipse.create
 
-    let from (circle: Circle2D<Meters, 'Coordinates>) attr : IView =
+    let from (circle: Circle2D<Meters, 'Coordinates>) attr : IView<Circle> =
         create (
-            [ Circle.width
-              <| Length.inCssPixels circle.Radius * 2.
-
-              Circle.height
-              <| Length.inCssPixels circle.Radius * 2.
-
-              Circle.left
-              <| Length.inCssPixels (circle.Center.X - circle.Radius)
-
-              Circle.top
-              <| Length.inCssPixels (circle.Center.Y - circle.Radius) ]
+            [ Circle.width (Length.inCssPixels circle.Radius * 2.)
+              Circle.height (Length.inCssPixels circle.Radius * 2.)
+              Circle.left (Length.inCssPixels (circle.Center.X - circle.Radius))
+              Circle.top (Length.inCssPixels (circle.Center.Y - circle.Radius)) ]
             @ attr
         )
-        :> IView

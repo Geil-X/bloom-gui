@@ -11,7 +11,6 @@ open Thoth.Json.Net
 
 
 let fileInfoEncoder (fileInfo: FileInfo) : JsonValue =
-    printfn $"{fileInfo.FullName}"
     Encode.string fileInfo.FullName
 
 let fileInfoDecoder: Decoder<FileInfo> =

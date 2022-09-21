@@ -4,40 +4,40 @@ open Avalonia.Interactivity
 open Math.Geometry
 open Math.Units
 
-type MouseEvent<'Unit, 'Coordinates> =
-    { Position: Point2D<'Unit, 'Coordinates>
+type MouseEvent<'Coordinates> =
+    { Position: Point2D<Meters, 'Coordinates>
       BaseEvent: RoutedEventArgs }
 
-type MouseButtonEvent<'Unit, 'Coordinates> =
+type MouseButtonEvent<'Coordinates> =
     { MouseButton: MouseButton
-      Position: Point2D<'Unit, 'Coordinates>
+      Position: Point2D<Meters, 'Coordinates>
       BaseEvent: RoutedEventArgs }
 
 module MouseEvent =
-    let empty () : MouseEvent<'Unit, 'Coordinates> =
+    let empty () : MouseEvent<'Coordinates> =
         { Position = Point2D.origin
           BaseEvent = null }
 
-    let atPosition pos : MouseEvent<'Unit, 'Coordinates> = { Position = pos; BaseEvent = null }
+    let atPosition pos : MouseEvent<'Coordinates> = { Position = pos; BaseEvent = null }
 
 module MouseButtonEvent =
-    let empty () : MouseButtonEvent<'Unit, 'Coordinates> =
+    let empty () : MouseButtonEvent<'Coordinates> =
         { MouseButton = MouseButton.None
           Position = Point2D.origin
           BaseEvent = null }
 
-    let atPosition pos : MouseButtonEvent<'Unit, 'Coordinates> =
+    let atPosition pos : MouseButtonEvent<'Coordinates> =
         { MouseButton = MouseButton.None
           Position = pos
           BaseEvent = null }
 
-    let withButton button : MouseButtonEvent<'Unit, 'Coordinates> =
+    let withButton button : MouseButtonEvent<'Coordinates> =
         { MouseButton = button
           Position = Point2D.origin
           BaseEvent = null }
 
 
-    let atPositionWithButton pos button : MouseButtonEvent<'Unit, 'Coordinates> =
+    let atPositionWithButton pos button : MouseButtonEvent<'Coordinates> =
         { MouseButton = button
           Position = pos
           BaseEvent = null }
@@ -71,7 +71,7 @@ module Event =
         | None -> Point(infinity, infinity)
 
 
-    let private point id (e: PointerEventArgs) : Point2D<'Unit, 'Coordinates> =
+    let private point id (e: PointerEventArgs) : Point2D<Meters, 'Coordinates> =
         let maybeVisual =
             View.findControl id (e.Source :?> IControl)
 
@@ -80,11 +80,11 @@ module Event =
             | Some visual -> e.GetPosition(visual)
             | None -> Point(infinity, infinity)
 
-        Point2D.xy (Length.create point.X) (Length.create point.Y)
+        Point2D.xy (Length.cssPixels point.X) (Length.cssPixels point.Y)
 
     /// Convert an Avalonia pointer event into a one that is using geometric points.
     /// Position is given relative to the screen element given by the id string.
-    let private pointerEvent (parentId: string) (e: PointerEventArgs) : MouseEvent<'Unit, 'Coordinates> option =
+    let private pointerEvent (parentId: string) (e: PointerEventArgs) : MouseEvent<'Coordinates> option =
         if e.Route = RoutingStrategies.Tunnel then
             None
         else
@@ -100,7 +100,7 @@ module Event =
 
 
     /// Position is given relative to the screen element given by the id string.
-    let pointerPressed (parentId: string) (e: PointerPressedEventArgs) : MouseButtonEvent<'Unit, 'Coordinates> option =
+    let pointerPressed (parentId: string) (e: PointerPressedEventArgs) : MouseButtonEvent<'Coordinates> option =
         if e.Route = RoutingStrategies.Tunnel then
             None
         else
@@ -115,7 +115,7 @@ module Event =
     let pointerReleased
         (parentId: string)
         (e: PointerReleasedEventArgs)
-        : MouseButtonEvent<'Unit, 'Coordinates> option =
+        : MouseButtonEvent<'Coordinates> option =
         if e.Route = RoutingStrategies.Tunnel then
             None
         else

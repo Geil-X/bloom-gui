@@ -30,11 +30,11 @@ module Flower =
         | Dragged
 
         // Events
-        | OnPointerEnter of (Flower Id * MouseEvent<Meters, ScreenSpace> -> unit)
-        | OnPointerLeave of (Flower Id * MouseEvent<Meters, ScreenSpace> -> unit)
-        | OnPointerMoved of (Flower Id * MouseEvent<Meters, ScreenSpace> -> unit)
-        | OnPointerPressed of (Flower Id * MouseButtonEvent<Meters, ScreenSpace> -> unit)
-        | OnPointerReleased of (Flower Id * MouseButtonEvent<Meters, ScreenSpace> -> unit)
+        | OnPointerEnter of (Flower Id * MouseEvent<ScreenSpace> -> unit)
+        | OnPointerLeave of (Flower Id * MouseEvent<ScreenSpace> -> unit)
+        | OnPointerMoved of (Flower Id * MouseEvent<ScreenSpace> -> unit)
+        | OnPointerPressed of (Flower Id * MouseButtonEvent<ScreenSpace> -> unit)
+        | OnPointerReleased of (Flower Id * MouseButtonEvent<ScreenSpace> -> unit)
 
 
     // ---- Builders -----
