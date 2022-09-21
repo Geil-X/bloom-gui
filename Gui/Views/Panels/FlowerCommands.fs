@@ -174,7 +174,7 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> u
           Min = Percent.decimal Percent.minimum
           Max = Percent.decimal Percent.maxDecimal
           OnChanged = (fun flowerId newPercent -> ChangePercentage(flowerId, newPercent) |> dispatch)
-          Display = Percent.inPercentage
+          Display = Percent.inPercentage >> Float.roundFloatTo 2
           Conversion = Percent.percent
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
@@ -187,7 +187,9 @@ let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
           Min = presets.minSpeed
           Max = presets.maxSpeed
           OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, newSpeed) |> dispatch)
-          Display = AngularSpeed.inTurnsPerSecond
+          Display =
+            AngularSpeed.inTurnsPerSecond
+            >> Float.roundFloatTo 2
           Conversion = AngularSpeed.turnsPerSecond
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
@@ -203,7 +205,9 @@ let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> uni
             (fun flowerId newAcceleration ->
                 ChangeAcceleration(flowerId, newAcceleration)
                 |> dispatch)
-          Display = AngularAcceleration.inTurnsPerSecondSquared
+          Display =
+            AngularAcceleration.inTurnsPerSecondSquared
+            >> Float.roundFloatTo 2
           Conversion = AngularAcceleration.turnsPerSecondSquared
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
@@ -278,5 +282,5 @@ let view
 
     StackPanel.create [
         StackPanel.children children
-        StackPanel.minWidth 200.
+        StackPanel.minWidth 240.
     ]

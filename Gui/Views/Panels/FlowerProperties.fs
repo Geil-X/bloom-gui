@@ -79,7 +79,7 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
 
 
 let private positionView (flowerOption: Flower option) =
-    let rounded l = Float.roundFloatTo 0 (Length.inCssPixels l)
+    let rounded l = Float.roundFloatTo 2 (Length.inCssPixels l)
 
     let positionToString (position: Point2D<Meters, ScreenSpace>) =
         $"({rounded position.X}, {rounded position.Y})"
