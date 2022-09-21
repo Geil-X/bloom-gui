@@ -46,6 +46,7 @@
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\View.fs" />
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\Circle.fs" />
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\Rectangle.fs" />
+        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Border.fs" />
         <Compile Include="Extensions\Avalonia\Input\Event.fs" />
         <Compile Include="Extensions\Avalonia\Input\InputTypes.fs" />
         <Compile Include="Extensions\Avalonia\Media\Imaging\Bitmap.fs" />
