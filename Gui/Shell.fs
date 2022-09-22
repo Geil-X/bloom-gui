@@ -454,7 +454,7 @@ let private updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg>
     | IconDock.NewFlower -> state, Cmd.ofMsg (Action.NewFlower |> Action)
 
 
-let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) : State * Cmd<Msg> =
+let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     match msg with
     | FlowerProperties.ChangeName (id, newName) -> updateFlower id "Name" Flower.setName newName state, Cmd.none
 
@@ -467,6 +467,9 @@ let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) : 
                 state, Cmd.none
         else
             state, Cmd.none
+            
+    | FlowerProperties.Action action ->
+        updateAction action state window
 
 let private updateFlowerCommands (msg: FlowerCommands.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -522,7 +525,7 @@ let private updateSimulationEvent (msg: SimulationEvent) (state: State) : State 
                 && Point2D.distanceSquaredTo pressing.MousePressedLocation e.Position > minMouseMovementSquared
                 ->
                 Log.verbose $"Flower: Start Dragging {Id.shortName flowerId}"
-                
+
                 let delta =
                     pressing.InitialFlowerPosition
                     - pressing.MousePressedLocation
@@ -678,7 +681,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | MenuMsg menuMsg -> updateMenu menuMsg state window
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
     | SimulationEvent event -> updateSimulationEvent event state
-    | FlowerPropertiesMsg flowerPropertiesMsg -> updateFlowerProperties flowerPropertiesMsg state
+    | FlowerPropertiesMsg flowerPropertiesMsg -> updateFlowerProperties flowerPropertiesMsg state window
     | FlowerCommandsMsg flowerCommandsMsg -> updateFlowerCommands flowerCommandsMsg state
 
 
@@ -736,13 +739,17 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
     let selectedFlowerOption =
         Option.bind (fun id -> getFlower id state.Flowers) state.Selected
 
+    let flowers = Map.values state.Flowers
+
     DockPanel.create [
         DockPanel.children [
             DockPanel.child Dock.Top (Menu.applicationMenu state.AppConfig (MenuMsg >> dispatch))
 
             DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
 
-            DockPanel.child Dock.Left (FlowerProperties.view selectedFlowerOption (FlowerPropertiesMsg >> dispatch))
+            DockPanel.child
+                Dock.Left
+                (FlowerProperties.view flowers selectedFlowerOption (FlowerPropertiesMsg >> dispatch))
 
             DockPanel.child
                 Dock.Right
@@ -772,5 +779,8 @@ let view (state: State) (dispatch: Msg -> unit) =
         ]
 
     TabControl.create [
-        TabControl.viewItems [ simulationTab; eaTab ]
+        TabControl.viewItems [
+            simulationTab
+            eaTab
+        ]
     ]

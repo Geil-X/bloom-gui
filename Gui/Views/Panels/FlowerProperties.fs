@@ -13,11 +13,15 @@ open Gui.Views.Components
 type Msg =
     | ChangeName of Flower Id * string
     | ChangeI2cAddress of Flower Id * string
+    | Action of Action
 
 // ---- Helper Functions ----
 
 let disabledTextBox =
-    TextBox.create [ TextBox.text ""; TextBox.isEnabled false ]
+    TextBox.create [
+        TextBox.text ""
+        TextBox.isEnabled false
+    ]
 
 
 // ---- Form Elements ----
@@ -74,12 +78,16 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                DockPanel.children [ connectionStatus; i2cTextBox ]
+                DockPanel.children [
+                    connectionStatus
+                    i2cTextBox
+                ]
             ] |}
 
 
 let private positionView (flowerOption: Flower option) =
-    let rounded l = Float.roundFloatTo 2 (Length.inCssPixels l)
+    let rounded l =
+        Float.roundFloatTo 2 (Length.inCssPixels l)
 
     let positionToString (position: Point2D<Meters, ScreenSpace>) =
         $"({rounded position.X}, {rounded position.Y})"
@@ -90,7 +98,10 @@ let private positionView (flowerOption: Flower option) =
             TextBlock.create [
                 TextBlock.text (flower.Position |> positionToString)
             ]
-        | None -> TextBlock.create [ TextBlock.text "(___, ___)" ]
+        | None ->
+            TextBlock.create [
+                TextBlock.text "(___, ___)"
+            ]
 
 
     Form.formElement
@@ -101,21 +112,61 @@ let private positionView (flowerOption: Flower option) =
 let private id (flowerOption: Flower option) =
     let idText =
         match flowerOption with
-        | Some flower -> TextBlock.create [ TextBlock.text (Id.shortName flower.Id) ]
-        | None -> TextBlock.create [ TextBlock.text "0000000" ]
+        | Some flower ->
+            TextBlock.create [
+                TextBlock.text (Id.shortName flower.Id)
+            ]
+        | None ->
+            TextBlock.create [
+                TextBlock.text "0000000"
+            ]
 
     Form.formElement
         {| Name = "Id"
            Orientation = Orientation.Horizontal
            Element = idText |}
 
-let view (flowerOption: Flower option) (dispatch: Msg -> unit) =
+
+let private flowerListing (flowers: Flower seq) (selected: Flower option) (dispatch: Action -> unit) =
+    let sortedFlowers =
+        Seq.sortBy Flower.i2cAddress flowers
+        |> Array.ofSeq
+
+    let flowerNames =
+        Array.map Flower.name sortedFlowers
+
+    let selectedIndex =
+        Option.bind (fun flower -> Array.tryFindIndex (fun f -> f = flower) sortedFlowers) selected
+        |> Option.defaultValue -1
+
+    let selectionHandler (index: int) : unit =
+        match Array.tryItem index sortedFlowers with
+        | Some flower ->
+            printfn $"{flower}"
+            Action.SelectFlower flower.Id |> dispatch
+        | None -> ()
+
+    let selectionBox =
+        ListBox.create [
+            ListBox.dataItems flowerNames
+            ListBox.selectedIndex selectedIndex
+            ListBox.onSelectedIndexChanged (selectionHandler, SubPatchOptions.OnChangeOf(Array.length sortedFlowers))
+        ]
+
+    Form.formElement
+        {| Name = "Flowers"
+           Orientation = Orientation.Vertical
+           Element = selectionBox |}
+
+
+let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg -> unit) =
     let children: IView list =
         [ Text.iconTitle (Icon.flower Icon.large Theme.palette.primary) "Flower" Theme.palette.foreground
-          nameView flowerOption dispatch
-          i2cAddressView flowerOption dispatch
-          positionView flowerOption
-          id flowerOption ]
+          nameView selectedFlower dispatch
+          i2cAddressView selectedFlower dispatch
+          positionView selectedFlower
+          id selectedFlower
+          flowerListing flowers selectedFlower (Action >> dispatch) ]
 
     StackPanel.create [
         StackPanel.children children
