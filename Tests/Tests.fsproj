@@ -19,7 +19,7 @@
 
     <ItemGroup>
         <PackageReference Include="FsCheck.NUnit" Version="2.16.4" />
-        <PackageReference Include="Math.Geometry" Version="0.1.95" />
+        <PackageReference Include="Math.Geometry" Version="0.1.130" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
         <PackageReference Include="Moq" Version="4.17.2" />
         <PackageReference Include="NUnit" Version="3.13.2" />

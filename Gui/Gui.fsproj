@@ -15,7 +15,7 @@
         <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.1" />
-        <PackageReference Include="Math.Geometry" Version="0.1.95" />
+        <PackageReference Include="Math.Geometry" Version="0.1.130" />
         <PackageReference Include="System.IO.Ports" Version="6.0.0" />
         <PackageReference Include="Thoth.Json.Net" Version="8.0.0" />
     </ItemGroup>

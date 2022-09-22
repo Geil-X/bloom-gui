@@ -1,5 +1,6 @@
 module Gui.Views.Panels.FlowerProperties
 
+open System
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
@@ -11,9 +12,15 @@ open Gui.DataTypes
 open Gui.Views.Components
 
 type Msg =
+    | Action of Action
+
     | ChangeName of Flower Id * string
     | ChangeI2cAddress of Flower Id * string
-    | Action of Action
+    | ChangePercentage of Flower Id * Percent
+    | ChangeSpeed of Flower Id * AngularSpeed
+    | ChangeMaxSpeed of Flower Id * AngularSpeed
+    | ChangeAcceleration of Flower Id * AngularAcceleration
+
 
 // ---- Helper Functions ----
 
@@ -23,8 +30,15 @@ let disabledTextBox =
         TextBox.isEnabled false
     ]
 
+let presets =
+    {| speedEmpty = AngularSpeed.turnsPerSecond 0.
+       minSpeed = AngularSpeed.turnsPerSecond 0.
+       maxSpeed = AngularSpeed.turnsPerSecond 65000.
+       accelerationEmpty = AngularAcceleration.turnsPerSecondSquared 0.
+       minAcceleration = AngularAcceleration.turnsPerSecondSquared 0.
+       maxAcceleration = AngularAcceleration.turnsPerSecondSquared 10000. |}
 
-// ---- Form Elements ----
+// ---- Form Elements ----------------------------------------------------------
 
 let private nameView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     let nameTextBox =
@@ -126,6 +140,110 @@ let private id (flowerOption: Flower option) =
            Orientation = Orientation.Horizontal
            Element = idText |}
 
+type SliderProperties<'Units> =
+    { Name: string
+      Value: Quantity<'Units>
+      Min: Quantity<'Units>
+      Max: Quantity<'Units>
+      OnChanged: Flower.Id -> Quantity<'Units> -> unit
+      Display: Quantity<'Units> -> float
+      Conversion: float -> Quantity<'Units>
+      FlowerId: Flower.Id option }
+
+let private sliderView (properties: SliderProperties<'Units>) =
+    let slider =
+        match properties.FlowerId with
+        | Some flowerId ->
+            Slider.create [
+                Slider.width 140.
+                Slider.minimum (properties.Display properties.Min)
+                Slider.maximum (properties.Display properties.Max)
+                Slider.value (properties.Display properties.Value)
+                Slider.onValueChanged (
+                    properties.Conversion
+                    >> properties.OnChanged flowerId,
+                    SubPatchOptions.OnChangeOf flowerId
+                )
+                Slider.dock Dock.Left
+            ]
+
+        | None ->
+            Slider.create [
+                Slider.width 140.
+                Slider.value (properties.Display properties.Value)
+                Slider.minimum (properties.Display properties.Min)
+                Slider.maximum (properties.Display properties.Max)
+                Slider.isEnabled false
+                Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
+                Slider.dock Dock.Left
+            ]
+
+    let textInput =
+        TextBlock.create [
+            TextBlock.text (properties.Value |> properties.Display |> string)
+            TextBlock.dock Dock.Right
+            TextBlock.margin (Theme.spacing.small, 0.)
+        ]
+
+    Form.formElement
+        {| Name = properties.Name
+           Orientation = Orientation.Vertical
+           Element =
+            DockPanel.create [
+                StackPanel.children [
+                    slider
+                    textInput
+                ]
+            ] |}
+
+let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+    sliderView
+        { Name = "Open Percentage"
+          Value =
+            Option.map (fun flower -> flower.OpenPercent) flowerOption
+            |> Option.defaultValue Quantity.zero
+          Min = Percent.decimal Percent.minimum
+          Max = Percent.decimal Percent.maxDecimal
+          OnChanged = (fun flowerId newPercent -> ChangePercentage(flowerId, newPercent) |> dispatch)
+          Display = Percent.inPercentage >> Float.roundFloatTo 2
+          Conversion = Percent.percent
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+
+let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+    sliderView
+        { Name = "Max Speed"
+          Value =
+            Option.map Flower.maxSpeed flowerOption
+            |> Option.defaultValue presets.speedEmpty
+          Min = presets.minSpeed
+          Max = presets.maxSpeed
+          OnChanged = (fun flowerId newSpeed -> ChangeMaxSpeed(flowerId, newSpeed) |> dispatch)
+          Display =
+            AngularSpeed.inTurnsPerSecond
+            >> Float.roundFloatTo 2
+          Conversion = AngularSpeed.turnsPerSecond
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+
+let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+    sliderView
+        { Name = "Acceleration"
+          Value =
+            Option.map Flower.acceleration flowerOption
+            |> Option.defaultValue presets.accelerationEmpty
+          Min = presets.minAcceleration
+          Max = presets.maxAcceleration
+          OnChanged =
+            (fun flowerId newAcceleration ->
+                ChangeAcceleration(flowerId, newAcceleration)
+                |> dispatch)
+          Display =
+            AngularAcceleration.inTurnsPerSecondSquared
+            >> Float.roundFloatTo 2
+          Conversion = AngularAcceleration.turnsPerSecondSquared
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+
+
+// ---- Multiple Flower Listing ------------------------------------------------
 
 let private flowerListing (flowers: Flower seq) (selected: Flower option) (dispatch: Action -> unit) =
     let sortedFlowers =
@@ -141,9 +259,7 @@ let private flowerListing (flowers: Flower seq) (selected: Flower option) (dispa
 
     let selectionHandler (index: int) : unit =
         match Array.tryItem index sortedFlowers with
-        | Some flower ->
-            printfn $"{flower}"
-            Action.SelectFlower flower.Id |> dispatch
+        | Some flower -> Action.SelectFlower flower.Id |> dispatch
         | None -> ()
 
     let selectionBox =
@@ -158,6 +274,7 @@ let private flowerListing (flowers: Flower seq) (selected: Flower option) (dispa
            Orientation = Orientation.Vertical
            Element = selectionBox |}
 
+// ---- Main View --------------------------------------------------------------
 
 let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg -> unit) =
     let children: IView list =
@@ -166,6 +283,9 @@ let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg ->
           i2cAddressView selectedFlower dispatch
           positionView selectedFlower
           id selectedFlower
+          openPercentageView selectedFlower dispatch
+          speedView selectedFlower dispatch
+          accelerationView selectedFlower dispatch
           flowerListing flowers selectedFlower (Action >> dispatch) ]
 
     StackPanel.create [

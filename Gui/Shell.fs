@@ -277,7 +277,7 @@ let updateFlowerFromResponse (response: Response) (state: State) : State =
         flowersFromI2cAddress response.I2cAddress state.Flowers
 
     let updateFromResponse =
-        Flower.connected
+        Flower.connect
         >> Flower.setOpenPercent response.Position
         >> Flower.setTargetPercent response.Position
         >> Flower.setMaxSpeed response.MaxAngularSpeed
@@ -456,6 +456,8 @@ let private updateIconDock (msg: IconDock.Msg) (state: State) : State * Cmd<Msg>
 
 let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     match msg with
+    | FlowerProperties.Action action -> updateAction action state window
+
     | FlowerProperties.ChangeName (id, newName) -> updateFlower id "Name" Flower.setName newName state, Cmd.none
 
     | FlowerProperties.ChangeI2cAddress (id, i2cAddressString) ->
@@ -467,9 +469,20 @@ let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) (w
                 state, Cmd.none
         else
             state, Cmd.none
-            
-    | FlowerProperties.Action action ->
-        updateAction action state window
+
+    | FlowerProperties.Msg.ChangePercentage (id, percentage) ->
+        updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
+
+    | FlowerProperties.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
+
+    | FlowerProperties.Msg.ChangeMaxSpeed (id, speed) ->
+        updateFlower id "Max Speed" Flower.setMaxSpeed speed state, Cmd.none
+
+    | FlowerProperties.Msg.ChangeAcceleration (id, acceleration) ->
+        updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
+
+// TODO: If this is going to be synchronous, this may want to be used
+// | FlowerProperties.Msg.SendCommand command -> state, sendCommandToSelected command state
 
 let private updateFlowerCommands (msg: FlowerCommands.Msg) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -486,7 +499,10 @@ let private updateFlowerCommands (msg: FlowerCommands.Msg) (state: State) : Stat
     | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
         updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
 
-    | FlowerCommands.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setMaxSpeed speed state, Cmd.none
+    | FlowerCommands.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
+
+    | FlowerCommands.Msg.ChangeMaxSpeed (id, speed) ->
+        updateFlower id "Max Speed" Flower.setMaxSpeed speed state, Cmd.none
 
     | FlowerCommands.Msg.ChangeAcceleration (id, acceleration) ->
         updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none

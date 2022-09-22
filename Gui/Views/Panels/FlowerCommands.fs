@@ -16,10 +16,11 @@ type Msg =
     | ChangePort of string
     | ChangePercentage of Flower Id * Percent
     | ChangeSpeed of Flower Id * AngularSpeed
+    | ChangeMaxSpeed of Flower Id * AngularSpeed
+    | ChangeAcceleration of Flower Id * AngularAcceleration
     | OpenSerialPortsDropdown
     | OpenSerialPort of SerialPort
     | CloseSerialPort of SerialPort
-    | ChangeAcceleration of Flower Id * AngularAcceleration
     | SendCommand of Command
 
 let presets =
@@ -180,13 +181,13 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> u
 
 let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     sliderView
-        { Name = "Speed"
+        { Name = "Max Speed"
           Value =
             Option.map Flower.maxSpeed flowerOption
             |> Option.defaultValue presets.speedEmpty
           Min = presets.minSpeed
           Max = presets.maxSpeed
-          OnChanged = (fun flowerId newSpeed -> ChangeSpeed(flowerId, newSpeed) |> dispatch)
+          OnChanged = (fun flowerId newSpeed -> ChangeMaxSpeed(flowerId, newSpeed) |> dispatch)
           Display =
             AngularSpeed.inTurnsPerSecond
             >> Float.roundFloatTo 2
@@ -256,7 +257,7 @@ let view
           openPercentageView flowerOption dispatch
 
           iconButton
-              "Set Speed"
+              "Set Max Speed"
               Icon.speed
               (Flower.maxSpeed
                >> AngularSpeed.inTurnsPerSecond
