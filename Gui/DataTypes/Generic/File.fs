@@ -6,40 +6,53 @@ open System.Threading.Tasks
 open Avalonia.Media
 open Elmish
 open Thoth.Json.Net
+open Math.Units
 
-// ---- File Encoders & Decoders -----------------------------------------------
+// ---- Encoders & Decoders -----------------------------------------------
 
+module Quantity =
+    let encoder<'Units> (q: Quantity<'Units>) : JsonValue = Encode.float q.Value
 
-let fileInfoEncoder (fileInfo: FileInfo) : JsonValue =
-    Encode.string fileInfo.FullName
-
-let fileInfoDecoder: Decoder<FileInfo> =
-    fun path value ->
-        if Decode.Helpers.isString value then
-            Decode.Helpers.asString value |> FileInfo |> Ok
-
-        else
-            (path, ErrorReason.BadPrimitive("a file path", value))
-            |> Error
-
-
-let colorEncoder (color: Color) : JsonValue = Encode.string (string color)
-
-let colorDecoder: Decoder<Color> =
-    fun path value ->
-        if Decode.Helpers.isString value then
-            let mutable color: Color = Color()
-
-            if Color.TryParse(Decode.Helpers.asString value, &color) then
-                Ok color
-
+    let decoder<'Units> : Decoder<Quantity<'Units>> =
+        fun path value ->
+            if Decode.Helpers.isNumber value then
+                Decode.Helpers.asFloat value
+                |> Quantity.create<'Units>
+                |> Ok
             else
-                (path, ErrorReason.BadPrimitive("Could not parse the string into a color value", value))
+                (path, ErrorReason.BadPrimitive("a quantity value", value))
                 |> Error
 
-        else
-            (path, ErrorReason.BadPrimitive("a color value", value))
-            |> Error
+module FileInfo =
+    let encoder (fileInfo: FileInfo) : JsonValue = Encode.string fileInfo.FullName
+
+    let decoder: Decoder<FileInfo> =
+        fun path value ->
+            if Decode.Helpers.isString value then
+                Decode.Helpers.asString value |> FileInfo |> Ok
+
+            else
+                (path, ErrorReason.BadPrimitive("a file path", value))
+                |> Error
+
+module Color =
+    let encoder (color: Color) : JsonValue = Encode.string (string color)
+
+    let decoder: Decoder<Color> =
+        fun path value ->
+            if Decode.Helpers.isString value then
+                let mutable color: Color = Color()
+
+                if Color.TryParse(Decode.Helpers.asString value, &color) then
+                    Ok color
+
+                else
+                    (path, ErrorReason.BadPrimitive("Could not parse the string into a color value", value))
+                    |> Error
+
+            else
+                (path, ErrorReason.BadPrimitive("a color value", value))
+                |> Error
 
 
 
@@ -47,8 +60,18 @@ let colorDecoder: Decoder<Color> =
 
 let extraCoders =
     Extra.empty
-    |> Extra.withCustom fileInfoEncoder fileInfoDecoder
-    |> Extra.withCustom colorEncoder colorDecoder
+    |> Extra.withCustom FileInfo.encoder FileInfo.decoder
+    |> Extra.withCustom Color.encoder Color.decoder
+    |> Extra.withCustom Quantity.encoder<Meters> Quantity.decoder<Meters>
+    |> Extra.withCustom Quantity.encoder<Radians> Quantity.decoder<Radians>
+    |> Extra.withCustom Quantity.encoder<Percentage> Quantity.decoder<Percentage>
+    // TODO: For some reason this doesn't seem to work with type aliases
+    |> Extra.withCustom Quantity.encoder<Rate<Radians, Seconds>> Quantity.decoder<Rate<Radians, Seconds>>
+    |> Extra.withCustom
+        Quantity.encoder<Rate<Rate<Radians, Seconds>, Seconds>>
+        Quantity.decoder<Rate<Rate<Radians, Seconds>, Seconds>>
+    // |> Extra.withCustom Quantity.encoder<AngularSpeed> Quantity.decoder<AngularSpeed>
+    // |> Extra.withCustom Quantity.encoder<AngularAcceleration> Quantity.decoder<AngularAcceleration>
 
 
 // ---- File Operations --------------------------------------------------------
