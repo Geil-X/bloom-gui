@@ -67,8 +67,10 @@ module Flower =
     let maxSpeed (flower: Flower) : AngularSpeed = flower.MaxSpeed
 
     let acceleration (flower: Flower) : AngularAcceleration = flower.Acceleration
-    let circle (flower: Flower): Circle2D<Meters, ScreenSpace> = Circle2D.atPoint flower.Position flower.Radius
-   
+
+    let circle (flower: Flower) : Circle2D<Meters, ScreenSpace> =
+        Circle2D.atPoint flower.Position flower.Radius
+
 
     // ---- Modifiers ----
 
@@ -87,6 +89,17 @@ module Flower =
 
     let setAcceleration acceleration flower : Flower =
         { flower with Acceleration = acceleration }
+
+    /// Update the flower position and speed based on the amount of time that has elapsed
+    let update (duration: Duration) (flower: Flower) =
+        let positionChange =
+            Quantity.at flower.MaxSpeed duration
+
+        flower
+        |> setMaxSpeed flower.MaxSpeed
+        |> setOpenPercent flower.OpenPercent
+        |> setAcceleration flower.Acceleration
+
 
 
     // ---- Queries ----

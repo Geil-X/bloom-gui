@@ -142,7 +142,6 @@ let private flowerListing (flowers: Flower seq) (selected: Flower option) (dispa
     let selectionHandler (index: int) : unit =
         match Array.tryItem index sortedFlowers with
         | Some flower ->
-            printfn $"{flower}"
             Action.SelectFlower flower.Id |> dispatch
         | None -> ()
 
