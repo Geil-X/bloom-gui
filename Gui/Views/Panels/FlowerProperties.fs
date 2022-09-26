@@ -16,7 +16,8 @@ type Msg =
 
     | ChangeName of Flower Id * string
     | ChangeI2cAddress of Flower Id * string
-    | ChangePercentage of Flower Id * Percent
+    | ChangeOpenPercentage of Flower Id * Percent
+    | ChangeTargetPercentage of Flower Id * Percent
     | ChangeSpeed of Flower Id * AngularSpeed
     | ChangeMaxSpeed of Flower Id * AngularSpeed
     | ChangeAcceleration of Flower Id * AngularAcceleration
@@ -204,7 +205,21 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> u
             |> Option.defaultValue Quantity.zero
           Min = Percent.decimal Percent.minimum
           Max = Percent.decimal Percent.maxDecimal
-          OnChanged = (fun flowerId newPercent -> ChangePercentage(flowerId, newPercent) |> dispatch)
+          OnChanged = (fun flowerId newPercent -> ChangeOpenPercentage(flowerId, newPercent) |> dispatch)
+          Display = Percent.inPercentage >> Float.roundFloatTo 2
+          Conversion = Percent.percent
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+        
+        
+let private targetPercentageView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+    sliderView
+        { Name = "Target Percentage"
+          Value =
+            Option.map (fun flower -> flower.TargetPercent) flowerOption
+            |> Option.defaultValue Quantity.zero
+          Min = Percent.decimal Percent.minimum
+          Max = Percent.decimal Percent.maxDecimal
+          OnChanged = (fun flowerId newPercent -> ChangeTargetPercentage(flowerId, newPercent) |> dispatch)
           Display = Percent.inPercentage >> Float.roundFloatTo 2
           Conversion = Percent.percent
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
@@ -284,11 +299,12 @@ let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg ->
           positionView selectedFlower
           id selectedFlower
           openPercentageView selectedFlower dispatch
+          targetPercentageView selectedFlower dispatch
           speedView selectedFlower dispatch
           accelerationView selectedFlower dispatch
           flowerListing flowers selectedFlower (Action >> dispatch) ]
 
     StackPanel.create [
         StackPanel.children children
-        StackPanel.minWidth 200.
+        StackPanel.minWidth Theme.size.medium
     ]

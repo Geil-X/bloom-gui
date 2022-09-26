@@ -111,7 +111,7 @@ let loadAppConfigFile: Cmd<Msg> =
 
 let init () : State * Cmd<Msg> =
     let fps = 30
-    
+
     { CanvasSize = Size2D.create Quantity.zero Quantity.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
@@ -122,7 +122,7 @@ let init () : State * Cmd<Msg> =
       Tab = Simulation
       AppConfig = AppConfig.init
       EaTab = EaTab.init () },
-    
+
     Cmd.batch [
         loadAppConfigFile
         Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
@@ -271,6 +271,12 @@ let private updateFlower
         { state with Flowers = Map.update id (f value) state.Flowers }
     else
         state
+
+let private updateFlowers (f: Flower -> Flower) (state: State) : State =
+    { state with Flowers = Map.map (fun _ -> f) state.Flowers }
+
+let private updateFlowerSimulation (elapsedTime: Duration) (state: State) : State =
+    updateFlowers (Flower.update elapsedTime) state
 
 let private flowersFromI2cAddress (i2cAddress: I2cAddress) (flowers: Map<Flower Id, Flower>) : Flower seq =
     Map.filter (fun _ flower -> Flower.i2cAddress flower = i2cAddress) flowers
@@ -474,8 +480,11 @@ let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) (w
         else
             state, Cmd.none
 
-    | FlowerProperties.Msg.ChangePercentage (id, percentage) ->
+    | FlowerProperties.Msg.ChangeOpenPercentage (id, percentage) ->
         updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
+
+    | FlowerProperties.Msg.ChangeTargetPercentage (id, percentage) ->
+        updateFlower id "Target Percentage" Flower.setTargetPercent percentage state, Cmd.none
 
     | FlowerProperties.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
 
@@ -512,7 +521,6 @@ let private updateFlowerCommands (msg: FlowerCommands.Msg) (state: State) : Stat
         updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
 
     | FlowerCommands.Msg.SendCommand command -> state, sendCommandToSelected command state
-
 
 let private updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -625,8 +633,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     match msg with
     // Shell Messages
-    | Tick ellapsed ->
-        state, Cmd.none
+    | Tick elapsed -> updateFlowerSimulation elapsed state, Cmd.none
 
     | Action action -> updateAction action state window
 

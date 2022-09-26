@@ -38,6 +38,37 @@ module Flower =
         | OnPointerReleased of (Flower Id * MouseButtonEvent<ScreenSpace> -> unit)
 
 
+    // ---- Constants ----
+    /// The number of rotations needed to complete one bloom cycle.
+    type TurnRatio = Quantity<Rate<Radians, Percentage>>
+
+    /// The number of microsteps used by the stepper controller
+    [<Literal>]
+    let private Microsteps = 16.
+
+    /// The number of steps it takes the stepper motor to make one revolution
+    [<Literal>]
+    let private StepsInRevolution = 200.
+
+    /// The number of steps in the full cycle of the flower. That is the distance
+    /// from the open to closed state in the flower in microsteps.
+    [<Literal>]
+    let private BloomRange = 32000.
+
+    /// The number of revolutions the stepper motor shaft needs to go to
+    /// complete one bloom open to close cycle.
+    let private RevolutionsPerBloom: Angle =
+        Angle.turns BloomRange
+        / (StepsInRevolution * Microsteps)
+
+
+    /// The turn ratio of the stepper motor. This is the number of steps
+    /// including microsteps
+    let private StepsPerRevolution: TurnRatio =
+        RevolutionsPerBloom
+        |> Quantity.per (Percent.percent 100.)
+
+
     // ---- Builders -----
 
     /// The first 16 Addresses are reserved so the starting address must be the
@@ -111,7 +142,7 @@ module Flower =
 
     /// Update the flower position and speed based on the amount of time that has elapsed
     let update (duration: Duration) (flower: Flower) =
-        let positionChange =
+        let positionChange: Angle =
             Quantity.at flower.MaxSpeed duration
 
         flower
@@ -124,13 +155,11 @@ module Flower =
 
     // ---- Updating Flower ----
 
-    [<Literal>]
-    let private MicroSteps = 16
-
-    type TurnRatio = Quantity<Rate<Percentage, Radians>>
-
-    let private turnRatio: TurnRatio =
-        (Percent.percent 100.) |> Quantity.per Angle.turn
+    // The distance change used for speed calculations
+    let private angleToGo (flower: Flower) : Angle =
+        (flower.Speed.Value * flower.Speed.Value)
+        / (2. * flower.Acceleration.Value)
+        |> Angle.radians
 
 
     /// <summary>
@@ -143,15 +172,21 @@ module Flower =
         let flowerOpeningChange: Percent =
             dt
             |> Quantity.at flower.Speed
-            |> Quantity.at turnRatio
+            |> Quantity.at_ StepsPerRevolution
 
-        { flower with
-            OpenPercent =
-                Percent.clamp
-                    Percent.zero
-                    (Percent.decimal Percent.maxDecimal)
-                    (flower.OpenPercent + flowerOpeningChange)
-            Speed = flower.Speed }
+        let expectedPosition =
+            flower.OpenPercent + flowerOpeningChange
+            
+        let reachedTarget =
+            Quantity.equalWithin flowerOpeningChange expectedPosition flower.TargetPercent
+
+        if reachedTarget then
+            flower
+            |> setSpeed AngularSpeed.zero
+            |> setOpenPercent flower.TargetPercent
+            
+        else
+            flower
 
 
     // ---- Queries ----
@@ -160,6 +195,12 @@ module Flower =
     let containsPoint (point: Point2D<Meters, ScreenSpace>) (state: Flower) =
         Circle2D.atPoint state.Position state.Radius
         |> Circle2D.containsPoint point
+
+    /// The remaining distance that the flower has to move
+    let remainingDistance (flower: Flower) : Percent =
+        flower.OpenPercent - flower.TargetPercent
+        |> Quantity.abs
+
 
 
     // ---- Attributes ----
