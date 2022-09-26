@@ -10,7 +10,6 @@ open Math.Geometry
 open Math.Units
 
 open Extensions
-open Gui
 open Gui.DataTypes
 open Gui.Views.Components
 open Gui.Views
@@ -73,6 +72,7 @@ type SimulationEvent =
 
 type Msg =
     // Shell Messages
+    | Tick of Duration
     | Action of Action
     | RerenderView
     | ReadAppConfig of Result<AppConfig, File.ReadError>
@@ -110,6 +110,8 @@ let loadAppConfigFile: Cmd<Msg> =
 // ---- Init -------------------------------------------------------------------
 
 let init () : State * Cmd<Msg> =
+    let fps = 30
+    
     { CanvasSize = Size2D.create Quantity.zero Quantity.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
@@ -120,9 +122,11 @@ let init () : State * Cmd<Msg> =
       Tab = Simulation
       AppConfig = AppConfig.init
       EaTab = EaTab.init () },
+    
     Cmd.batch [
         loadAppConfigFile
         Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
+        Sub.timer fps Tick
     ]
 
 // ---- Update helper functions ------------------------------------------------
@@ -621,6 +625,8 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     match msg with
     // Shell Messages
+    | Tick ellapsed ->
+        state, Cmd.none
 
     | Action action -> updateAction action state window
 

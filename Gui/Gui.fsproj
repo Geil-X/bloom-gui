@@ -11,6 +11,7 @@
     <ItemGroup>
         <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
         <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
+        <PackageReference Include="Elmish" Version="3.1.0" />
         <PackageReference Include="FsPickler.Json" Version="5.3.2" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2" />
         <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2" />
@@ -57,6 +58,7 @@
         <Compile Include="Extensions\Elmish\Deferred.fs" />
         <Compile Include="Extensions\Elmish\AsyncOperationStatus.fs" />
         <Compile Include="Extensions\Elmish\Cmd.fs" />
+        <Compile Include="Extensions\Elmish\Sub.fs" />
         <Compile Include="Extensions\Math\Units.fs" />
         <Compile Include="DataTypes\Generic\File.fs" />
         <Compile Include="DataTypes\Generic\Id.fs" />

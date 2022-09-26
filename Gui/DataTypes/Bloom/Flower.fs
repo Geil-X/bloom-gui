@@ -109,6 +109,17 @@ module Flower =
     let setAcceleration acceleration flower : Flower =
         { flower with Acceleration = acceleration }
 
+    /// Update the flower position and speed based on the amount of time that has elapsed
+    let update (duration: Duration) (flower: Flower) =
+        let positionChange =
+            Quantity.at flower.MaxSpeed duration
+
+        flower
+        |> setMaxSpeed flower.MaxSpeed
+        |> setOpenPercent flower.OpenPercent
+        |> setAcceleration flower.Acceleration
+
+
 
 
     // ---- Updating Flower ----
