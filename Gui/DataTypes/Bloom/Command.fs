@@ -5,7 +5,6 @@ open System.Threading.Tasks
 open Math.Units
 
 open Gui.DataTypes
-open Extensions
 
 type Command =
     | NoCommand
@@ -14,8 +13,8 @@ type Command =
     | Open
     | Close
     | OpenTo of Percent
-    | Speed of uint
-    | Acceleration of uint
+    | MaxSpeed of AngularSpeed
+    | Acceleration of AngularAcceleration
     | Ping
 
 module Command =
@@ -39,9 +38,9 @@ module Command =
             | Open -> [| byte Id.Open; 0uy; 0uy |]
             | Close -> [| byte Id.Close; 0uy; 0uy |]
             | OpenTo percentage -> Array.append [| byte Id.OpenTo |] (Percent.toBytes16 percentage)
-            | Speed speed -> Array.append [| byte Id.Speed |] (uint16 speed |> UInt16.inBytes)
+            | MaxSpeed speed -> Array.append [| byte Id.Speed |] (AngularSpeed.inUint16Bytes speed)
             | Acceleration acceleration ->
-                Array.append [| byte Id.Acceleration |] (uint16 acceleration |> UInt16.inBytes)
+                Array.append [| byte Id.Acceleration |] (AngularAcceleration.inUint16Bytes acceleration)
             | Ping -> [| byte Id.Ping; 0uy; 0uy |]
             |> Array.append [| address |]
 

@@ -26,10 +26,7 @@ type Msg =
 // ---- Helper Functions ----
 
 let disabledTextBox =
-    TextBox.create [
-        TextBox.text ""
-        TextBox.isEnabled false
-    ]
+    TextBox.create [ TextBox.text ""; TextBox.isEnabled false ]
 
 let presets =
     {| speedEmpty = AngularSpeed.turnsPerSecond 0.
@@ -93,10 +90,7 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                DockPanel.children [
-                    connectionStatus
-                    i2cTextBox
-                ]
+                DockPanel.children [ connectionStatus; i2cTextBox ]
             ] |}
 
 
@@ -113,10 +107,7 @@ let private positionView (flowerOption: Flower option) =
             TextBlock.create [
                 TextBlock.text (flower.Position |> positionToString)
             ]
-        | None ->
-            TextBlock.create [
-                TextBlock.text "(___, ___)"
-            ]
+        | None -> TextBlock.create [ TextBlock.text "(___, ___)" ]
 
 
     Form.formElement
@@ -127,57 +118,33 @@ let private positionView (flowerOption: Flower option) =
 let private id (flowerOption: Flower option) =
     let idText =
         match flowerOption with
-        | Some flower ->
-            TextBlock.create [
-                TextBlock.text (Id.shortName flower.Id)
-            ]
-        | None ->
-            TextBlock.create [
-                TextBlock.text "0000000"
-            ]
+        | Some flower -> TextBlock.create [ TextBlock.text (Id.shortName flower.Id) ]
+        | None -> TextBlock.create [ TextBlock.text "0000000" ]
 
     Form.formElement
         {| Name = "Id"
            Orientation = Orientation.Horizontal
            Element = idText |}
 
-type SliderProperties<'Units> =
+type DisabledSliderProperties<'Units> =
     { Name: string
       Value: Quantity<'Units>
       Min: Quantity<'Units>
       Max: Quantity<'Units>
-      OnChanged: Flower.Id -> Quantity<'Units> -> unit
       Display: Quantity<'Units> -> float
       Conversion: float -> Quantity<'Units>
       FlowerId: Flower.Id option }
 
-let private sliderView (properties: SliderProperties<'Units>) =
+let private sliderView (properties: DisabledSliderProperties<'Units>) =
     let slider =
-        match properties.FlowerId with
-        | Some flowerId ->
-            Slider.create [
-                Slider.width 140.
-                Slider.minimum (properties.Display properties.Min)
-                Slider.maximum (properties.Display properties.Max)
-                Slider.value (properties.Display properties.Value)
-                Slider.onValueChanged (
-                    properties.Conversion
-                    >> properties.OnChanged flowerId,
-                    SubPatchOptions.OnChangeOf flowerId
-                )
-                Slider.dock Dock.Left
-            ]
-
-        | None ->
-            Slider.create [
-                Slider.width 140.
-                Slider.value (properties.Display properties.Value)
-                Slider.minimum (properties.Display properties.Min)
-                Slider.maximum (properties.Display properties.Max)
-                Slider.isEnabled false
-                Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
-                Slider.dock Dock.Left
-            ]
+        Slider.create [
+            Slider.width 140.
+            Slider.minimum (properties.Display properties.Min)
+            Slider.maximum (properties.Display properties.Max)
+            Slider.value (properties.Display properties.Value)
+            Slider.isEnabled false
+            Slider.dock Dock.Left
+        ]
 
     let textInput =
         TextBlock.create [
@@ -191,13 +158,11 @@ let private sliderView (properties: SliderProperties<'Units>) =
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                StackPanel.children [
-                    slider
-                    textInput
-                ]
+                StackPanel.children [ slider; textInput ]
             ] |}
 
-let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+
+let private openPercentageView (flowerOption: Flower option) =
     sliderView
         { Name = "Open Percentage"
           Value =
@@ -205,56 +170,27 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> u
             |> Option.defaultValue Quantity.zero
           Min = Percent.decimal Percent.minimum
           Max = Percent.decimal Percent.maxDecimal
-          OnChanged = (fun flowerId newPercent -> ChangeOpenPercentage(flowerId, newPercent) |> dispatch)
-          Display = Percent.inPercentage >> Float.roundFloatTo 2
-          Conversion = Percent.percent
-          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
-        
-        
-let private targetPercentageView (flowerOption: Flower option) (dispatch: Msg -> unit) =
-    sliderView
-        { Name = "Target Percentage"
-          Value =
-            Option.map (fun flower -> flower.TargetPercent) flowerOption
-            |> Option.defaultValue Quantity.zero
-          Min = Percent.decimal Percent.minimum
-          Max = Percent.decimal Percent.maxDecimal
-          OnChanged = (fun flowerId newPercent -> ChangeTargetPercentage(flowerId, newPercent) |> dispatch)
           Display = Percent.inPercentage >> Float.roundFloatTo 2
           Conversion = Percent.percent
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
-let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+
+let private speedView (flowerOption: Flower option) =
+    let maxSpeed =
+        Option.map Flower.maxSpeed flowerOption
+        |> Option.defaultValue presets.maxSpeed
+
     sliderView
-        { Name = "Max Speed"
+        { Name = "Speed"
           Value =
-            Option.map Flower.maxSpeed flowerOption
+            Option.map Flower.speed flowerOption
             |> Option.defaultValue presets.speedEmpty
           Min = presets.minSpeed
-          Max = presets.maxSpeed
-          OnChanged = (fun flowerId newSpeed -> ChangeMaxSpeed(flowerId, newSpeed) |> dispatch)
+          Max = maxSpeed
           Display =
             AngularSpeed.inTurnsPerSecond
             >> Float.roundFloatTo 2
           Conversion = AngularSpeed.turnsPerSecond
-          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
-
-let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> unit) =
-    sliderView
-        { Name = "Acceleration"
-          Value =
-            Option.map Flower.acceleration flowerOption
-            |> Option.defaultValue presets.accelerationEmpty
-          Min = presets.minAcceleration
-          Max = presets.maxAcceleration
-          OnChanged =
-            (fun flowerId newAcceleration ->
-                ChangeAcceleration(flowerId, newAcceleration)
-                |> dispatch)
-          Display =
-            AngularAcceleration.inTurnsPerSecondSquared
-            >> Float.roundFloatTo 2
-          Conversion = AngularAcceleration.turnsPerSecondSquared
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 
@@ -298,10 +234,8 @@ let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg ->
           i2cAddressView selectedFlower dispatch
           positionView selectedFlower
           id selectedFlower
-          openPercentageView selectedFlower dispatch
-          targetPercentageView selectedFlower dispatch
-          speedView selectedFlower dispatch
-          accelerationView selectedFlower dispatch
+          openPercentageView selectedFlower
+          speedView selectedFlower
           flowerListing flowers selectedFlower (Action >> dispatch) ]
 
     StackPanel.create [

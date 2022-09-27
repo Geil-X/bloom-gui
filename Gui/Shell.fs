@@ -276,7 +276,7 @@ let private updateFlowers (f: Flower -> Flower) (state: State) : State =
     { state with Flowers = Map.map (fun _ -> f) state.Flowers }
 
 let private updateFlowerSimulation (elapsedTime: Duration) (state: State) : State =
-    updateFlowers (Flower.update elapsedTime) state
+    updateFlowers (Flower.tick elapsedTime) state
 
 let private flowersFromI2cAddress (i2cAddress: I2cAddress) (flowers: Map<Flower Id, Flower>) : Flower seq =
     Map.filter (fun _ flower -> Flower.i2cAddress flower = i2cAddress) flowers
@@ -510,7 +510,7 @@ let private updateFlowerCommands (msg: FlowerCommands.Msg) (state: State) : Stat
     | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
 
     | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
-        updateFlower id "Open Percentage" Flower.setOpenPercent percentage state, Cmd.none
+        updateFlower id "Target Percentage" Flower.setTargetPercent percentage state, Cmd.none
 
     | FlowerCommands.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
 

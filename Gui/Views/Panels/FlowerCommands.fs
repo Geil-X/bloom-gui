@@ -102,11 +102,7 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                DockPanel.children [
-                    portIcon
-                    connectionStatus
-                    dropdown
-                ]
+                DockPanel.children [ portIcon; connectionStatus; dropdown ]
             ] |}
 
 type SliderProperties<'Units> =
@@ -159,18 +155,15 @@ let private sliderView (properties: SliderProperties<'Units>) =
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                StackPanel.children [
-                    slider
-                    textInput
-                ]
+                StackPanel.children [ slider; textInput ]
             ] |}
 
 
 let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> unit) =
     sliderView
-        { Name = "Open Percentage"
+        { Name = "Target Percentage"
           Value =
-            Option.map (fun flower -> flower.OpenPercent) flowerOption
+            Option.map (fun flower -> flower.TargetPercent) flowerOption
             |> Option.defaultValue Quantity.zero
           Min = Percent.decimal Percent.minimum
           Max = Percent.decimal Percent.maxDecimal
@@ -220,8 +213,8 @@ let private iconButton
     (serialPortOption: SerialPort option)
     dispatch
     =
-    match flowerOption, serialPortOption with
-    | Some flower, Some serialPort when serialPort.IsOpen ->
+    match flowerOption with
+    | Some flower ->
         Form.iconTextButton
             (icon Icon.medium Theme.palette.info)
             name
@@ -230,7 +223,7 @@ let private iconButton
             (SubPatchOptions.OnChangeOf
                 {| Id = flower.Id
                    Command = onClick flower |})
-    | _ ->
+    | None ->
         Form.iconTextButton
             (icon Icon.medium Theme.palette.info)
             name
@@ -253,28 +246,16 @@ let view
           iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
           iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption serialPort dispatch
           iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch
-          iconButton "Open To" Icon.openTo (Flower.openPercent >> OpenTo) flowerOption serialPort dispatch
+          iconButton "Open To" Icon.openTo (Flower.targetPercent >> OpenTo) flowerOption serialPort dispatch
           openPercentageView flowerOption dispatch
 
-          iconButton
-              "Set Max Speed"
-              Icon.speed
-              (Flower.maxSpeed
-               >> AngularSpeed.inTurnsPerSecond
-               >> uint
-               >> Speed)
-              flowerOption
-              serialPort
-              dispatch
+          iconButton "Set Max Speed" Icon.speed (Flower.maxSpeed >> MaxSpeed) flowerOption serialPort dispatch
           speedView flowerOption dispatch
 
           iconButton
               "Set Acceleration"
               Icon.acceleration
-              (Flower.acceleration
-               >> AngularAcceleration.inTurnsPerSecondSquared
-               >> uint
-               >> Acceleration)
+              (Flower.acceleration >> Acceleration)
               flowerOption
               serialPort
               dispatch
