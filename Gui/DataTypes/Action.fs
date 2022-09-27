@@ -15,7 +15,6 @@ type Action =
     | OpenFile of AsyncOperationStatus<FileInfo, Result<Flower list, File.ReadError>>
 
     // Serial Port Actions
-    | RefreshSerialPorts of AsyncOperationStatus<unit, string list>
     | ConnectAndOpenPort of AsyncOperationStatus<string, SerialPort>
     | OpenSerialPort of AsyncOperationStatus<SerialPort, SerialPort>
     | CloseSerialPort of AsyncOperationStatus<SerialPort, SerialPort>

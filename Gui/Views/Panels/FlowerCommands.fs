@@ -4,6 +4,7 @@ open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
+open Elmish
 open Math.Units
 open System
 open System.IO.Ports
@@ -12,16 +13,55 @@ open Gui.DataTypes
 open Gui.Views.Components
 open Extensions
 
-type Msg =
-    | ChangePort of string
-    | ChangePercentage of Flower Id * Percent
-    | ChangeSpeed of Flower Id * AngularSpeed
-    | ChangeMaxSpeed of Flower Id * AngularSpeed
-    | ChangeAcceleration of Flower Id * AngularAcceleration
-    | OpenSerialPortsDropdown
+type State =
+    { TargetPercent: Percent
+      MaxSpeed: AngularSpeed
+      Acceleration: AngularAcceleration
+      SerialPorts: string list }
+
+[<RequireQualifiedAccess>]
+type External =
     | OpenSerialPort of SerialPort
     | CloseSerialPort of SerialPort
+    | ChangePort of string
     | SendCommand of Command
+    | NoMsg
+
+[<RequireQualifiedAccess>]
+type Msg =
+    | ChangeTargetPercent of Percent
+    | ChangeMaxSpeed of AngularSpeed
+    | ChangeAcceleration of AngularAcceleration
+    | RefreshSerialPorts of AsyncOperationStatus<unit, string list>
+    | SendExternal of External
+
+
+let init () : State * Cmd<'Msg> =
+    { TargetPercent = Percent.zero
+      MaxSpeed = AngularSpeed.zero
+      Acceleration = AngularAcceleration.zero
+      SerialPorts = [] },
+    Cmd.none
+
+/// ---- Update ----------------------------------------------------------------
+
+let update (msg: Msg) (state: State) : State * Cmd<Msg> * External =
+    match msg with
+    | Msg.ChangeTargetPercent percentage -> { state with TargetPercent = percentage }, Cmd.none, External.NoMsg
+
+    | Msg.ChangeMaxSpeed speed -> { state with MaxSpeed = speed }, Cmd.none, External.NoMsg
+
+    | Msg.ChangeAcceleration acceleration -> { state with Acceleration = acceleration }, Cmd.none, External.NoMsg
+
+    | Msg.RefreshSerialPorts asyncOperation ->
+        match asyncOperation with
+        | Start _ ->
+            state, Cmd.OfTask.perform SerialPort.getPorts () (Finished >> Msg.RefreshSerialPorts), External.NoMsg
+        | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none, External.NoMsg
+
+    | Msg.SendExternal msg -> state, Cmd.none, msg
+
+/// ---- View ------------------------------------------------------------------
 
 let presets =
     {| speedEmpty = AngularSpeed.turnsPerSecond 0.
@@ -34,7 +74,7 @@ let presets =
 [<Literal>]
 let noPort = "No Serial Port"
 
-let private serialPortView (serialPorts: string list) (serialPortOption: SerialPort option) dispatch =
+let private serialPortView (serialPorts: string list) (serialPortOption: SerialPort option) (dispatch: Msg -> unit) =
     let ports =
         noPort :: serialPorts |> Array.ofList
 
@@ -50,7 +90,10 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
 
             Button.create [
                 Button.onClick (
-                    (fun _ -> CloseSerialPort serialPort |> dispatch),
+                    (fun _ ->
+                        External.CloseSerialPort serialPort
+                        |> Msg.SendExternal
+                        |> dispatch),
                     SubPatchOptions.OnChangeOf serialPort.PortName
                 )
                 Button.content icon
@@ -62,7 +105,10 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
 
             Button.create [
                 Button.onClick (
-                    (fun _ -> OpenSerialPort serialPort |> dispatch),
+                    (fun _ ->
+                        External.OpenSerialPort serialPort
+                        |> Msg.SendExternal
+                        |> dispatch),
                     SubPatchOptions.OnChangeOf serialPort.PortName
                 )
                 Button.content icon
@@ -93,8 +139,11 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
             ComboBox.dataItems ports
             ComboBox.dock Dock.Left
             ComboBox.selectedItem selected
-            ComboBox.onPointerEnter (fun _ -> dispatch OpenSerialPortsDropdown)
-            ComboBox.onSelectedItemChanged (fun port -> ChangePort(port :?> string) |> dispatch)
+            ComboBox.onPointerEnter (fun _ -> Start() |> Msg.RefreshSerialPorts |> dispatch)
+            ComboBox.onSelectedItemChanged (fun port ->
+                External.ChangePort(port :?> string)
+                |> Msg.SendExternal
+                |> dispatch)
         ]
 
     Form.formElement
@@ -102,7 +151,11 @@ let private serialPortView (serialPorts: string list) (serialPortOption: SerialP
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                DockPanel.children [ portIcon; connectionStatus; dropdown ]
+                DockPanel.children [
+                    portIcon
+                    connectionStatus
+                    dropdown
+                ]
             ] |}
 
 type SliderProperties<'Units> =
@@ -110,38 +163,20 @@ type SliderProperties<'Units> =
       Value: Quantity<'Units>
       Min: Quantity<'Units>
       Max: Quantity<'Units>
-      OnChanged: Flower.Id -> Quantity<'Units> -> unit
+      OnChanged: Quantity<'Units> -> unit
       Display: Quantity<'Units> -> float
-      Conversion: float -> Quantity<'Units>
-      FlowerId: Flower.Id option }
+      Conversion: float -> Quantity<'Units> }
 
 let private sliderView (properties: SliderProperties<'Units>) =
     let slider =
-        match properties.FlowerId with
-        | Some flowerId ->
-            Slider.create [
-                Slider.width 140.
-                Slider.minimum (properties.Display properties.Min)
-                Slider.maximum (properties.Display properties.Max)
-                Slider.value (properties.Display properties.Value)
-                Slider.onValueChanged (
-                    properties.Conversion
-                    >> properties.OnChanged flowerId,
-                    SubPatchOptions.OnChangeOf flowerId
-                )
-                Slider.dock Dock.Left
-            ]
+        Slider.create [
+            Slider.width 140.
+            Slider.minimum (properties.Display properties.Min)
+            Slider.maximum (properties.Display properties.Max)
+            Slider.value (properties.Display properties.Value)
+            Slider.dock Dock.Left
+        ]
 
-        | None ->
-            Slider.create [
-                Slider.width 140.
-                Slider.value (properties.Display properties.Value)
-                Slider.minimum (properties.Display properties.Min)
-                Slider.maximum (properties.Display properties.Max)
-                Slider.isEnabled false
-                Slider.onValueChanged ((fun _ -> ()), SubPatchOptions.OnChangeOf Guid.Empty)
-                Slider.dock Dock.Left
-            ]
 
     let textInput =
         TextBlock.create [
@@ -155,7 +190,10 @@ let private sliderView (properties: SliderProperties<'Units>) =
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                StackPanel.children [ slider; textInput ]
+                StackPanel.children [
+                    slider
+                    textInput
+                ]
             ] |}
 
 
@@ -163,66 +201,59 @@ let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> u
     sliderView
         { Name = "Target Percentage"
           Value =
-            Option.map (fun flower -> flower.TargetPercent) flowerOption
+            flowerOption
+            |> Option.map (fun flower -> flower.TargetPercent)
             |> Option.defaultValue Quantity.zero
           Min = Percent.decimal Percent.minimum
           Max = Percent.decimal Percent.maxDecimal
-          OnChanged = (fun flowerId newPercent -> ChangePercentage(flowerId, newPercent) |> dispatch)
+          OnChanged = (fun newPercent -> Msg.ChangeTargetPercent(newPercent) |> dispatch)
           Display = Percent.inPercentage >> Float.roundFloatTo 2
-          Conversion = Percent.percent
-          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+          Conversion = Percent.percent }
 
-let private speedView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+let private speedView (speed: AngularSpeed) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Max Speed"
-          Value =
-            Option.map Flower.maxSpeed flowerOption
-            |> Option.defaultValue presets.speedEmpty
+          Value = speed
           Min = presets.minSpeed
           Max = presets.maxSpeed
-          OnChanged = (fun flowerId newSpeed -> ChangeMaxSpeed(flowerId, newSpeed) |> dispatch)
+          OnChanged = Msg.ChangeMaxSpeed >> dispatch
           Display =
             AngularSpeed.inTurnsPerSecond
             >> Float.roundFloatTo 2
-          Conversion = AngularSpeed.turnsPerSecond
-          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+          Conversion = AngularSpeed.turnsPerSecond }
 
-let private accelerationView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+let private accelerationView (accel: AngularAcceleration) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Acceleration"
-          Value =
-            Option.map Flower.acceleration flowerOption
-            |> Option.defaultValue presets.accelerationEmpty
+          Value = accel
           Min = presets.minAcceleration
           Max = presets.maxAcceleration
-          OnChanged =
-            (fun flowerId newAcceleration ->
-                ChangeAcceleration(flowerId, newAcceleration)
-                |> dispatch)
+          OnChanged = Msg.ChangeAcceleration >> dispatch
           Display =
             AngularAcceleration.inTurnsPerSecondSquared
             >> Float.roundFloatTo 2
-          Conversion = AngularAcceleration.turnsPerSecondSquared
-          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+          Conversion = AngularAcceleration.turnsPerSecondSquared }
 
 let private iconButton
     (name: string)
     icon
-    (onClick: Flower -> Command)
+    (onClick: unit -> Command)
     (flowerOption: Flower option)
-    (serialPortOption: SerialPort option)
-    dispatch
+    (dispatch: Msg -> unit)
     =
     match flowerOption with
-    | Some flower ->
+    | Some _ ->
         Form.iconTextButton
             (icon Icon.medium Theme.palette.info)
             name
             Theme.palette.foreground
-            (fun _ -> onClick flower |> SendCommand |> dispatch)
-            (SubPatchOptions.OnChangeOf
-                {| Id = flower.Id
-                   Command = onClick flower |})
+            (fun _ ->
+                onClick ()
+                |> External.SendCommand
+                |> Msg.SendExternal
+                |> dispatch)
+            SubPatchOptions.Never
+
     | None ->
         Form.iconTextButton
             (icon Icon.medium Theme.palette.info)
@@ -230,37 +261,31 @@ let private iconButton
             Theme.palette.foreground
             (fun _ -> ())
             SubPatchOptions.Never
+
         |> View.withAttr (Button.isEnabled false)
 
-let view
-    (flowerOption: Flower option)
-    (serialPorts: string list)
-    (serialPort: SerialPort option)
-    (dispatch: Msg -> unit)
-    =
+let view (state: State) (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
 
-          serialPortView serialPorts serialPort dispatch
-          iconButton "Ping" Icon.ping (fun _ -> Ping) flowerOption serialPort dispatch
-          iconButton "Home" Icon.home (fun _ -> Home) flowerOption serialPort dispatch
-          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption serialPort dispatch
-          iconButton "Close" Icon.close (fun _ -> Close) flowerOption serialPort dispatch
-          iconButton "Open To" Icon.openTo (Flower.targetPercent >> OpenTo) flowerOption serialPort dispatch
+          serialPortView state.SerialPorts serialPort dispatch
+          iconButton "Ping" Icon.ping (fun _ -> Ping) flowerOption dispatch
+          iconButton "Home" Icon.home (fun _ -> Home) flowerOption dispatch
+          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption dispatch
+          iconButton "Close" Icon.close (fun _ -> Close) flowerOption dispatch
+          iconButton "Open To" Icon.openTo (fun _ -> OpenTo state.TargetPercent) flowerOption dispatch
           openPercentageView flowerOption dispatch
 
-          iconButton "Set Max Speed" Icon.speed (Flower.maxSpeed >> MaxSpeed) flowerOption serialPort dispatch
-          speedView flowerOption dispatch
+          iconButton "Set Max Speed" Icon.speed (fun _ -> MaxSpeed state.MaxSpeed) flowerOption dispatch
+          speedView state.MaxSpeed dispatch
 
           iconButton
               "Set Acceleration"
               Icon.acceleration
-              (Flower.acceleration >> Acceleration)
+              (fun _ -> Acceleration state.Acceleration)
               flowerOption
-              serialPort
               dispatch
-
-          accelerationView flowerOption dispatch ]
+          accelerationView state.Acceleration dispatch ]
 
     StackPanel.create [
         StackPanel.children children

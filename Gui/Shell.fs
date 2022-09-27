@@ -30,10 +30,10 @@ type State =
       FlowerInteraction: FlowerInteraction
       Selected: Flower Id option
       SerialPort: SerialPort option
-      SerialPorts: string list
       Rerender: int
       Tab: Tab
       AppConfig: AppConfig
+      FlowerCommandsState: FlowerCommands.State
       // Tabs
       EaTab: EaTab.State }
 
@@ -112,20 +112,23 @@ let loadAppConfigFile: Cmd<Msg> =
 let init () : State * Cmd<Msg> =
     let fps = 30
 
+    let flowerState, flowerCmd =
+        FlowerCommands.init ()
+
     { CanvasSize = Size2D.create Quantity.zero Quantity.zero
       Flowers = Map.empty
       FlowerInteraction = NoInteraction
       Selected = None
       SerialPort = None
-      SerialPorts = []
       Rerender = 0
       Tab = Simulation
       AppConfig = AppConfig.init
+      FlowerCommandsState = flowerState
       EaTab = EaTab.init () },
 
     Cmd.batch [
         loadAppConfigFile
-        Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
+        Cmd.map FlowerCommandsMsg flowerCmd
         Sub.timer fps Tick
     ]
 
@@ -373,12 +376,6 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
 
     // ---- Serial Port Actions ----
 
-    | RefreshSerialPorts asyncOperation ->
-        match asyncOperation with
-        | Start _ -> state, Cmd.OfTask.perform SerialPort.getPorts () (Finished >> Action.RefreshSerialPorts >> Action)
-        | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none
-
-
     | Action.ConnectAndOpenPort asyncOperation ->
         match asyncOperation with
         | Start portName -> connectToSerialPort portName state
@@ -497,30 +494,19 @@ let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) (w
 // TODO: If this is going to be synchronous, this may want to be used
 // | FlowerProperties.Msg.SendCommand command -> state, sendCommandToSelected command state
 
-let private updateFlowerCommands (msg: FlowerCommands.Msg) (state: State) : State * Cmd<Msg> =
+let private receiveFlowerCommandsExternal (msg: FlowerCommands.External) (state: State) : State * Cmd<Msg> =
     match msg with
-    | FlowerCommands.ChangePort newPortName -> connectToSerialPort newPortName state
+    | FlowerCommands.External.ChangePort newPortName -> connectToSerialPort newPortName state
 
-    | FlowerCommands.OpenSerialPort serialPort ->
+    | FlowerCommands.External.OpenSerialPort serialPort ->
         state, Cmd.OfTask.perform SerialPort.openPort serialPort (Finished >> Action.OpenSerialPort >> Action)
 
-    | FlowerCommands.CloseSerialPort serialPort ->
+    | FlowerCommands.External.CloseSerialPort serialPort ->
         state, Cmd.OfTask.perform SerialPort.closePort serialPort (Finished >> Action.CloseSerialPort >> Action)
 
-    | FlowerCommands.OpenSerialPortsDropdown -> state, Cmd.ofMsg (Start() |> Action.RefreshSerialPorts |> Action)
+    | FlowerCommands.External.SendCommand command -> state, sendCommandToSelected command state
 
-    | FlowerCommands.Msg.ChangePercentage (id, percentage) ->
-        updateFlower id "Target Percentage" Flower.setTargetPercent percentage state, Cmd.none
-
-    | FlowerCommands.Msg.ChangeSpeed (id, speed) -> updateFlower id "Speed" Flower.setSpeed speed state, Cmd.none
-
-    | FlowerCommands.Msg.ChangeMaxSpeed (id, speed) ->
-        updateFlower id "Max Speed" Flower.setMaxSpeed speed state, Cmd.none
-
-    | FlowerCommands.Msg.ChangeAcceleration (id, acceleration) ->
-        updateFlower id "Acceleration" Flower.setAcceleration acceleration state, Cmd.none
-
-    | FlowerCommands.Msg.SendCommand command -> state, sendCommandToSelected command state
+    | FlowerCommands.External.NoMsg -> state, Cmd.none
 
 let private updateSimulationEvent (msg: SimulationEvent) (state: State) : State * Cmd<Msg> =
     match msg with
@@ -711,7 +697,20 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | IconDockMsg iconDockMsg -> updateIconDock iconDockMsg state
     | SimulationEvent event -> updateSimulationEvent event state
     | FlowerPropertiesMsg flowerPropertiesMsg -> updateFlowerProperties flowerPropertiesMsg state window
-    | FlowerCommandsMsg flowerCommandsMsg -> updateFlowerCommands flowerCommandsMsg state
+    | FlowerCommandsMsg flowerCommandsMsg ->
+        let flowerCommandsState, flowerCommandsCmd, flowerCommandsExternal =
+            FlowerCommands.update flowerCommandsMsg state.FlowerCommandsState
+
+        let newState, shellCmd =
+            { state with FlowerCommandsState = flowerCommandsState }
+            |> receiveFlowerCommandsExternal flowerCommandsExternal
+
+        newState,
+        Cmd.batch [
+            shellCmd
+            Cmd.map FlowerCommandsMsg flowerCommandsCmd
+        ]
+
 
 
 // ---- View Functions ----
@@ -783,8 +782,8 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
             DockPanel.child
                 Dock.Right
                 (FlowerCommands.view
+                    state.FlowerCommandsState
                     selectedFlowerOption
-                    state.SerialPorts
                     state.SerialPort
                     (FlowerCommandsMsg >> dispatch))
 
