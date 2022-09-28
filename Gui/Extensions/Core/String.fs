@@ -1,5 +1,7 @@
 module Extensions.String
 
+open System
+
 
 /// Try parsing a string into an integer. Will return None on failure
 let parseInt (s: string) =
@@ -10,10 +12,14 @@ let parseInt (s: string) =
 
 /// Try parsing a string into an integer. Will return None on failure
 let parseByte (s: string) =
-    try
-        Some(byte s)
-    with
-    | _ -> None
+    if String.IsNullOrEmpty s then
+        None
+        
+    else
+        try
+            Some(byte s)
+        with
+        | _ -> None
 
 /// Try parsing a string into a floating point number. Will return None on failure
 let parseFloat (s: string) =
