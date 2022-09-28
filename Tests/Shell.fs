@@ -19,7 +19,7 @@ type BasicActionTest =
       Expected: State }
 
 let ``Basic actions test cases`` =
-    let flower = Flower.basic "Flower"
+    let flower = Flower.empty
 
     let initialState =
         init () |> Tuple2.first |> addFlower flower

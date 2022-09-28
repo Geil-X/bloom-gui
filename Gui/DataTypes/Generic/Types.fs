@@ -15,7 +15,6 @@ type Speed = int
 
 type Acceleration = int
 
-type I2cAddress = byte
 
 [<RequireQualifiedAccess>]
 type Direction =

@@ -42,17 +42,11 @@ module Flower =
 
     // ---- Builders -----
 
-    /// The first 16 Addresses are reserved so the starting address must be the
-    /// 17th address.
-    let mutable private initialI2cAddress = 16uy
-
-    let basic name : Flower =
-        initialI2cAddress <- initialI2cAddress + 1uy
-
+    let empty: Flower =
         { Id = Id.create ()
-          Name = name
+          Name = ""
           Position = Point2D.origin
-          I2cAddress = initialI2cAddress
+          I2cAddress = 0uy
           OpenPercent = Percent.zero
           TargetPercent = Percent.zero
           Speed = AngularSpeed.turnsPerSecond 0.
@@ -60,6 +54,12 @@ module Flower =
           Acceleration = AngularAcceleration.turnsPerSecondSquared 1000
           Radius = Length.cssPixels 20.
           ConnectionStatus = Disconnected }
+
+
+    let basic name i2c : Flower =
+        { empty with
+            Name = name
+            I2cAddress = i2c }
 
     // ---- Accessors ----
 
@@ -92,6 +92,9 @@ module Flower =
         { flower with
             Speed = Quantity.min flower.Speed maxSpeed
             MaxSpeed = maxSpeed }
+        
+    let setAcceleration acceleration flower : Flower =
+        { flower with Acceleration = acceleration }
 
     /// <summary>
     /// Set the current speed of the flower. This quantity is limited by the
@@ -107,10 +110,6 @@ module Flower =
     /// Mark the current flower as disconnected
     let disconnect flower : Flower =
         { flower with ConnectionStatus = Disconnected }
-
-    let setAcceleration acceleration flower : Flower =
-        { flower with Acceleration = acceleration }
-
 
     // The distance change used for speed calculations
     let private angleToGo (flower: Flower) : Angle =

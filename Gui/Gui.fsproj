@@ -65,11 +65,13 @@
         <Compile Include="DataTypes\Generic\SerialPort.fs" />
         <Compile Include="DataTypes\Generic\OperatingSystem.fs" />
         <Compile Include="DataTypes\Generic\Types.fs" />
+        <Compile Include="DataTypes\Generic\I2cAddress.fs" />
         <Compile Include="DataTypes\Bloom\Command.fs" />
         <Compile Include="DataTypes\Bloom\Flower.fs" />
         <Compile Include="DataTypes\Bloom\AppConfig.fs" />
         <Compile Include="DataTypes\Bloom\Response.fs" />
         <Compile Include="DataTypes\Bloom\FlowerFile.fs" />
+        <Compile Include="DataTypes\Bloom\FlowerManager.fs" />
         <Compile Include="DataTypes\Log.fs" />
         <Compile Include="DataTypes\Theme.fs" />
         <Compile Include="DataTypes\Action.fs" />

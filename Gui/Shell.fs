@@ -34,6 +34,7 @@ type State =
       Tab: Tab
       AppConfig: AppConfig
       FlowerCommandsState: FlowerCommands.State
+      NextI2c: I2cAddress
       // Tabs
       EaTab: EaTab.State }
 
@@ -124,6 +125,7 @@ let init () : State * Cmd<Msg> =
       Tab = Simulation
       AppConfig = AppConfig.init
       FlowerCommandsState = flowerState
+      NextI2c = I2cAddress.first
       EaTab = EaTab.init () },
 
     Cmd.batch [
@@ -251,15 +253,17 @@ let addFlowers (flowers: Flower seq) (state: State) : State =
 
 let addNewFlower (state: State) : State * Cmd<Msg> =
     let flower =
-        Flower.basic $"Flower {Map.count state.Flowers + 1}"
+        Flower.basic $"Flower {Map.count state.Flowers + 1}" state.NextI2c
         |> Flower.setPosition (Point2D.pixels 100. 100.)
+        
+    let nextState = { state with NextI2c = I2cAddress.next state.NextI2c }
 
     let requestCmd =
         match state.SerialPort with
         | Some serialPort -> pingFlower serialPort flower
         | None -> Cmd.none
 
-    addFlower flower state, requestCmd
+    addFlower flower nextState, requestCmd
 
 let private updateFlower
     (id: Flower Id)
