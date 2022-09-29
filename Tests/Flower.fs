@@ -11,7 +11,7 @@ open Tests.Gen
 let Setup () = ArbGui.Register()
 
 let testSetterAndGetter setter getter property =
-    Flower.empty
+    Flower.empty ()
     |> setter property
     |> getter
     |> Test.equal property
@@ -40,7 +40,7 @@ let ``Target Percent Property`` (targetPercent: Percent) =
 [<Ignore("Needs unit tests from Math.Units and Math.Geometry")>]
 let ``Speed Property`` (speed: AngularSpeed) =
     let flower =
-        Flower.empty |> Flower.setSpeed speed
+        Flower.empty () |> Flower.setSpeed speed
 
     flower.Speed >= Quantity.zero
     && flower.Speed <= flower.MaxSpeed

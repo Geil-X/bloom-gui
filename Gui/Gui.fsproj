@@ -9,21 +9,22 @@
 
     <!-- Packages -->
     <ItemGroup>
-        <PackageReference Include="Avalonia.Desktop" Version="0.10.14"/>
-        <PackageReference Include="DotNet.Bundle" Version="0.9.13"/>
-        <PackageReference Include="Elmish" Version="3.1.0"/>
-        <PackageReference Include="FsPickler.Json" Version="5.3.2"/>
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2"/>
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2"/>
-        <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.1"/>
-        <PackageReference Include="Math.Geometry" Version="0.1.130"/>
-        <PackageReference Include="System.IO.Ports" Version="6.0.0"/>
-        <PackageReference Include="Thoth.Json.Net" Version="8.0.0"/>
+        <PackageReference Include="Avalonia.Desktop" Version="0.10.14" />
+        <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
+        <PackageReference Include="Elmish" Version="3.1.0" />
+        <PackageReference Include="FsPickler.Json" Version="5.3.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI" Version="0.5.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI.DSL" Version="0.5.2" />
+        <PackageReference Include="JaggerJo.Avalonia.FuncUI.Elmish" Version="0.5.1" />
+        <PackageReference Include="Math.Geometry" Version="0.1.130" />
+        <PackageReference Include="System.IO.Ports" Version="6.0.0" />
+        <PackageReference Include="Thoth.Json.Net" Version="8.0.0" />
+        <PackageReference Update="FSharp.Core" Version="6.0.6" />
     </ItemGroup>
 
     <!-- Non-Source Code Files -->
     <ItemGroup>
-        <AvaloniaResource Include="**\*.xaml"/>
+        <AvaloniaResource Include="**\*.xaml" />
         <Content Include="Info.plist">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -34,71 +35,71 @@
 
     <!-- F# Files -->
     <ItemGroup>
-        <Compile Include="Extensions\Numeric.fs"/>
-        <Compile Include="Extensions\Path.fs"/>
-        <Compile Include="Extensions\Core\DiscriminatedUnion.fs"/>
-        <Compile Include="Extensions\Core\Map.fs"/>
-        <Compile Include="Extensions\Core\List.fs"/>
-        <Compile Include="Extensions\Core\String.fs"/>
-        <Compile Include="Extensions\Core\Task.fs"/>
-        <Compile Include="Extensions\Core\Option.fs"/>
-        <Compile Include="Extensions\Core\Tuple.fs"/>
-        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Arc.fs"/>
-        <Compile Include="Extensions\Avalonia\FuncUI\DSL\View.fs"/>
-        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Circle.fs"/>
-        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Rectangle.fs"/>
-        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Border.fs"/>
-        <Compile Include="Extensions\Avalonia\Input\Event.fs"/>
-        <Compile Include="Extensions\Avalonia\Input\InputTypes.fs"/>
-        <Compile Include="Extensions\Avalonia\Media\Imaging\Bitmap.fs"/>
-        <Compile Include="Extensions\Avalonia\Media\Color.fs"/>
-        <Compile Include="Extensions\Avalonia\Controls\Image.fs"/>
-        <Compile Include="Extensions\Avalonia\Controls\Dialogs.fs"/>
-        <Compile Include="Extensions\Avalonia\Media.fs"/>
-        <Compile Include="Extensions\Elmish\Deferred.fs"/>
-        <Compile Include="Extensions\Elmish\AsyncOperationStatus.fs"/>
-        <Compile Include="Extensions\Elmish\Cmd.fs"/>
-        <Compile Include="Extensions\Elmish\Sub.fs"/>
-        <Compile Include="Extensions\Math\Units.fs"/>
-        <Compile Include="DataTypes\Generic\File.fs"/>
-        <Compile Include="DataTypes\Generic\Id.fs"/>
-        <Compile Include="DataTypes\Generic\SerialPort.fs"/>
-        <Compile Include="DataTypes\Generic\OperatingSystem.fs"/>
-        <Compile Include="DataTypes\Generic\Types.fs"/>
-        <Compile Include="DataTypes\Generic\I2cAddress.fs"/>
-        <Compile Include="DataTypes\Generic\Log.fs"/>
-        <Compile Include="DataTypes\Bloom\Command.fs"/>
-        <Compile Include="DataTypes\Bloom\Flower.fs"/>
-        <Compile Include="DataTypes\Bloom\AppConfig.fs"/>
-        <Compile Include="DataTypes\Bloom\Response.fs"/>
-        <Compile Include="DataTypes\Bloom\FlowerFile.fs"/>
-        <Compile Include="DataTypes\Bloom\FlowerManager.fs"/>
-        <Compile Include="DataTypes\Theme.fs"/>
-        <Compile Include="DataTypes\Action.fs"/>
-        <Compile Include="DataTypes\EvolutionaryAlgorithm.fs"/>
-        <Compile Include="Views\Components\DockPanel.fs"/>
-        <Compile Include="Views\Components\Form.fs"/>
-        <Compile Include="Views\Components\Icon.fs"/>
-        <Compile Include="Views\Components\StackPanel.fs"/>
-        <Compile Include="Views\Components\RadialSlider.fs"/>
-        <Compile Include="Views\Components\Text.fs"/>
-        <Compile Include="Views\Menu\NativeMenu.fs"/>
-        <Compile Include="Views\Menu\ApplicationMenu.fs"/>
-        <Compile Include="Views\Menu\Menu.fs"/>
-        <Compile Include="Views\Panels\FlowerProperties.fs"/>
-        <Compile Include="Views\Panels\FlowerCommands.fs"/>
-        <Compile Include="Views\Panels\FlowerPanel.fs"/>
-        <Compile Include="Views\Panels\IconDock.fs"/>
-        <Compile Include="Views\Flower.fs"/>
-        <Compile Include="Views\FlowerManager.fs"/>
-        <Compile Include="Views\EaTab.fs"/>
-        <Compile Include="Shell.fs"/>
-        <Compile Include="Program.fs"/>
+        <Compile Include="Extensions\Numeric.fs" />
+        <Compile Include="Extensions\Path.fs" />
+        <Compile Include="Extensions\Core\DiscriminatedUnion.fs" />
+        <Compile Include="Extensions\Core\Map.fs" />
+        <Compile Include="Extensions\Core\List.fs" />
+        <Compile Include="Extensions\Core\String.fs" />
+        <Compile Include="Extensions\Core\Task.fs" />
+        <Compile Include="Extensions\Core\Option.fs" />
+        <Compile Include="Extensions\Core\Tuple.fs" />
+        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Arc.fs" />
+        <Compile Include="Extensions\Avalonia\FuncUI\DSL\View.fs" />
+        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Circle.fs" />
+        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Rectangle.fs" />
+        <Compile Include="Extensions\Avalonia\FuncUI\DSL\Border.fs" />
+        <Compile Include="Extensions\Avalonia\Input\Event.fs" />
+        <Compile Include="Extensions\Avalonia\Input\InputTypes.fs" />
+        <Compile Include="Extensions\Avalonia\Media\Imaging\Bitmap.fs" />
+        <Compile Include="Extensions\Avalonia\Media\Color.fs" />
+        <Compile Include="Extensions\Avalonia\Controls\Image.fs" />
+        <Compile Include="Extensions\Avalonia\Controls\Dialogs.fs" />
+        <Compile Include="Extensions\Avalonia\Media.fs" />
+        <Compile Include="Extensions\Elmish\Deferred.fs" />
+        <Compile Include="Extensions\Elmish\AsyncOperationStatus.fs" />
+        <Compile Include="Extensions\Elmish\Cmd.fs" />
+        <Compile Include="Extensions\Elmish\Sub.fs" />
+        <Compile Include="Extensions\Math\Units.fs" />
+        <Compile Include="DataTypes\Generic\File.fs" />
+        <Compile Include="DataTypes\Generic\Id.fs" />
+        <Compile Include="DataTypes\Generic\SerialPort.fs" />
+        <Compile Include="DataTypes\Generic\OperatingSystem.fs" />
+        <Compile Include="DataTypes\Generic\Types.fs" />
+        <Compile Include="DataTypes\Generic\I2cAddress.fs" />
+        <Compile Include="DataTypes\Generic\Log.fs" />
+        <Compile Include="DataTypes\Bloom\Command.fs" />
+        <Compile Include="DataTypes\Bloom\Flower.fs" />
+        <Compile Include="DataTypes\Bloom\AppConfig.fs" />
+        <Compile Include="DataTypes\Bloom\Response.fs" />
+        <Compile Include="DataTypes\Bloom\FlowerFile.fs" />
+        <Compile Include="DataTypes\Bloom\FlowerManager.fs" />
+        <Compile Include="DataTypes\Theme.fs" />
+        <Compile Include="DataTypes\Action.fs" />
+        <Compile Include="DataTypes\EvolutionaryAlgorithm.fs" />
+        <Compile Include="Views\Components\DockPanel.fs" />
+        <Compile Include="Views\Components\Form.fs" />
+        <Compile Include="Views\Components\Icon.fs" />
+        <Compile Include="Views\Components\StackPanel.fs" />
+        <Compile Include="Views\Components\RadialSlider.fs" />
+        <Compile Include="Views\Components\Text.fs" />
+        <Compile Include="Views\Menu\NativeMenu.fs" />
+        <Compile Include="Views\Menu\ApplicationMenu.fs" />
+        <Compile Include="Views\Menu\Menu.fs" />
+        <Compile Include="Views\Panels\FlowerProperties.fs" />
+        <Compile Include="Views\Panels\FlowerCommands.fs" />
+        <Compile Include="Views\Panels\FlowerPanel.fs" />
+        <Compile Include="Views\Panels\IconDock.fs" />
+        <Compile Include="Views\Flower.fs" />
+        <Compile Include="Views\FlowerManager.fs" />
+        <Compile Include="Views\EaTab.fs" />
+        <Compile Include="Shell.fs" />
+        <Compile Include="Program.fs" />
     </ItemGroup>
 
 
     <ItemGroup>
-        <EmbeddedResource Remove=".template.config\**"/>
+        <EmbeddedResource Remove=".template.config\**" />
     </ItemGroup>
 
 </Project>

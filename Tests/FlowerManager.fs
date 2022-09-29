@@ -18,7 +18,7 @@ type BasicActionTest =
       Expected: State }
 
 let ``Basic actions test cases`` =
-    let flower = Flower.empty
+    let flower = Flower.empty ()
 
     let initialState =
         init () |> addFlower flower
