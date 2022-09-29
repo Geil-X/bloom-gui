@@ -25,6 +25,9 @@ type Msg =
 
 // ---- Helper Functions ----
 
+let rounded l =
+    Float.roundFloatTo 2 (Length.inCssPixels l)
+
 let disabledTextBox =
     TextBox.create [
         TextBox.text ""
@@ -101,8 +104,6 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
 
 
 let private positionView (flowerOption: Flower option) =
-    let rounded l =
-        Float.roundFloatTo 2 (Length.inCssPixels l)
 
     let positionToString (position: Point2D<Meters, ScreenSpace>) =
         $"({rounded position.X}, {rounded position.Y})"
@@ -192,6 +193,18 @@ let private openPercentageView (flowerOption: Flower option) =
           Conversion = Percent.percent
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
+let private targetPercentageView (flowerOption: Flower option) =
+    sliderView
+        { Name = "Target Percentage"
+          Value =
+            Option.map (fun flower -> flower.OpenPercent) flowerOption
+            |> Option.defaultValue Quantity.zero
+          Min = Percent.decimal Percent.minimum
+          Max = Percent.decimal Percent.maxDecimal
+          Display = Percent.inPercentage >> Float.roundFloatTo 2
+          Conversion = Percent.percent
+          FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+
 
 let private speedView (flowerOption: Flower option) =
     let maxSpeed =
@@ -210,6 +223,39 @@ let private speedView (flowerOption: Flower option) =
             >> Float.roundFloatTo 2
           Conversion = AngularSpeed.turnsPerSecond
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
+
+let private maxSpeedView (flowerOption: Flower option) =
+    let maxSpeed: float =
+        flowerOption
+        |> Option.map Flower.maxSpeed
+        |> Option.defaultValue AngularSpeed.zero
+        |> AngularSpeed.inMicrostepsPerSecond
+        |> Float.roundFloatTo 2
+
+    Form.formElement
+        {| Name = "Max Speed"
+           Orientation = Orientation.Vertical
+           Element =
+            TextBlock.create [
+                TextBlock.text $"{maxSpeed} u-Steps/s"
+            ] |}
+
+let private accelerationView (flowerOption: Flower option) =
+    let acceleration: float =
+        flowerOption
+        |> Option.map Flower.acceleration
+        |> Option.defaultValue AngularAcceleration.zero
+        |> AngularAcceleration.inMicrostepsPerSecondSquared
+        |> Float.roundFloatTo 2
+
+    Form.formElement
+        {| Name = "Acceleration"
+           Orientation = Orientation.Vertical
+           Element =
+            TextBlock.create [
+                TextBlock.text $"{acceleration} u-Steps/s²"
+            ] |}
+
 
 
 // ---- Multiple Flower Listing ------------------------------------------------
@@ -253,7 +299,10 @@ let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg ->
           positionView selectedFlower
           id selectedFlower
           openPercentageView selectedFlower
+          targetPercentageView selectedFlower
           speedView selectedFlower
+          maxSpeedView selectedFlower
+          accelerationView selectedFlower
           flowerListing flowers selectedFlower (Action >> dispatch) ]
 
     StackPanel.create [

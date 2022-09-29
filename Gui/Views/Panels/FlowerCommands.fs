@@ -29,11 +29,12 @@ type External =
 
 [<RequireQualifiedAccess>]
 type Msg =
+    | SendExternal of External
     | ChangeTargetPercent of Percent
     | ChangeMaxSpeed of AngularSpeed
     | ChangeAcceleration of AngularAcceleration
     | RefreshSerialPorts of AsyncOperationStatus<unit, SerialPortName list>
-    | SendExternal of External
+    | SendCommandOfId of Command.Id
 
 
 let init () : State * Cmd<'Msg> =
@@ -45,21 +46,36 @@ let init () : State * Cmd<'Msg> =
 
 /// ---- Update ----------------------------------------------------------------
 
+let getPorts: Cmd<Msg> =
+    Cmd.OfTask.perform SerialPort.getPorts () (Finished >> Msg.RefreshSerialPorts)
+
+let sendCommand commandId (state: State) : External =
+    match commandId with
+    | Command.Id.NoCommand -> Command.NoCommand
+    | Command.Id.Setup -> Command.Setup
+    | Command.Id.Home -> Command.Home
+    | Command.Id.Open -> Command.Open
+    | Command.Id.Close -> Command.Close
+    | Command.Id.OpenTo -> Command.OpenTo state.TargetPercent
+    | Command.Id.MaxSpeed -> Command.MaxSpeed state.MaxSpeed
+    | Command.Id.Acceleration -> Command.Acceleration state.Acceleration
+    | Command.Id.Ping -> Command.Ping
+    | _ -> Command.NoCommand
+
+    |> External.SendCommand
+
 let update (msg: Msg) (state: State) : State * Cmd<Msg> * External =
     match msg with
+    | Msg.SendExternal msg -> state, Cmd.none, msg
     | Msg.ChangeTargetPercent percentage -> { state with TargetPercent = percentage }, Cmd.none, External.NoMsg
-
-    | Msg.ChangeMaxSpeed speed -> { state with MaxSpeed = speed }, Cmd.none, External.NoMsg
-
+    | Msg.ChangeMaxSpeed maxSpeed -> { state with MaxSpeed = maxSpeed }, Cmd.none, External.NoMsg
     | Msg.ChangeAcceleration acceleration -> { state with Acceleration = acceleration }, Cmd.none, External.NoMsg
-
     | Msg.RefreshSerialPorts asyncOperation ->
         match asyncOperation with
-        | Start _ ->
-            state, Cmd.OfTask.perform SerialPort.getPorts () (Finished >> Msg.RefreshSerialPorts), External.NoMsg
+        | Start _ -> state, getPorts, External.NoMsg
         | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none, External.NoMsg
+    | Msg.SendCommandOfId commandId -> state, Cmd.none, sendCommand commandId state
 
-    | Msg.SendExternal msg -> state, Cmd.none, msg
 
 /// ---- View ------------------------------------------------------------------
 
@@ -174,13 +190,19 @@ let private sliderView (properties: SliderProperties<'Units>) =
             Slider.minimum (properties.Display properties.Min)
             Slider.maximum (properties.Display properties.Max)
             Slider.value (properties.Display properties.Value)
+            Slider.onValueChanged (properties.Conversion >> properties.OnChanged)
             Slider.dock Dock.Left
         ]
 
+    let displayText =
+        properties.Value
+        |> properties.Display
+        |> Float.roundFloatTo 2
+        |> string
 
     let textInput =
         TextBlock.create [
-            TextBlock.text (properties.Value |> properties.Display |> string)
+            TextBlock.text displayText
             TextBlock.dock Dock.Right
             TextBlock.margin (Theme.spacing.small, 0.)
         ]
@@ -197,29 +219,24 @@ let private sliderView (properties: SliderProperties<'Units>) =
             ] |}
 
 
-let private openPercentageView (flowerOption: Flower option) (dispatch: Msg -> unit) =
+let private targetPercentageView (targetPercentage: Percent) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Target Percentage"
-          Value =
-            flowerOption
-            |> Option.map (fun flower -> flower.TargetPercent)
-            |> Option.defaultValue Quantity.zero
-          Min = Percent.decimal Percent.minimum
-          Max = Percent.decimal Percent.maxDecimal
+          Value = targetPercentage
+          Min = Percent.zero
+          Max = Percent.oneHundred
           OnChanged = (fun newPercent -> Msg.ChangeTargetPercent(newPercent) |> dispatch)
-          Display = Percent.inPercentage >> Float.roundFloatTo 2
+          Display = Percent.inPercentage
           Conversion = Percent.percent }
 
-let private speedView (speed: AngularSpeed) (dispatch: Msg -> unit) =
+let private maxSpeedView (speed: AngularSpeed) (dispatch: Msg -> unit) =
     sliderView
         { Name = "Max Speed"
           Value = speed
           Min = presets.minSpeed
           Max = presets.maxSpeed
           OnChanged = Msg.ChangeMaxSpeed >> dispatch
-          Display =
-            AngularSpeed.inTurnsPerSecond
-            >> Float.roundFloatTo 2
+          Display = AngularSpeed.inTurnsPerSecond
           Conversion = AngularSpeed.turnsPerSecond }
 
 let private accelerationView (accel: AngularAcceleration) (dispatch: Msg -> unit) =
@@ -229,15 +246,13 @@ let private accelerationView (accel: AngularAcceleration) (dispatch: Msg -> unit
           Min = presets.minAcceleration
           Max = presets.maxAcceleration
           OnChanged = Msg.ChangeAcceleration >> dispatch
-          Display =
-            AngularAcceleration.inTurnsPerSecondSquared
-            >> Float.roundFloatTo 2
+          Display = AngularAcceleration.inTurnsPerSecondSquared
           Conversion = AngularAcceleration.turnsPerSecondSquared }
 
 let private iconButton
     (name: string)
     icon
-    (onClick: unit -> Command)
+    (commandId: Command.Id)
     (flowerOption: Flower option)
     (dispatch: Msg -> unit)
     =
@@ -247,11 +262,7 @@ let private iconButton
             (icon Icon.medium Theme.palette.info)
             name
             Theme.palette.foreground
-            (fun _ ->
-                onClick ()
-                |> External.SendCommand
-                |> Msg.SendExternal
-                |> dispatch)
+            (fun _ -> Msg.SendCommandOfId commandId |> dispatch)
             SubPatchOptions.Never
 
     | None ->
@@ -269,22 +280,19 @@ let view (state: State) (flowerOption: Flower option) (serialPort: SerialPort op
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
 
           serialPortView state.SerialPorts serialPort dispatch
-          iconButton "Ping" Icon.ping (fun _ -> Ping) flowerOption dispatch
-          iconButton "Home" Icon.home (fun _ -> Home) flowerOption dispatch
-          iconButton "Open" Icon.openIcon (fun _ -> Open) flowerOption dispatch
-          iconButton "Close" Icon.close (fun _ -> Close) flowerOption dispatch
-          iconButton "Open To" Icon.openTo (fun _ -> OpenTo state.TargetPercent) flowerOption dispatch
-          openPercentageView flowerOption dispatch
 
-          iconButton "Set Max Speed" Icon.speed (fun _ -> MaxSpeed state.MaxSpeed) flowerOption dispatch
-          speedView state.MaxSpeed dispatch
+          iconButton "Ping" Icon.ping Command.Id.Ping flowerOption dispatch
+          iconButton "Home" Icon.home Command.Id.Home flowerOption dispatch
+          iconButton "Open" Icon.openIcon Command.Id.Open flowerOption dispatch
+          iconButton "Close" Icon.close Command.Id.Close flowerOption dispatch
 
-          iconButton
-              "Set Acceleration"
-              Icon.acceleration
-              (fun _ -> Acceleration state.Acceleration)
-              flowerOption
-              dispatch
+          iconButton "Open To" Icon.openTo Command.Id.OpenTo flowerOption dispatch
+          targetPercentageView state.TargetPercent dispatch
+
+          iconButton "Set Max Speed" Icon.speed Command.Id.MaxSpeed flowerOption dispatch
+          maxSpeedView state.MaxSpeed dispatch
+
+          iconButton "Set Acceleration" Icon.acceleration Command.Id.Acceleration flowerOption dispatch
           accelerationView state.Acceleration dispatch ]
 
     StackPanel.create [

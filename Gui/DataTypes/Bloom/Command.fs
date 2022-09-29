@@ -25,7 +25,7 @@ module Command =
         | Open = 3uy
         | Close = 4uy
         | OpenTo = 5uy
-        | Speed = 6uy
+        | MaxSpeed = 6uy
         | Acceleration = 7uy
         | Ping = 255uy
 
@@ -38,7 +38,7 @@ module Command =
             | Open -> [| byte Id.Open; 0uy; 0uy |]
             | Close -> [| byte Id.Close; 0uy; 0uy |]
             | OpenTo percentage -> Array.append [| byte Id.OpenTo |] (Percent.toBytes16 percentage)
-            | MaxSpeed speed -> Array.append [| byte Id.Speed |] (AngularSpeed.inUint16Bytes speed)
+            | MaxSpeed speed -> Array.append [| byte Id.MaxSpeed |] (AngularSpeed.inUint16Bytes speed)
             | Acceleration acceleration ->
                 Array.append [| byte Id.Acceleration |] (AngularAcceleration.inUint16Bytes acceleration)
             | Ping -> [| byte Id.Ping; 0uy; 0uy |]

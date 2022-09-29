@@ -66,8 +66,8 @@ type Msg =
     | FlowerManagerMsg of FlowerManager.Msg
     | FlowerPropertiesMsg of FlowerProperties.Msg
     | FlowerCommandsMsg of FlowerCommands.Msg
-    
-    
+
+
 let private rerender (state: State) : State =
     { state with Rerender = state.Rerender + 1 }
 
@@ -83,7 +83,7 @@ let keyUpHandler (window: Window) _ =
             | _ -> ())
 
     Cmd.ofSub sub
-    
+
 
 // ---- Serial Port Updates --------------------------------------------------------------------------------------------
 
@@ -142,36 +142,39 @@ let private mapFlowerManager (f: FlowerManager.State -> FlowerManager.State) (st
     { state with FlowerManager = f state.FlowerManager }
 
 
-let private sendCommandTo (serialPort: SerialPort) (i2cAddress: I2cAddress) (command: Command) =
-    Cmd.OfTask.attempt (Command.sendCommand serialPort i2cAddress) command (Finished >> SendCommand >> Action)
-
-let private sendCommandToSelected (command: Command) (state: State) : Cmd<Msg> =
+let private sendCommandToSelected (command: Command) (state: State) : State * Cmd<Msg> =
     let maybeSelected =
         FlowerManager.getSelected state.FlowerManager
+
+    let newStateFrom (flower: Flower) : State =
+        mapFlowerManager (FlowerManager.updateFlower flower.Id "Apply Command" Flower.applyCommand command) state
 
     match state.SerialPort, maybeSelected with
     | Some serialPort, Some flower ->
         Log.debug $"Sending command through serial port '{command}'"
 
-        Cmd.OfTask.attempt
-            (Command.sendCommand serialPort flower.I2cAddress)
-            command
-            (Finished >> SendCommand >> Action)
+        let communicationCmd =
+            Cmd.OfTask.attempt
+                (Command.sendCommand serialPort flower.I2cAddress)
+                command
+                (Finished >> SendCommand >> Action)
 
-    | None, Some _ ->
+        newStateFrom flower, communicationCmd
+
+    | None, Some flower ->
         Log.warning "Serial port is not selected, cannot send command."
-        Cmd.none
+        newStateFrom flower, Cmd.none
 
     | Some _, None ->
         Log.warning "Flower is not selected, cannot send command."
-        Cmd.none
+        state, Cmd.none
 
     | None, None ->
         Log.error "An unknown error occured when trying to send command."
-        Cmd.none
+        state, Cmd.none
 
 let private pingFlower (serialPort: SerialPort) (flower: Flower) : Cmd<Msg> =
-    sendCommandTo serialPort flower.I2cAddress Ping
+    Cmd.OfTask.attempt (Command.sendCommand serialPort flower.I2cAddress) Ping (Finished >> SendCommand >> Action)
 
 let private pingAllFlowers (serialPort: SerialPort) (state: State) : Cmd<Msg> =
     let flowers =
@@ -215,6 +218,10 @@ let updateMaxSpeed id speed state =
 
 let updateAcceleration id acceleration state =
     mapFlowerManager (FlowerManager.updateFlower id "Acceleration" Flower.setAcceleration acceleration) state
+
+
+let tick elapsed state =
+    mapFlowerManager (FlowerManager.tick elapsed) state
 
 
 // ---- File Writing ---------------------------------------------------------------------------------------------------
@@ -388,14 +395,14 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
 
     | Action.SendCommand asyncOperation ->
         match asyncOperation with
-        | Start command -> state, sendCommandToSelected command state
+        | Start command -> sendCommandToSelected command state
         | Finished exn ->
             Log.error $"Could not send command over the serial port{Environment.NewLine}{exn}"
             state, Cmd.none
 
     | Action.PingFlower asyncOperation ->
         match asyncOperation with
-        | Start _ -> state, sendCommandToSelected Ping state
+        | Start _ -> sendCommandToSelected Ping state
 
         | Finished exn ->
             Log.error $"Could not receive request from flower{Environment.NewLine}{exn}"
@@ -434,15 +441,9 @@ let private updateFlowerProperties (msg: FlowerProperties.Msg) (state: State) (w
 let private receiveFlowerCommandsExternal (msg: FlowerCommands.External) (state: State) : State * Cmd<Msg> =
     match msg with
     | FlowerCommands.External.ChangePort newPortName -> connectToSerialPort newPortName state
-
-    | FlowerCommands.External.OpenSerialPort serialPort ->
-        state, Cmd.OfTask.perform SerialPort.openPort serialPort (Finished >> Action.OpenSerialPort >> Action)
-
-    | FlowerCommands.External.CloseSerialPort serialPort ->
-        state, Cmd.OfTask.perform SerialPort.closePort serialPort (Finished >> Action.CloseSerialPort >> Action)
-
-    | FlowerCommands.External.SendCommand command -> state, sendCommandToSelected command state
-
+    | FlowerCommands.External.OpenSerialPort serialPort -> state, openSerialPort serialPort
+    | FlowerCommands.External.CloseSerialPort serialPort -> state, closeSerialPort serialPort
+    | FlowerCommands.External.SendCommand command -> sendCommandToSelected command state
     | FlowerCommands.External.NoMsg -> state, Cmd.none
 
 
@@ -452,8 +453,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     match msg with
     // Shell Messages
-    // TODO
-    | Tick _ -> state, Cmd.none
+    | Tick elapsed -> tick elapsed state, Cmd.none
 
     | Action action -> updateAction action state window
 
@@ -570,7 +570,6 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
                     maybeSelectedFlower
                     state.SerialPort
                     (FlowerCommandsMsg >> dispatch))
-
 
             FlowerManager.view state.FlowerManager (Msg.FlowerManagerMsg >> dispatch)
         ]

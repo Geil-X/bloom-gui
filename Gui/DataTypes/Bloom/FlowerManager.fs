@@ -162,20 +162,20 @@ let updateFlowerFromResponse (response: Response) (manager: State) : State =
 
     { manager with Flowers = updatedFlowerMap }
 
-// let updatedFlowerMap =
-//     Seq.fold
-//         (fun flowerMap (flower: Flower) -> Map.update flower.Id updateFromResponse flowerMap)
-//         state.Flowers
-//         flowersToUpdate
-
 
 let updateFlower (id: Flower Id) (property: string) (f: 'a -> Flower -> Flower) (value: 'a) (manager: State) : State =
     if Option.contains id manager.Selected then
         Log.verbose $"Updated flower '{Id.shortName id}' with new {property} '{value}'"
-
         { manager with Flowers = Map.update id (f value) manager.Flowers }
     else
+        Log.verbose $"Failed to update flower '{Id.shortName id}' with new {property} '{value}'"
         manager
+
+let tick (elapsed: Duration) (manager: State) : State =
+    updateFlowers (Flower.tick elapsed) manager
+
+
+// ---- Msg Update ----
 
 let updateMsg (msg: Msg) (state: State) : State =
     match msg with

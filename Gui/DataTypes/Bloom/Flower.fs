@@ -125,24 +125,27 @@ module Flower =
     /// <param name="dt">Elapsed time since last update.</param>
     /// <param name="flower">The flower to update</param>
     let tick (dt: Duration) (flower: Flower) : Flower =
-        let flowerOpeningChange: Percent =
-            dt
-            |> Quantity.at flower.Speed
-            |> Percent.fromAngle
-
-        let expectedPosition =
-            flower.OpenPercent + flowerOpeningChange
-
-        let reachedTarget =
-            Quantity.equalWithin flowerOpeningChange expectedPosition flower.TargetPercent
-
-        if reachedTarget then
-            flower
-            |> setSpeed AngularSpeed.zero
-            |> setOpenPercent flower.TargetPercent
-
-        else
-            flower
+        flower
+        |> setOpenPercent flower.TargetPercent
+        
+        // let flowerOpeningChange: Percent =
+        //     dt
+        //     |> Quantity.at flower.Speed
+        //     |> Percent.fromAngle
+        //
+        // let expectedPosition =
+        //     flower.OpenPercent + flowerOpeningChange
+        //
+        // let reachedTarget =
+        //     Quantity.equalWithin flowerOpeningChange expectedPosition flower.TargetPercent
+        //
+        // if reachedTarget then
+        //     flower
+        //     |> setSpeed AngularSpeed.zero
+        //     |> setOpenPercent flower.TargetPercent
+        //
+        // else
+        //     flower
 
     let applyCommand (command: Command) (flower: Flower) : Flower =
         match command with

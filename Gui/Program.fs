@@ -48,7 +48,7 @@ type App() =
 
         this.Name <- Theme.program
 
-        Log.LogLevel <- Log.Debug
+        Log.LogLevel <- Log.Verbose
 
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with

@@ -69,9 +69,9 @@
         <Compile Include="DataTypes\Generic\I2cAddress.fs" />
         <Compile Include="DataTypes\Generic\Log.fs" />
         <Compile Include="DataTypes\Bloom\Command.fs" />
-        <Compile Include="DataTypes\Bloom\Flower.fs" />
         <Compile Include="DataTypes\Bloom\AppConfig.fs" />
         <Compile Include="DataTypes\Bloom\Response.fs" />
+        <Compile Include="DataTypes\Bloom\Flower.fs" />
         <Compile Include="DataTypes\Bloom\FlowerFile.fs" />
         <Compile Include="DataTypes\Bloom\FlowerManager.fs" />
         <Compile Include="DataTypes\Theme.fs" />
@@ -87,7 +87,6 @@
         <Compile Include="Views\Menu\Menu.fs" />
         <Compile Include="Views\Panels\FlowerProperties.fs" />
         <Compile Include="Views\Panels\FlowerCommands.fs" />
-        <Compile Include="Views\Panels\FlowerPanel.fs" />
         <Compile Include="Views\Panels\IconDock.fs" />
         <Compile Include="Views\Flower.fs" />
         <Compile Include="Views\FlowerManager.fs" />
