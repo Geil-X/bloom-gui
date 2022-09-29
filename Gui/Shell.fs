@@ -124,7 +124,7 @@ let private closeSerialPort (serialPort: SerialPort) : Cmd<Msg> =
     Cmd.OfTask.perform SerialPort.closePort serialPort (Finished >> Action.CloseSerialPort >> Action)
 
 /// Connect to a serial port and open it up for communication.
-let private connectAndOpenSerialPort (newPortName: string) : Cmd<Msg> =
+let private connectAndOpenSerialPort (newPortName: SerialPortName) : Cmd<Msg> =
     Cmd.OfTask.perform SerialPort.connectAndOpenPort newPortName (Finished >> Action.OpenSerialPort >> Action)
 
 /// Open up a new serial port. If there is a serial port currently opened, it
@@ -134,7 +134,7 @@ let private connectAndOpenSerialPort (newPortName: string) : Cmd<Msg> =
 /// Note: This is generally the function that you want to use to connect to a
 /// new serial port. This function handles change in program as well as
 /// dispatching connection commands.
-let private connectToSerialPort (newPortName: string) (state: State) : State * Cmd<Msg> =
+let private connectToSerialPort (newPortName: SerialPortName) (state: State) : State * Cmd<Msg> =
     match state.SerialPort with
     | Some serialPort when
         newPortName = FlowerCommands.noPort

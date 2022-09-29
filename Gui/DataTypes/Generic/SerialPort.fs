@@ -1,6 +1,9 @@
 namespace Gui.DataTypes
 
+
 type Packet = byte array
+
+type SerialPortName = string
 
 module SerialPort =
     open Elmish
@@ -10,7 +13,7 @@ module SerialPort =
 
     open Extensions
 
-    let connectAndOpenPort (port: string) : Task<SerialPort> =
+    let connectAndOpenPort (port: SerialPortName) : Task<SerialPort> =
         task {
             let baud = 115200
 
@@ -27,7 +30,7 @@ module SerialPort =
             return serialPort
         }
 
-    let getPorts () : Task<string list> =
+    let getPorts () : Task<SerialPortName list> =
         task { return SerialPort.GetPortNames() |> List.ofArray }
 
     let openPort (serialPort: SerialPort) : Task<SerialPort> =

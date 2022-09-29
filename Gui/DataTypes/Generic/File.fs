@@ -65,13 +65,10 @@ let extraCoders =
     |> Extra.withCustom Quantity.encoder<Meters> Quantity.decoder<Meters>
     |> Extra.withCustom Quantity.encoder<Radians> Quantity.decoder<Radians>
     |> Extra.withCustom Quantity.encoder<Percentage> Quantity.decoder<Percentage>
-    // TODO: For some reason this doesn't seem to work with type aliases
     |> Extra.withCustom Quantity.encoder<Rate<Radians, Seconds>> Quantity.decoder<Rate<Radians, Seconds>>
     |> Extra.withCustom
         Quantity.encoder<Rate<Rate<Radians, Seconds>, Seconds>>
         Quantity.decoder<Rate<Rate<Radians, Seconds>, Seconds>>
-// |> Extra.withCustom Quantity.encoder<AngularSpeed> Quantity.decoder<AngularSpeed>
-// |> Extra.withCustom Quantity.encoder<AngularAcceleration> Quantity.decoder<AngularAcceleration>
 
 
 // ---- File Operations --------------------------------------------------------

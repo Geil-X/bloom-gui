@@ -31,10 +31,6 @@ type ConnectionStatus =
     | Disconnected
     | Connected
 
-// ---- Actions ----------------------------------------------------------------
-
-// TODO: type SerialPortName = string
-
 
 // ---- Menu Controls ----
 

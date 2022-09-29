@@ -23,7 +23,7 @@ type State =
 type External =
     | OpenSerialPort of SerialPort
     | CloseSerialPort of SerialPort
-    | ChangePort of string
+    | ChangePort of SerialPortName
     | SendCommand of Command
     | NoMsg
 
@@ -32,7 +32,7 @@ type Msg =
     | ChangeTargetPercent of Percent
     | ChangeMaxSpeed of AngularSpeed
     | ChangeAcceleration of AngularAcceleration
-    | RefreshSerialPorts of AsyncOperationStatus<unit, string list>
+    | RefreshSerialPorts of AsyncOperationStatus<unit, SerialPortName list>
     | SendExternal of External
 
 
