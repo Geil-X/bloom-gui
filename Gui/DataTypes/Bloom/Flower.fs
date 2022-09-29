@@ -42,7 +42,7 @@ module Flower =
 
     // ---- Builders -----
 
-    let empty: Flower =
+    let empty () : Flower =
         { Id = Id.create ()
           Name = ""
           Position = Point2D.origin
@@ -57,7 +57,7 @@ module Flower =
 
 
     let basic name i2c : Flower =
-        { empty with
+        { empty () with
             Name = name
             I2cAddress = i2c }
 
@@ -92,7 +92,7 @@ module Flower =
         { flower with
             Speed = Quantity.min flower.Speed maxSpeed
             MaxSpeed = maxSpeed }
-        
+
     let setAcceleration acceleration flower : Flower =
         { flower with Acceleration = acceleration }
 

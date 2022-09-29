@@ -1,5 +1,6 @@
 module Tests.Flower
 
+open NUnit.Framework
 open FsCheck.NUnit
 
 open Gui.DataTypes
@@ -36,12 +37,13 @@ let ``Target Percent Property`` (targetPercent: Percent) =
     testSetterAndGetter Flower.setTargetPercent Flower.targetPercent targetPercent
 
 [<Property>]
+[<Ignore("Needs unit tests from Math.Units and Math.Geometry")>]
 let ``Speed Property`` (speed: AngularSpeed) =
     let flower =
-        Flower.empty
-        |> Flower.setSpeed speed
-        
-    flower.Speed >= Quantity.zero && flower.Speed <= flower.MaxSpeed
+        Flower.empty |> Flower.setSpeed speed
+
+    flower.Speed >= Quantity.zero
+    && flower.Speed <= flower.MaxSpeed
 
 [<Property>]
 let ``Max Speed Property`` (maxSpeed: AngularSpeed) =

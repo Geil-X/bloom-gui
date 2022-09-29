@@ -13,6 +13,7 @@
         <Compile Include="Color.fs" />
         <Compile Include="EvolutionaryAlgorithm.fs" />
         <Compile Include="Flower.fs" />
+        <Compile Include="FlowerManager.fs" />
         <Compile Include="Mock.fs" />
         <Compile Include="Shell.fs" />
         <Compile Include="Program.fs" />

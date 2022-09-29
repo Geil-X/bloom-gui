@@ -3,15 +3,17 @@ module Gui.Shell
 open System
 open System.IO
 open System.IO.Ports
-open Avalonia.Controls
-open Avalonia.Input
 open Elmish
+open Avalonia.Controls
+open Avalonia.FuncUI.DSL
+open Avalonia.Input
 open Math.Geometry
 open Math.Units
 
 open Extensions
 open Gui.DataTypes
 open Gui.Views
+open Gui.Views.Components
 open Gui.Views.Menu
 open Gui.Views.Panels
 
@@ -535,15 +537,43 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
 
 
-// ---- View Functions ----
+// ---- View Functions ---------------------------------------------------------
 
-open Avalonia.FuncUI.DSL
+let private simulationView (state: State) (dispatch: Msg -> unit) =
+    let maybeSelectedFlower =
+        FlowerManager.getSelected state.FlowerManager
+
+    let flowers =
+        FlowerManager.getFlowers state.FlowerManager
+
+    DockPanel.create [
+        DockPanel.children [
+            DockPanel.child Dock.Top (Menu.applicationMenu state.AppConfig (MenuMsg >> dispatch))
+
+            DockPanel.child Dock.Top (IconDock.view (IconDockMsg >> dispatch))
+
+            DockPanel.child
+                Dock.Left
+                (FlowerProperties.view flowers maybeSelectedFlower (FlowerPropertiesMsg >> dispatch))
+
+            DockPanel.child
+                Dock.Right
+                (FlowerCommands.view
+                    state.FlowerCommandsState
+                    maybeSelectedFlower
+                    state.SerialPort
+                    (FlowerCommandsMsg >> dispatch))
+
+
+            FlowerManager.view state.FlowerManager (Msg.FlowerManagerMsg >> dispatch)
+        ]
+    ]
 
 let view (state: State) (dispatch: Msg -> unit) =
     let flowerTab =
         TabItem.create [
             TabItem.header "Simulation"
-            TabItem.content (FlowerManager.view state dispatch)
+            TabItem.content (simulationView state dispatch)
         ]
 
     let eaTab =

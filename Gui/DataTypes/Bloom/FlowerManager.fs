@@ -79,7 +79,6 @@ let getFlowers (manager: State) : Flower seq = Map.values manager.Flowers
 
 let getFlower (id: Flower Id) (manager: State) : Flower option = Map.tryFind id manager.Flowers
 
-
 let getSelected (manager: State) : Flower option =
     Option.bind (fun id -> flowerFromId id manager) manager.Selected
 
@@ -100,7 +99,7 @@ let addNewFlower (manager: State) : State * Flower =
         |> Flower.setPosition manager.FlowerStartPosition
 
     let offset: Vector2D<Meters, ScreenSpace> =
-        Vector2D.pixels 50. 50.
+        Vector2D.pixels 20. 20.
 
     let nextState =
         { manager with
