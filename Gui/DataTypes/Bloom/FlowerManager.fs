@@ -61,7 +61,7 @@ let init () =
       FlowerInteraction = NoInteraction
       Selected = None
       NextI2c = I2cAddress.first
-      FlowerStartPosition = Point2D.pixels 100. 100. }
+      FlowerStartPosition = Point2D.pixels 50. 50. }
 
 let clear (manager: State) : State =
     { manager with

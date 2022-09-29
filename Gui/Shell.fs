@@ -56,7 +56,6 @@ type Msg =
     // Shell Messages
     | Tick of Duration
     | Action of Action
-    | RerenderView
     | ReadAppConfig of Result<AppConfig, File.ReadError>
     | WroteAppConfig of Result<FileInfo, File.WriteError>
 
@@ -67,6 +66,10 @@ type Msg =
     | FlowerManagerMsg of FlowerManager.Msg
     | FlowerPropertiesMsg of FlowerProperties.Msg
     | FlowerCommandsMsg of FlowerCommands.Msg
+    
+    
+let private rerender (state: State) : State =
+    { state with Rerender = state.Rerender + 1 }
 
 
 // ---- High Level Key Handling ----------------------------------------------------------------------------------------
@@ -80,38 +83,7 @@ let keyUpHandler (window: Window) _ =
             | _ -> ())
 
     Cmd.ofSub sub
-
-
-// ---- File Writing ---------------------------------------------------------------------------------------------------
-
-let saveAppConfigFile (appConfig: AppConfig) : Cmd<Msg> =
-    File.write AppConfig.configPath appConfig WroteAppConfig
-
-let loadAppConfigFile: Cmd<Msg> =
-    File.read AppConfig.configPath ReadAppConfig
-
-
-// ---- Init -----------------------------------------------------------------------------------------------------------
-
-let init () : State * Cmd<Msg> =
-    let fps = 30
-
-    let flowerState, flowerCmd =
-        FlowerCommands.init ()
-
-    { FlowerManager = FlowerManager.init ()
-      SerialPort = None
-      Rerender = 0
-      AppConfig = AppConfig.init
-      FlowerCommandsState = flowerState
-      EaTab = EaTab.init () },
-
-    Cmd.batch [
-        loadAppConfigFile
-        Cmd.map FlowerCommandsMsg flowerCmd
-        Sub.timer fps Tick
-    ]
-
+    
 
 // ---- Serial Port Updates --------------------------------------------------------------------------------------------
 
@@ -210,11 +182,6 @@ let private pingAllFlowers (serialPort: SerialPort) (state: State) : Cmd<Msg> =
 
     Cmd.batch cmds
 
-let private newFile (state: State) (flowers: Flower seq) : State =
-    mapFlowerManager
-        (FlowerManager.clear
-         >> FlowerManager.addFlowers flowers)
-        state
 
 
 let updateName id newName state =
@@ -249,77 +216,119 @@ let updateMaxSpeed id speed state =
 let updateAcceleration id acceleration state =
     mapFlowerManager (FlowerManager.updateFlower id "Acceleration" Flower.setAcceleration acceleration) state
 
+
+// ---- File Writing ---------------------------------------------------------------------------------------------------
+
+let saveAppConfigFile (appConfig: AppConfig) : Cmd<Msg> =
+    File.write AppConfig.configPath appConfig WroteAppConfig
+
+let loadAppConfigFile: Cmd<Msg> =
+    File.read AppConfig.configPath ReadAppConfig
+
+let private startWithFlowers (state: State) (flowers: Flower seq) : State =
+    mapFlowerManager
+        (FlowerManager.clear
+         >> FlowerManager.addFlowers flowers)
+        state
+
+let private saveAsCmd (fileInfo: FileInfo) (state: State) : Cmd<Msg> =
+    let flowerFileData =
+        FlowerManager.getFlowers state.FlowerManager
+
+    File.write fileInfo flowerFileData (Finished >> Action.SaveAs >> Action)
+
+let private saveAs (fileInfo: FileInfo) (state: State) : State * Cmd<Msg> =
+    Log.info $"Saved flower file {fileInfo.Name}"
+
+    let newAppConfig =
+        AppConfig.addRecentFile fileInfo state.AppConfig
+
+    { state with AppConfig = newAppConfig }, saveAppConfigFile newAppConfig
+
+let openFile path : Cmd<Msg> =
+    File.read path (Finished >> Action.OpenFile >> Action)
+
+let fileOpened fileResult state : State =
+    match fileResult with
+    | Ok flowers -> startWithFlowers state flowers
+    | Error readingError ->
+        Log.error $"Could not read file{Environment.NewLine}{readingError}"
+        state
+
+let private newFile (state: State) : State =
+    mapFlowerManager FlowerManager.clear state
+
+
+// ---- Windows --------------------------------------------------------------------------------------------------------
+
+let private openSaveDialog (window: Window) : Cmd<Msg> =
+    Cmd.OfTask.either
+        FlowerFile.saveFileDialog
+        window
+        (Start >> Action.SaveAs >> Action)
+        (Finished >> Action.SaveAsDialog >> Action)
+
+let private openFileDialog (window: Window) : Cmd<Msg> =
+    Cmd.OfTask.perform FlowerFile.openFileDialog window (Finished >> Action.OpenFileDialog >> Action)
+
+
+
+// ---- Init -----------------------------------------------------------------------------------------------------------
+
+let init () : State * Cmd<Msg> =
+    let fps = 30
+
+    let flowerState, flowerCmd =
+        FlowerCommands.init ()
+
+    { FlowerManager = FlowerManager.init ()
+      SerialPort = None
+      Rerender = 0
+      AppConfig = AppConfig.init
+      FlowerCommandsState = flowerState
+      EaTab = EaTab.init () },
+
+    Cmd.batch [
+        loadAppConfigFile
+        Cmd.map FlowerCommandsMsg flowerCmd
+        Sub.timer fps Tick
+    ]
+
 // ---- Update ---------------------------------------------------------------------------------------------------------
 
 let private updateAction (action: Action) (state: State) (window: Window) : State * Cmd<Msg> =
     match action with
     // ---- File Actions ----
-
-    | Action.NewFile -> newFile state Seq.empty, Cmd.none
-
+    | Action.NewFile -> newFile state, Cmd.none
 
     | Action.SaveAsDialog asyncOperation ->
         match asyncOperation with
-        | Start _ ->
-            state,
-            Cmd.OfTask.either
-                FlowerFile.saveFileDialog
-                window
-                (Start >> Action.SaveAs >> Action)
-                (Finished >> Action.SaveAsDialog >> Action)
-
+        | Start _ -> state, openSaveDialog window
         | Finished exn ->
             Log.error $"Encountered an error when trying to save file{Environment.NewLine}{exn}"
             state, Cmd.none
 
-
     | Action.SaveAs asyncOperation ->
         match asyncOperation with
-        | Start fileInfo ->
-            let flowerFileData =
-                FlowerManager.getFlowers state.FlowerManager
-
-            let writeCmd =
-                File.write fileInfo flowerFileData (Finished >> Action.SaveAs >> Action)
-
-            state, writeCmd
-
-        | Finished (Ok fileInfo) ->
-            Log.info $"Saved flower file {fileInfo.Name}"
-
-            let newAppConfig =
-                AppConfig.addRecentFile fileInfo state.AppConfig
-
-            { state with AppConfig = newAppConfig }, saveAppConfigFile newAppConfig
-
+        | Start fileInfo -> state, saveAsCmd fileInfo state
+        | Finished (Ok fileInfo) -> saveAs fileInfo state
         | Finished (Error fileWriteError) ->
             Log.error $"Could not save file{Environment.NewLine}{fileWriteError}"
             state, Cmd.none
 
-
     | Action.OpenFileDialog asyncOperation ->
         match asyncOperation with
-        | Start _ ->
-            state, Cmd.OfTask.perform FlowerFile.openFileDialog window (Finished >> Action.OpenFileDialog >> Action)
-
+        | Start _ -> state, openFileDialog window
         | Finished files ->
             match Seq.tryHead files with
-            | Some firstFile -> state, Cmd.ofMsg (Start firstFile |> Action.OpenFile |> Action)
-
+            | Some file -> state, openFile file
             // No file was selected
             | _ -> state, Cmd.none
 
-
     | Action.OpenFile asyncOperation ->
         match asyncOperation with
-        | Start path -> state, File.read path (Finished >> Action.OpenFile >> Action)
-
-        | Finished fileResult ->
-            match fileResult with
-            | Ok flowers -> newFile state flowers, Cmd.none
-            | Error readingError ->
-                Log.error $"Could not read file{Environment.NewLine}{readingError}"
-                state, Cmd.none
+        | Start path -> state, openFile path
+        | Finished fileResult -> fileOpened fileResult state, Cmd.none
 
 
     // ---- Serial Port Actions ----
@@ -327,12 +336,7 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
     | Action.ConnectAndOpenPort asyncOperation ->
         match asyncOperation with
         | Start portName -> connectToSerialPort portName state
-        | Finished serialPort ->
-            let pingFlowers =
-                pingAllFlowers serialPort state
-
-
-            { state with SerialPort = Some serialPort }, pingFlowers
+        | Finished serialPort -> { state with SerialPort = Some serialPort }, pingAllFlowers serialPort state
 
 
     | Action.OpenSerialPort asyncOperation ->
@@ -341,10 +345,10 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
         | Finished serialPort ->
             Log.debug $"Connected to serial port '{serialPort.PortName}'"
 
-            { state with SerialPort = Some serialPort },
+            { state with SerialPort = Some serialPort }
+            |> rerender,
             Cmd.batch [
                 SerialPort.onReceived (Action.ReceivedDataFromSerialPort >> Action) serialPort
-                Cmd.ofMsg RerenderView
                 pingAllFlowers serialPort state
             ]
 
@@ -353,7 +357,7 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
         | Start serialPort -> state, closeSerialPort serialPort
         | Finished serialPort ->
             Log.debug $"Closed serial port '{serialPort.PortName}'"
-            state, Cmd.ofMsg RerenderView
+            rerender state, Cmd.none
 
     | Action.ReceivedDataFromSerialPort packet ->
         match Response.fromPacket packet with
@@ -452,8 +456,6 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
     | Tick _ -> state, Cmd.none
 
     | Action action -> updateAction action state window
-
-    | RerenderView -> { state with Rerender = state.Rerender + 1 }, Cmd.none
 
     | ReadAppConfig appConfigResult ->
         match appConfigResult with
