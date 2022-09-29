@@ -26,7 +26,10 @@ type Msg =
 // ---- Helper Functions ----
 
 let disabledTextBox =
-    TextBox.create [ TextBox.text ""; TextBox.isEnabled false ]
+    TextBox.create [
+        TextBox.text ""
+        TextBox.isEnabled false
+    ]
 
 let presets =
     {| speedEmpty = AngularSpeed.turnsPerSecond 0.
@@ -90,7 +93,10 @@ let private i2cAddressView (flowerOption: Flower option) (dispatch: Msg -> unit)
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                DockPanel.children [ connectionStatus; i2cTextBox ]
+                DockPanel.children [
+                    connectionStatus
+                    i2cTextBox
+                ]
             ] |}
 
 
@@ -107,7 +113,10 @@ let private positionView (flowerOption: Flower option) =
             TextBlock.create [
                 TextBlock.text (flower.Position |> positionToString)
             ]
-        | None -> TextBlock.create [ TextBlock.text "(___, ___)" ]
+        | None ->
+            TextBlock.create [
+                TextBlock.text "(___, ___)"
+            ]
 
 
     Form.formElement
@@ -118,8 +127,14 @@ let private positionView (flowerOption: Flower option) =
 let private id (flowerOption: Flower option) =
     let idText =
         match flowerOption with
-        | Some flower -> TextBlock.create [ TextBlock.text (Id.shortName flower.Id) ]
-        | None -> TextBlock.create [ TextBlock.text "0000000" ]
+        | Some flower ->
+            TextBlock.create [
+                TextBlock.text (Id.shortName flower.Id)
+            ]
+        | None ->
+            TextBlock.create [
+                TextBlock.text "0000000"
+            ]
 
     Form.formElement
         {| Name = "Id"
@@ -158,7 +173,10 @@ let private sliderView (properties: DisabledSliderProperties<'Units>) =
            Orientation = Orientation.Vertical
            Element =
             DockPanel.create [
-                StackPanel.children [ slider; textInput ]
+                StackPanel.children [
+                    slider
+                    textInput
+                ]
             ] |}
 
 

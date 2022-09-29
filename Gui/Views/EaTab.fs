@@ -115,7 +115,10 @@ let private fitnessSlider (state: State) (dispatch: Msg -> unit) =
     Form.formElement
         {| Name = "Fitness"
            Orientation = Orientation.Vertical
-           Element = DockPanel.create [ StackPanel.children [ slider; text ] ] |}
+           Element =
+            DockPanel.create [
+                StackPanel.children [ slider; text ]
+            ] |}
 
 let private setFitnessButton (dispatch: Msg -> unit) =
     Form.iconTextButton

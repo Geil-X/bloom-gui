@@ -23,5 +23,5 @@ module TranslateTransform =
     open Math.Geometry
     open Math.Units
 
-    let inCssPixels (translation: Vector2D<Meters, 'Coordinates>): TranslateTransform =
+    let inCssPixels (translation: Vector2D<Meters, 'Coordinates>) : TranslateTransform =
         TranslateTransform(Length.inCssPixels translation.X, Length.inCssPixels translation.Y)

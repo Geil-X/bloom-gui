@@ -18,7 +18,7 @@ open Gui.Views.Menu
 open Gui.Views.Panels
 
 
-// ---- States ----
+// ---- States ---------------------------------------------------------------------------------------------------------
 
 [<StructuralEquality; NoComparison>]
 type State =
@@ -46,7 +46,7 @@ and DraggingData =
       DraggingDelta: Vector2D<Meters, ScreenSpace> }
 
 
-// ---- Messaging ----
+// ---- Messaging ------------------------------------------------------------------------------------------------------
 
 [<RequireQualifiedAccess>]
 type BackgroundEvent = OnReleased of MouseButtonEvent<ScreenSpace>
@@ -68,7 +68,8 @@ type Msg =
     | FlowerPropertiesMsg of FlowerProperties.Msg
     | FlowerCommandsMsg of FlowerCommands.Msg
 
-// ---- High Level Key Handling ------------------------------------------------
+
+// ---- High Level Key Handling ----------------------------------------------------------------------------------------
 
 let keyUpHandler (window: Window) _ =
     let sub dispatch =
@@ -80,7 +81,8 @@ let keyUpHandler (window: Window) _ =
 
     Cmd.ofSub sub
 
-// ---- File Writing -----------------------------------------------------------
+
+// ---- File Writing ---------------------------------------------------------------------------------------------------
 
 let saveAppConfigFile (appConfig: AppConfig) : Cmd<Msg> =
     File.write AppConfig.configPath appConfig WroteAppConfig
@@ -89,7 +91,7 @@ let loadAppConfigFile: Cmd<Msg> =
     File.read AppConfig.configPath ReadAppConfig
 
 
-// ---- Init -------------------------------------------------------------------
+// ---- Init -----------------------------------------------------------------------------------------------------------
 
 let init () : State * Cmd<Msg> =
     let fps = 30
@@ -110,7 +112,8 @@ let init () : State * Cmd<Msg> =
         Sub.timer fps Tick
     ]
 
-// ---- Serial Port Updates ----------------------------------------------------
+
+// ---- Serial Port Updates --------------------------------------------------------------------------------------------
 
 /// Open up a connected serial port
 let private openSerialPort (serialPort: SerialPort) : Cmd<Msg> =
@@ -160,7 +163,8 @@ let private connectToSerialPort (newPortName: string) (state: State) : State * C
         Log.debug $"Connecting to serial port '{newPortName}'"
         state, connectAndOpenSerialPort newPortName
 
-// ---- Flower Functions -------------------------------------------------------
+
+// ---- Flower Functions -------------------------------------------------------------------------------------------------
 
 let private mapFlowerManager (f: FlowerManager.State -> FlowerManager.State) (state: State) : State =
     { state with FlowerManager = f state.FlowerManager }
@@ -245,7 +249,7 @@ let updateMaxSpeed id speed state =
 let updateAcceleration id acceleration state =
     mapFlowerManager (FlowerManager.updateFlower id "Acceleration" Flower.setAcceleration acceleration) state
 
-// ---- Update -----------------------------------------------------------------
+// ---- Update ---------------------------------------------------------------------------------------------------------
 
 let private updateAction (action: Action) (state: State) (window: Window) : State * Cmd<Msg> =
     match action with
@@ -438,6 +442,8 @@ let private receiveFlowerCommandsExternal (msg: FlowerCommands.External) (state:
     | FlowerCommands.External.NoMsg -> state, Cmd.none
 
 
+// ---- Update ---------------------------------------------------------------------------------------------------------
+
 let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     match msg with
@@ -536,8 +542,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         ]
 
 
-
-// ---- View Functions ---------------------------------------------------------
+// ---- View Functions -------------------------------------------------------------------------------------------------
 
 let private simulationView (state: State) (dispatch: Msg -> unit) =
     let maybeSelectedFlower =

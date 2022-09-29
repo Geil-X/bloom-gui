@@ -14,7 +14,7 @@ let parseInt (s: string) =
 let parseByte (s: string) =
     if String.IsNullOrEmpty s then
         None
-        
+
     else
         try
             Some(byte s)

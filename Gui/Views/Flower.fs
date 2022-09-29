@@ -47,12 +47,7 @@ let private petalColor attributes : string =
 
 /// An individual petal portion of the flower. This petal is just the visible part of the petal and doesn't contain any
 /// of the masking layers for the lower petals.
-let private petalView
-    (width: Length)
-    (height: Length)
-    (color: string)
-    (angle: Angle)
-    =
+let private petalView (width: Length) (height: Length) (color: string) (angle: Angle) =
     let localRotationOrigin =
         RelativePoint(Length.inCssPixels width / 2., Length.inCssPixels height, RelativeUnit.Absolute)
 
@@ -63,28 +58,27 @@ let private petalView
         Ellipse.renderTransformOrigin localRotationOrigin
         Ellipse.renderTransform (RotateTransform.inDegrees (Angle.inDegrees angle))
     ]
-    
-let private selectedView (bbox: BoundingBox2D<Meters, ScreenSpace>): IView =
-    Rectangle.fromBoundingBox bbox [
-        Rectangle.stroke Theme.palette.info
-        Rectangle.strokeThickness Theme.drawing.strokeWidth
-        Rectangle.strokeDashArray Theme.drawing.dashArray
-    ]
+
+let private selectedView (bbox: BoundingBox2D<Meters, ScreenSpace>) : IView =
+    Rectangle.fromBoundingBox
+        bbox
+        [ Rectangle.stroke Theme.palette.info
+          Rectangle.strokeThickness Theme.drawing.strokeWidth
+          Rectangle.strokeDashArray Theme.drawing.dashArray ]
 
 /// The whole flower icon that is displayed in the simulation space. The flower is made up of several petals which are
 /// used to show how open the flower is.
 let private iconView (flower: Flower) (attributes: Flower.Attribute list) : IView =
-    let width = flower.Radius 
+    let width = flower.Radius
     let height = flower.Radius * 2.
 
     let boundingBox =
-        BoundingBox2D.fromExtrema {
-            MinX = -flower.Radius * 0.5
-            MaxX = flower.Radius * 1.5
-            MinY = Quantity.zero
-            MaxY = flower.Radius * 2.
-        }
-    
+        BoundingBox2D.fromExtrema
+            { MinX = -flower.Radius * 0.5
+              MaxX = flower.Radius * 1.5
+              MinY = Quantity.zero
+              MaxY = flower.Radius * 2. }
+
     let minAngle = Angle.degrees 20.
     let maxAngle = Angle.degrees 70.
 
@@ -98,10 +92,10 @@ let private iconView (flower: Flower) (attributes: Flower.Attribute list) : IVie
 
     let petalRenderer =
         petalView width height color
-        
+
     let translation =
         Vector2D.from Point2D.origin flower.Position
-        
+
     let isSelected =
         List.exists
             (fun e ->
@@ -115,7 +109,8 @@ let private iconView (flower: Flower) (attributes: Flower.Attribute list) : IVie
             petalRenderer -angle
             petalRenderer Angle.zero
             petalRenderer angle
-            if isSelected then selectedView boundingBox
+            if isSelected then
+                selectedView boundingBox
         ]
         Canvas.renderTransform (TranslateTransform.inCssPixels translation)
     ]
@@ -182,7 +177,7 @@ let private canvasEvent (flowerId: Flower Id) (attribute: Flower.Attribute) =
             SubPatchOptions.OnChangeOf flowerId
         )
         |> Some
-        
+
 // ---- Flower View ------------------------------------------------------------
 
 /// The main view for drawing a flower

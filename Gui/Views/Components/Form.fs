@@ -20,7 +20,9 @@ let formElement
          StackPanel.margin Theme.spacing.medium
          StackPanel.spacing Theme.spacing.small
          StackPanel.children
-         <| [ TextBlock.create [ TextBlock.text state.Name ]
+         <| [ TextBlock.create [
+                  TextBlock.text state.Name
+              ]
               state.Element ] ]
 
 let textItem

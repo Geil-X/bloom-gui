@@ -70,8 +70,8 @@ let extraCoders =
     |> Extra.withCustom
         Quantity.encoder<Rate<Rate<Radians, Seconds>, Seconds>>
         Quantity.decoder<Rate<Rate<Radians, Seconds>, Seconds>>
-    // |> Extra.withCustom Quantity.encoder<AngularSpeed> Quantity.decoder<AngularSpeed>
-    // |> Extra.withCustom Quantity.encoder<AngularAcceleration> Quantity.decoder<AngularAcceleration>
+// |> Extra.withCustom Quantity.encoder<AngularSpeed> Quantity.decoder<AngularSpeed>
+// |> Extra.withCustom Quantity.encoder<AngularAcceleration> Quantity.decoder<AngularAcceleration>
 
 
 // ---- File Operations --------------------------------------------------------

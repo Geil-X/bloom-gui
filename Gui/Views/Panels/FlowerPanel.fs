@@ -22,11 +22,7 @@ let view
         StackPanel.children [
             FlowerProperties.view flowers flowerOption (FlowerPropertiesMsg >> dispatch)
             StackPanel.verticalSeparator (
-                FlowerCommands.view
-                    flowerCommandsState
-                    flowerOption
-                    serialPort
-                    (FlowerCommandsMsg >> dispatch)
+                FlowerCommands.view flowerCommandsState flowerOption serialPort (FlowerCommandsMsg >> dispatch)
             )
         ]
         StackPanel.minWidth 200.

@@ -37,7 +37,10 @@ let private icon (data: string) (size: Size) (color: string) =
                 Canvas.width baseSize
                 Canvas.height baseSize
                 Canvas.children [
-                    Path.create [ Path.fill color; Path.data data ]
+                    Path.create [
+                        Path.fill color
+                        Path.data data
+                    ]
                 ]
             ]
         )

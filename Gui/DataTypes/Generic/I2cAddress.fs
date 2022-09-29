@@ -8,5 +8,4 @@ module I2cAddress =
     /// 17th address.
     let first: I2cAddress = 17uy
 
-    let next (i2c: I2cAddress): I2cAddress = i2c + 1uy
-
+    let next (i2c: I2cAddress) : I2cAddress = i2c + 1uy

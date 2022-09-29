@@ -112,10 +112,7 @@ module Event =
             |> Some
 
     /// Position is given relative to the screen element given by the id string.
-    let pointerReleased
-        (parentId: string)
-        (e: PointerReleasedEventArgs)
-        : MouseButtonEvent<'Coordinates> option =
+    let pointerReleased (parentId: string) (e: PointerReleasedEventArgs) : MouseButtonEvent<'Coordinates> option =
         if e.Route = RoutingStrategies.Tunnel then
             None
         else
