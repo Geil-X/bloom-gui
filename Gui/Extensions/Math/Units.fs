@@ -2,6 +2,10 @@ namespace Math.Units
 
 open Extensions
 
+module Quantity =
+    let asType (q: Quantity<'UnitB>): Quantity<'UnitA> =
+        Quantity.create<'UnitA> q.Value
+
 
 module Constants =
     open Math.Units

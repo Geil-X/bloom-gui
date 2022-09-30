@@ -125,27 +125,59 @@ module Flower =
     /// <param name="dt">Elapsed time since last update.</param>
     /// <param name="flower">The flower to update</param>
     let tick (dt: Duration) (flower: Flower) : Flower =
-        flower
-        |> setOpenPercent flower.TargetPercent
-        
-        // let flowerOpeningChange: Percent =
-        //     dt
-        //     |> Quantity.at flower.Speed
-        //     |> Percent.fromAngle
-        //
-        // let expectedPosition =
-        //     flower.OpenPercent + flowerOpeningChange
-        //
-        // let reachedTarget =
-        //     Quantity.equalWithin flowerOpeningChange expectedPosition flower.TargetPercent
-        //
-        // if reachedTarget then
-        //     flower
-        //     |> setSpeed AngularSpeed.zero
-        //     |> setOpenPercent flower.TargetPercent
-        //
-        // else
-        //     flower
+        // Flower is at target, nothing needs to be done
+        if flower.TargetPercent = flower.OpenPercent then
+            flower
+
+        else
+            // Determines if the flower needs to open or close
+            let direction =
+                Quantity.compare flower.TargetPercent flower.OpenPercent
+
+            let distanceToGo: Percent =
+                Quantity.abs (flower.TargetPercent - flower.OpenPercent)
+                
+            let distanceToStop: Percent =
+                Quantity.squared flower.Speed / (2. * flower.Acceleration)
+                |> Quantity.asType
+                |> Percent.fromAngle
+                
+            let newSpeed =
+                let speedChange =
+                    flower.Acceleration
+                    |> Quantity.for_ dt
+                    
+                // Need to accelerate
+                if distanceToGo > distanceToStop then
+                    flower.Speed + speedChange
+                    
+                // Need to decelerate
+                else
+                    flower.Speed - speedChange
+
+            let positionChange =
+                newSpeed
+                |> Quantity.multiplyBy direction
+                |> Quantity.for_ dt
+                |> Percent.fromAngle
+                
+                
+            let atTarget = Quantity.equalWithin positionChange flower.TargetPercent flower.OpenPercent
+
+            // Reached target
+            // TODO: this doesn't take into account the current motor speed. This assumes instantaneous deceleration
+            if atTarget then
+                flower
+                |> setOpenPercent flower.TargetPercent
+                |> setSpeed AngularAcceleration.zero
+                
+            else
+                flower
+                |> setOpenPercent (flower.OpenPercent + positionChange)
+                |> setSpeed newSpeed
+
+
+
 
     let applyCommand (command: Command) (flower: Flower) : Flower =
         match command with

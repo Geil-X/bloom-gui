@@ -197,7 +197,7 @@ let private targetPercentageView (flowerOption: Flower option) =
     sliderView
         { Name = "Target Percentage"
           Value =
-            Option.map (fun flower -> flower.OpenPercent) flowerOption
+            Option.map (fun flower -> flower.TargetPercent) flowerOption
             |> Option.defaultValue Quantity.zero
           Min = Percent.decimal Percent.minimum
           Max = Percent.decimal Percent.maxDecimal
