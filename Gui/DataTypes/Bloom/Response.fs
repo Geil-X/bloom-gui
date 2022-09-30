@@ -47,5 +47,5 @@ module Response =
                   Time = time
                   Position = position
                   Target = target
-                  AngularAcceleration = AngularAcceleration.turnsPerSecondSquared acceleration
-                  MaxAngularSpeed = AngularSpeed.turnsPerSecond speed }
+                  AngularAcceleration = AngularAcceleration.microstepsPerSecondSquared acceleration
+                  MaxAngularSpeed = AngularSpeed.microstepsPerSecond speed }

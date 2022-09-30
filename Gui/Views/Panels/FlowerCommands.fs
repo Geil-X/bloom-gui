@@ -35,6 +35,17 @@ type Msg =
     | ChangeAcceleration of AngularAcceleration
     | RefreshSerialPorts of AsyncOperationStatus<unit, SerialPortName list>
     | SendCommandOfId of Command.Id
+    
+let presets =
+    {| speedEmpty = AngularSpeed.microstepsPerSecond 0.
+       minSpeed = AngularSpeed.microstepsPerSecond 0.
+       maxSpeed = AngularSpeed.microstepsPerSecond 65000.
+       accelerationEmpty = AngularAcceleration.microstepsPerSecondSquared 0.
+       minAcceleration = AngularAcceleration.microstepsPerSecondSquared 0.
+       maxAcceleration = AngularAcceleration.microstepsPerSecondSquared 10000. |}
+
+[<Literal>]
+let noPort = "No Serial Port"
 
 
 let init () : State * Cmd<'Msg> =
@@ -79,16 +90,6 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> * External =
 
 /// ---- View ------------------------------------------------------------------
 
-let presets =
-    {| speedEmpty = AngularSpeed.turnsPerSecond 0.
-       minSpeed = AngularSpeed.turnsPerSecond 0.
-       maxSpeed = AngularSpeed.turnsPerSecond 65000.
-       accelerationEmpty = AngularAcceleration.turnsPerSecondSquared 0.
-       minAcceleration = AngularAcceleration.turnsPerSecondSquared 0.
-       maxAcceleration = AngularAcceleration.turnsPerSecondSquared 10000. |}
-
-[<Literal>]
-let noPort = "No Serial Port"
 
 let private serialPortView (serialPorts: string list) (serialPortOption: SerialPort option) (dispatch: Msg -> unit) =
     let ports =
@@ -236,8 +237,8 @@ let private maxSpeedView (speed: AngularSpeed) (dispatch: Msg -> unit) =
           Min = presets.minSpeed
           Max = presets.maxSpeed
           OnChanged = Msg.ChangeMaxSpeed >> dispatch
-          Display = AngularSpeed.inTurnsPerSecond
-          Conversion = AngularSpeed.turnsPerSecond }
+          Display = AngularSpeed.inMicrostepsPerSecond
+          Conversion = AngularSpeed.microstepsPerSecond }
 
 let private accelerationView (accel: AngularAcceleration) (dispatch: Msg -> unit) =
     sliderView
@@ -246,8 +247,8 @@ let private accelerationView (accel: AngularAcceleration) (dispatch: Msg -> unit
           Min = presets.minAcceleration
           Max = presets.maxAcceleration
           OnChanged = Msg.ChangeAcceleration >> dispatch
-          Display = AngularAcceleration.inTurnsPerSecondSquared
-          Conversion = AngularAcceleration.turnsPerSecondSquared }
+          Display = AngularAcceleration.inMicrostepsPerSecondSquared
+          Conversion = AngularAcceleration.microstepsPerSecondSquared }
 
 let private iconButton
     (name: string)

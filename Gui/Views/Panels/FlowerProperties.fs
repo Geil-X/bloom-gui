@@ -35,12 +35,12 @@ let disabledTextBox =
     ]
 
 let presets =
-    {| speedEmpty = AngularSpeed.turnsPerSecond 0.
-       minSpeed = AngularSpeed.turnsPerSecond 0.
-       maxSpeed = AngularSpeed.turnsPerSecond 65000.
-       accelerationEmpty = AngularAcceleration.turnsPerSecondSquared 0.
-       minAcceleration = AngularAcceleration.turnsPerSecondSquared 0.
-       maxAcceleration = AngularAcceleration.turnsPerSecondSquared 10000. |}
+    {| speedEmpty = AngularSpeed.microstepsPerSecond 0.
+       minSpeed = AngularSpeed.microstepsPerSecond 0.
+       maxSpeed = AngularSpeed.microstepsPerSecond 65000.
+       accelerationEmpty = AngularAcceleration.microstepsPerSecondSquared 0.
+       minAcceleration = AngularAcceleration.microstepsPerSecondSquared 0.
+       maxAcceleration = AngularAcceleration.microstepsPerSecondSquared 10000. |}
 
 // ---- Form Elements ----------------------------------------------------------
 
@@ -219,9 +219,9 @@ let private speedView (flowerOption: Flower option) =
           Min = presets.minSpeed
           Max = maxSpeed
           Display =
-            AngularSpeed.inTurnsPerSecond
+            AngularSpeed.inMicrostepsPerSecond
             >> Float.roundFloatTo 2
-          Conversion = AngularSpeed.turnsPerSecond
+          Conversion = AngularSpeed.microstepsPerSecond
           FlowerId = Option.map (fun flower -> flower.Id) flowerOption }
 
 let private maxSpeedView (flowerOption: Flower option) =

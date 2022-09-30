@@ -49,9 +49,9 @@ module Flower =
           I2cAddress = 0uy
           OpenPercent = Percent.zero
           TargetPercent = Percent.zero
-          Speed = AngularSpeed.turnsPerSecond 0.
-          MaxSpeed = AngularSpeed.turnsPerSecond 5000.
-          Acceleration = AngularAcceleration.turnsPerSecondSquared 1000
+          Speed = AngularSpeed.microstepsPerSecond 0.
+          MaxSpeed = AngularSpeed.microstepsPerSecond 5000.
+          Acceleration = AngularAcceleration.microstepsPerSecondSquared 1000
           Radius = Length.cssPixels 20.
           ConnectionStatus = Disconnected }
 
