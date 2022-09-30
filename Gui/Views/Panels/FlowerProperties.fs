@@ -216,7 +216,7 @@ let private speedView (flowerOption: Flower option) =
           Value =
             Option.map Flower.speed flowerOption
             |> Option.defaultValue presets.speedEmpty
-          Min = presets.minSpeed
+          Min = -maxSpeed
           Max = maxSpeed
           Display =
             AngularSpeed.inMicrostepsPerSecond

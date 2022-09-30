@@ -20,7 +20,10 @@ module Constants =
 
     /// The number of steps it takes the stepper motor to make one revolution
     [<Literal>]
-    let private StepsPerRevolution = 200.
+    let private Steps = 200.
+    
+    let StepsPerRevolution =
+        Microsteps * Steps
 
     let MicrostepsPerRevolution =
         Microsteps * StepsPerRevolution
@@ -82,6 +85,16 @@ module AngularSpeed =
         |> float
         |> microstepsPerSecond
 
+module Angle =
+    let steps (steps: float): Angle =
+        (steps * Angle.turn) / Constants.StepsPerRevolution
+        
+    let inSteps (angle: Angle): float = (angle / Angle.turn) * Constants.StepsPerRevolution
+    
+    let microsteps (microsteps: float): Angle =
+        (microsteps * Angle.turn) / Constants.MicrostepsPerRevolution
+    
+    let inMicrosteps (angle: Angle): float = (angle / Angle.turn) * Constants.MicrostepsPerRevolution
 
 module Percent =
 
