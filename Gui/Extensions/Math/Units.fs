@@ -2,9 +2,14 @@ namespace Math.Units
 
 open Extensions
 
-module Quantity =
-    let asType (q: Quantity<'UnitB>): Quantity<'UnitA> =
-        Quantity.create<'UnitA> q.Value
+[<AutoOpen>]
+module Extensions =
+    type Quantity<'Units> with
+        static member asType(q: Quantity<'UnitB>) : Quantity<'UnitA> = Quantity.create<'UnitA> q.Value
+
+        /// Takes a number and returns 1 if the number is zero or positive
+        /// and -1 if the number is negative.
+        static member sign(x: Quantity<'Units>) : int = if x.Value >= 0 then 1 else 0
 
 
 module Constants =
@@ -21,9 +26,8 @@ module Constants =
     /// The number of steps it takes the stepper motor to make one revolution
     [<Literal>]
     let private Steps = 200.
-    
-    let StepsPerRevolution =
-        Microsteps * Steps
+
+    let StepsPerRevolution = Microsteps * Steps
 
     let MicrostepsPerRevolution =
         Microsteps * StepsPerRevolution
@@ -86,15 +90,21 @@ module AngularSpeed =
         |> microstepsPerSecond
 
 module Angle =
-    let steps (steps: float): Angle =
-        (steps * Angle.turn) / Constants.StepsPerRevolution
-        
-    let inSteps (angle: Angle): float = (angle / Angle.turn) * Constants.StepsPerRevolution
-    
-    let microsteps (microsteps: float): Angle =
-        (microsteps * Angle.turn) / Constants.MicrostepsPerRevolution
-    
-    let inMicrosteps (angle: Angle): float = (angle / Angle.turn) * Constants.MicrostepsPerRevolution
+    let steps (steps: float) : Angle =
+        (steps * Angle.turn)
+        / Constants.StepsPerRevolution
+
+    let inSteps (angle: Angle) : float =
+        (angle / Angle.turn)
+        * Constants.StepsPerRevolution
+
+    let microsteps (microsteps: float) : Angle =
+        (microsteps * Angle.turn)
+        / Constants.MicrostepsPerRevolution
+
+    let inMicrosteps (angle: Angle) : float =
+        (angle / Angle.turn)
+        * Constants.MicrostepsPerRevolution
 
 module Percent =
 

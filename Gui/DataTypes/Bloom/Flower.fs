@@ -59,8 +59,19 @@ module Flower =
         | OnPointerPressed of (Flower Id * MouseButtonEvent<ScreenSpace> -> unit)
         | OnPointerReleased of (Flower Id * MouseButtonEvent<ScreenSpace> -> unit)
 
+    // ---- Constants ----
 
+    /// The percentage that a flower will open from a single step of the
+    /// stepper motor. This is a theoretical approximation of the accuracy
+    /// of the stepper in the simulation.
+    let stepSize: Percent =
+        Angle.steps 1. |> Percent.fromAngle
 
+    /// The percentage that a flower will open from a single microstep of the
+    /// stepper motor. This is a theoretical approximation of the accuracy
+    /// of the stepper in the simulation.
+    let microstepSize: Percent =
+        Angle.microsteps 1. |> Percent.fromAngle
 
     // ---- Builders -----
 
@@ -97,6 +108,14 @@ module Flower =
     let speed (flower: Flower) : AngularSpeed = flower.Speed
     let acceleration (flower: Flower) : AngularAcceleration = flower.Acceleration
 
+    /// The distance it is going to take the stepper motor to stop given it's
+    /// current speed and maximum deceleration.
+    let distanceToStop (flower: Flower) : Percent =
+        Quantity.squared flower.Speed
+        / (2. * flower.Acceleration)
+        |> Quantity.asType
+        |> Percent.fromAngle
+
     let circle (flower: Flower) : Circle2D<Meters, ScreenSpace> =
         Circle2D.atPoint flower.Position flower.Radius
 
@@ -109,7 +128,18 @@ module Flower =
 
     /// Set current position of the flower. This value is locked between 0% and 100%.
     let setOpenPercent (percent: Percent) (flower: Flower) : Flower =
-        { flower with OpenPercent = Percent.clamp Percent.zero Percent.oneHundred percent }
+        if percent <= Percent.zero then
+            { flower with
+                OpenPercent = Percent.zero
+                Speed = AngularSpeed.zero }
+
+        else if percent >= Percent.oneHundred then
+            { flower with
+                OpenPercent = Percent.oneHundred
+                Speed = AngularSpeed.zero }
+
+        else
+            { flower with OpenPercent = percent }
 
     /// Set the desired position to move to. This value is locked between 0% and 100%.
     let setTargetPercent (percent: Percent) (flower: Flower) : Flower =
@@ -153,56 +183,50 @@ module Flower =
     /// <param name="dt">Elapsed time since last update.</param>
     /// <param name="flower">The flower to update</param>
     let tick (dt: Duration) (flower: Flower) : Flower =
-        let stopTolerance : Percent =
-            Angle.steps 1.
-            |> Percent.fromAngle
-            
-        let distanceToStop: Percent =
-            Quantity.squared flower.Speed
-            / (2. * flower.Acceleration)
-            |> Quantity.asType
-            |> Percent.fromAngle
-            
-        let almostStopped = Quantity.equalWithin stopTolerance distanceToStop Percent.zero
-            
+        let stopDistance = distanceToStop flower
+
+        let almostStopped =
+            Quantity.equalWithin stepSize stopDistance Percent.zero
+
         // Flower is at target, nothing needs to be done
-        if flower.TargetPercent = flower.OpenPercent && almostStopped then
+        if flower.TargetPercent = flower.OpenPercent
+           && almostStopped then
             flower
 
+        // Default Updating
         else
+            // The distance and direction needed to travel before
+            let travelDistance = flower.TargetPercent - flower.OpenPercent
+            
+            // The quantity of distance remaining until the destination. Always positive
             let distanceToGo: Percent =
-                Quantity.abs (flower.TargetPercent - flower.OpenPercent)
-                
+                Quantity.abs travelDistance
+            
             /// Determines if the flower needs to open or close.
             /// This value is '1' if the flower needs to accelerate
             /// This value is '-1' if the flower needs to decelerate
             let accelerationDirection =
-                Quantity.compare flower.TargetPercent flower.OpenPercent
-
-                
-            let newSpeed : AngularSpeed =
-                let speedChange =
-                    flower.Acceleration
-                    |> AngularAcceleration.multiplyBy accelerationDirection
-                    |> Quantity.for_ dt
-
-                // TODO: the error is in here somewhere
-                // Need to accelerate
-                if distanceToGo > distanceToStop then
-                    flower.Speed + speedChange
-
-                // Need to decelerate
+                let speedDirection = AngularSpeed.sign flower.Speed
+                let targetDirection = Quantity.compare flower.TargetPercent flower.OpenPercent
+                if distanceToGo < stopDistance &&  speedDirection = targetDirection then
+                    -targetDirection
                 else
-                    flower.Speed - speedChange
+                    targetDirection
+                    
+            let newSpeed: AngularSpeed =
+                flower.Acceleration
+                |> AngularAcceleration.multiplyBy accelerationDirection
+                |> Quantity.for_ dt
+                |> AngularSpeed.plus flower.Speed
 
             let newPosition =
                 newSpeed
                 |> Quantity.for_ dt
                 |> Percent.fromAngle
                 |> Percent.plus flower.OpenPercent
-                
+
             let atTarget =
-                Quantity.equalWithin stopTolerance flower.TargetPercent newPosition
+                Quantity.equalWithin stepSize flower.TargetPercent newPosition
 
             // Reached target
             // TODO: this doesn't take into account the current motor speed. This assumes instantaneous deceleration
