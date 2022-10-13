@@ -389,7 +389,12 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
 
         { state with FlowerManager = flowerManager }, requestCmd
 
-    | Action.SelectFlower id -> mapFlowerManager (FlowerManager.select id) state, Cmd.none
+    | Action.SelectFlower id ->
+        let newState =
+            state
+            |> mapFlowerManager (FlowerManager.select id)
+        
+        newState, Cmd.none
 
     | Action.DeselectFlower -> mapFlowerManager FlowerManager.deselect state, Cmd.none
 

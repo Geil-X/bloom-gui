@@ -44,6 +44,7 @@
         <Compile Include="Extensions\Core\Task.fs" />
         <Compile Include="Extensions\Core\Option.fs" />
         <Compile Include="Extensions\Core\Tuple.fs" />
+        <Compile Include="Extensions\Core\Int.fs" />
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\Arc.fs" />
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\View.fs" />
         <Compile Include="Extensions\Avalonia\FuncUI\DSL\Circle.fs" />
