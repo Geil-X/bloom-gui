@@ -1,53 +1,21 @@
-name: Build And Package
+name: Publish Bloom for MacOS
 
 on:
   push:
     branches: [ master ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
+  master_test:
+    runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout project
+        uses: actions/checkout@v2
 
-      - name: Setup .NET 6.0
-        uses: actions/setup-dotnet@v1.7.2
-        with:
-          dotnet-version: 6.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore
-        
-      - name: Build Project
-        run: dotnet build
-        
-      - name: Run Tests
-        run: >
-          dotnet test \
-            --no-build \
-            --verbosity normal \
-          
-      - name: Build MacOS Bundle
-        run: >
-          dotnet msbuild \
-            -t:Gui \
-            -property:Configuration=Release \
-            -p:RuntimeIdentifier=osx-x64 \
-            -p:UseAppHost=true \
-            -p:CFBundleShortVersionString=0.1
-
-          
-      - name: Prepare Archive
+      - name: Find first scheme of default project
         run: |
-          mkdir Gui.app
-          mv Gui/bin/Release/net6.0/osx-x64/* Gui.app
-          
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: Bloom
-          path: Gui.app
-          if-no-files-found: error
-          retention-days: 60
+          echo "::set-env name=SCHEME::$(xcodebuild -list -json | jq -r '.project.schemes[0]')"
+      - name: Build and test app
+        shell: bash --noprofile --norc -eo pipefail {0}
+        run: |
+          xcodebuild -scheme "$SCHEME" test CODE_SIGN_IDENTITY=- | xcpretty
