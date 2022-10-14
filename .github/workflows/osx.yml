@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
-  master_test:
+  build:
     runs-on: macos-latest
 
     steps:

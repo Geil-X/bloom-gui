@@ -25,7 +25,7 @@ jobs:
           dotnet build \
             --configuration Release \
             --self-contained \
-            --os linux-x64
+            --os linux
           
 
       - name: Run Tests
@@ -33,7 +33,7 @@ jobs:
           dotnet test \
             --no-build \
             --verbosity normal \
-            --os linux-x64
+            --os linux
           
       - name: Publish Project to AppImage
         run: >
@@ -42,7 +42,7 @@ jobs:
             --no-build \
             --output AppImage \
             --self-contained \
-            --os linux-x64
+            --os linux
             
 
       - name: Build AppImage
