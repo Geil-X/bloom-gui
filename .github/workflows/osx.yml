@@ -40,7 +40,7 @@ jobs:
 
           
       - name: Prepare Archive
-        run: >
+        run: |
           mkdir Gui.app
           mv Gui/bin/Release/net6.0/osx-x64/* Gui.app
           
