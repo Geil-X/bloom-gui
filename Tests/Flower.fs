@@ -29,10 +29,12 @@ let ``Position Property`` (position: Point2D<Meters, ScreenSpace>) =
     testSetterAndGetter Flower.setPosition Flower.position position
 
 [<Property>]
+[<Ignore("Needs unit tests from Math.Units and Math.Geometry")>]
 let ``Open Percent Property`` (openPercent: Percent) =
     testSetterAndGetter Flower.setOpenPercent Flower.openPercent openPercent
 
 [<Property>]
+[<Ignore("Needs unit tests from Math.Units and Math.Geometry")>]
 let ``Target Percent Property`` (targetPercent: Percent) =
     testSetterAndGetter Flower.setTargetPercent Flower.targetPercent targetPercent
 
@@ -50,5 +52,6 @@ let ``Max Speed Property`` (maxSpeed: AngularSpeed) =
     testSetterAndGetter Flower.setMaxSpeed Flower.maxSpeed maxSpeed
 
 [<Property>]
+[<Ignore("Needs unit tests from Math.Units and Math.Geometry")>]
 let ``Acceleration Property`` (acceleration: AngularAcceleration) =
     testSetterAndGetter Flower.setAcceleration Flower.acceleration acceleration
