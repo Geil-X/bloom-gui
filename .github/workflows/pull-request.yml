@@ -1,8 +1,6 @@
-name: .NET
+name: Pull Request Verification
 
 on:
-  push:
-    branches: [ master ]
   pull_request:
     branches: [ master ]
 
@@ -13,13 +11,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup .NET Newest
+
+      - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1.7.2
         with:
           dotnet-version: 6.0.x
+
       - name: Restore dependencies
         run: dotnet restore
-      - name: Build
+
+      - name: Build Bloom Application
         run: dotnet build --no-restore
-      - name: Test
+
+      - name: Run Tests
         run: dotnet test --no-build --verbosity normal

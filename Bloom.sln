@@ -6,8 +6,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Files", "Solution 
 ProjectSection(SolutionItems) = preProject
 	.gitignore = .gitignore
 	dotnet.yml = .github/workflows/dotnet.yml
-	Docs\Development.md = Docs\Development.md
-	Docs\Keyboard Shortcuts.md = Docs\Keyboard Shortcuts.md
+	README.md = README.md
+	.github\workflows\pull-request.yml = .github\workflows\pull-request.yml
+	.github\workflows\osx.yml = .github\workflows\osx.yml
 EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{2E227CBB-13D0-41DC-883E-3A318214FAF0}"
