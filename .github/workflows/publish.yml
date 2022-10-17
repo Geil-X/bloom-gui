@@ -39,7 +39,6 @@ jobs:
         run: >
           mkdir AppImage
           dotnet publish \
-            --no-build \
             --output AppImage \
             --self-contained \
             --configuration Release \
@@ -94,7 +93,6 @@ jobs:
         run: >
           mkdir Gui.app
           dotnet publish \
-            --no-build \
             --self-contained \
             --output Gui.app \
             --configuration Release \
