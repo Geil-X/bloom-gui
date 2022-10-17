@@ -54,6 +54,7 @@ AppDir:
       - libnss3
       - libxss1
       - libxtst6
+      - squashfs-tools
       - xdg-utils
 
     exclude:
