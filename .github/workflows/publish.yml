@@ -90,7 +90,7 @@ jobs:
           --configuration Release
           -P:RID=osx-x64
 
-      - name: Publish Project to AppImage
+      - name: Publish Project to App
         run: >
           mkdir Gui.app
           
@@ -99,14 +99,6 @@ jobs:
           --output Gui.app
           --configuration Release
           -P:RID=osx-x64
-
-
-      - name: Build AppImage
-        uses: AppImageCrafters/build-appimage-action@master
-        env:
-          UPDATE_INFO: gh-releases-zsync|Geil-X|bloom-gui|latest|*x86_64.AppImage.zsync
-        with:
-          recipe: AppImageBuilder.yml
 
       - uses: actions/upload-artifact@v2
         with:

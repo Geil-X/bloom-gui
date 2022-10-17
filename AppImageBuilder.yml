@@ -18,8 +18,7 @@ AppDir:
       - sourceline: deb http://archive.ubuntu.com/ubuntu/ bionic-security main restricted universe multiverse
       - sourceline: deb http://archive.neon.kde.org/user/ bionic main
         key_url: 'https://archive.neon.kde.org/public.key'
-    include:
-      - dotnet-runtime-6
+    include: []
     exclude: []
       
   files:
