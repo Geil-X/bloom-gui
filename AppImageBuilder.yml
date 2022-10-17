@@ -10,7 +10,7 @@ script:
   - cd AppDir || exit
   - ln usr/local/share/bloom/Gui usr/bin/bloom
   - cd ../
-  - cp publish/linux/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
+  - cp publish/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
 
 AppDir:
   path: ./AppDir
