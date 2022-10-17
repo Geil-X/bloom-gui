@@ -1,5 +1,17 @@
 version: 1
 
+script:
+  # Remove any previous build
+  - rm -rf AppDir | true
+  - rm -rf build  | true
+
+  - mkdir -p AppDir/usr/local/share/bloom AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/metainfo AppDir/usr/share/pixmaps AppDir/usr/lib AppDir/usr/lib64 AppDir/usr/sbin
+  - cp -r publish/* AppDir/usr/local/share/bloom
+  - cd AppDir || exit
+  - ln usr/local/share/bloom/bloom usr/bin/bloom
+  - cd ../
+  - cp publish/linux/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
+
 AppDir:
   path: ./AppDir
   app_info:
@@ -7,16 +19,41 @@ AppDir:
     name: Bloom
     icon: icon
     version: latest
-    exec: Gui
+    exec: usr/bin/bloom
     exec_args: $@
 
   apt:
-    arch: amd64
+    arch: [ amd64 ]
     sources:
       - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy main restricted'
         key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf6ecb3762474eda9d21b7022871920d1991bc93c'
-    include: [ ]
-    exclude: [ ]
+        
+    include:
+      - coreutils
+      - gtk-update-icon-cache
+      - libx11-dev
+      - libc6
+      - libgcc1
+      - libgssapi-krb5-2
+      - libicu-dev
+      - libssl1.1
+      - libstdc++6
+      - zlib1g
+      - libgtk-3-0
+      - libnotify4
+      - libnss3
+      - libxss1
+      - libxtst6
+      - xdg-utils
+      - libgdiplus
+
+    exclude:
+      - humanity-icon-theme
+      
+    runtime:
+      arch: [ x86_64 ]
+      env:
+        GDK_BACKEND: x11
   
   files:
     include: [ ]
@@ -50,5 +87,5 @@ AppDir:
 
 AppImage:
   arch: x86_64
-  update-information: !ENV ${UPDATE_INFO}
+  update-information: gh-releases-zsync|Geil-X|bloom-gui|latest|Bloom*x86_64.AppImage.zsync
   sign-key: None

@@ -36,12 +36,12 @@ jobs:
           --configuration Release
           -P:RID=linux-x64
 
-      - name: Publish Project to AppImage
+      - name: Publish Project
         run:
-          mkdir AppImage
+          mkdir publish
           
           dotnet publish
-          --output AppImage
+          --output publish
           --self-contained
           --configuration Release
           -P:RID=linux-x64
@@ -49,8 +49,6 @@ jobs:
 
       - name: Build AppImage
         uses: AppImageCrafters/build-appimage-action@master
-        env:
-          UPDATE_INFO: gh-releases-zsync|Geil-X|bloom-gui|latest|Bloom*x86_64.AppImage.zsync
         with:
           recipe: AppImageBuilder.yml
 
