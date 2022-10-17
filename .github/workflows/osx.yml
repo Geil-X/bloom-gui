@@ -9,13 +9,49 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout project
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-      - name: Find first scheme of default project
-        run: |
-          echo "::set-env name=SCHEME::$(xcodebuild -list -json | jq -r '.project.schemes[0]')"
-      - name: Build and test app
-        shell: bash --noprofile --norc -eo pipefail {0}
-        run: |
-          xcodebuild -scheme "$SCHEME" test CODE_SIGN_IDENTITY=- | xcpretty
+      - name: Setup .NET 6.0
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build Project
+        run: >
+          dotnet build \
+            --configuration Release \
+            --self-contained \
+            -P:MyRuntimeIdentifier=linux-x64
+
+
+      - name: Run Tests
+        run: >
+          dotnet test \
+            --no-build \
+            --verbosity normal \
+            --os linux
+
+      - name: Publish Project to AppImage
+        run: >
+          mkdir Gui.app
+          dotnet publish \
+            --no-build \
+            --output Gui.app \
+            --self-contained \
+            -P:MyRuntimeIdentifier=linux-x64
+
+
+      - name: Build AppImage
+        uses: AppImageCrafters/build-appimage-action@master
+        env:
+          UPDATE_INFO: gh-releases-zsync|Geil-X|bloom-gui|latest|*x86_64.AppImage.zsync
+        with:
+          recipe: AppImageBuilder.yml
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Gui.app
+          path: './Gui.app'

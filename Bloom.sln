@@ -11,6 +11,7 @@ ProjectSection(SolutionItems) = preProject
 	.github\workflows\osx.yml = .github\workflows\osx.yml
 	.github\workflows\ubuntu.yml = .github\workflows\ubuntu.yml
 	AppImageBuilder.yml = AppImageBuilder.yml
+	Directory.Build.props = Directory.Build.props
 EndProjectSection
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{2E227CBB-13D0-41DC-883E-3A318214FAF0}"
