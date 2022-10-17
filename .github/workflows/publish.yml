@@ -20,29 +20,30 @@ jobs:
         run: dotnet restore
 
       - name: Build Project
-        run: >
+        run:
           dotnet build
-            --self-contained
-            --configuration Release
-            -P:MyRuntimeIdentifier=linux-x64
+          --self-contained
+          --configuration Release
+          -P:MyRuntimeIdentifier=linux-x64
 
 
       - name: Run Tests
-        run: >
+        run:
           dotnet test
-            --no-build
-            --verbosity normal
-            --configuration Release
-            -P:MyRuntimeIdentifier=linux-x64
+          --no-build
+          --verbosity normal
+          --configuration Release
+          -P:MyRuntimeIdentifier=linux-x64
 
       - name: Publish Project to AppImage
-        run: |
+        run:
           mkdir AppImage
-          dotnet publish \
-            --output AppImage \
-            --self-contained \
-            --configuration Release \
-            -P:MyRuntimeIdentifier=linux-x64
+          
+          dotnet publish
+          --output AppImage
+          --self-contained
+          --configuration Release
+          -P:MyRuntimeIdentifier=linux-x64
 
 
       - name: Build AppImage
@@ -76,27 +77,28 @@ jobs:
       - name: Build Project
         run: >
           dotnet build
-            --self-contained
-            --configuration Release
-            -P:MyRuntimeIdentifier=linux-x64
+          --self-contained
+          --configuration Release
+          -P:MyRuntimeIdentifier=linux-x64
 
 
       - name: Run Tests
         run: >
           dotnet test
-            --no-build
-            --verbosity normal
-            --configuration Release
-            -P:MyRuntimeIdentifier=linux-x64
+          --no-build
+          --verbosity normal
+          --configuration Release
+          -P:MyRuntimeIdentifier=linux-x64
 
       - name: Publish Project to AppImage
         run: >
           mkdir Gui.app
-          dotnet publish \
-            --self-contained \
-            --output Gui.app \
-            --configuration Release \
-            -P:MyRuntimeIdentifier=linux-x64
+          
+          dotnet publish
+          --self-contained
+          --output Gui.app
+          --configuration Release
+          -P:MyRuntimeIdentifier=linux-x64
 
 
       - name: Build AppImage
