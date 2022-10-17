@@ -21,22 +21,22 @@ jobs:
 
       - name: Build Project
         run: >
-          dotnet build \
-            --self-contained \
-            --configuration Release \
+          dotnet build
+            --self-contained
+            --configuration Release
             -P:MyRuntimeIdentifier=linux-x64
 
 
       - name: Run Tests
         run: >
-          dotnet test \
-            --no-build \
-            --verbosity normal \
-            --configuration Release \
+          dotnet test
+            --no-build
+            --verbosity normal
+            --configuration Release
             -P:MyRuntimeIdentifier=linux-x64
 
       - name: Publish Project to AppImage
-        run: >
+        run: |
           mkdir AppImage
           dotnet publish \
             --output AppImage \
@@ -56,9 +56,9 @@ jobs:
         with:
           name: AppImage
           path: './*.AppImage*'
-          
-          
-          
+  
+  
+  
   os-x:
     runs-on: macos-latest
 
@@ -75,18 +75,18 @@ jobs:
 
       - name: Build Project
         run: >
-          dotnet build \
-            --self-contained \
-            --configuration Release \
+          dotnet build
+            --self-contained
+            --configuration Release
             -P:MyRuntimeIdentifier=linux-x64
 
 
       - name: Run Tests
         run: >
-          dotnet test \
-            --no-build \
-            --verbosity normal \
-            --configuration Release \
+          dotnet test
+            --no-build
+            --verbosity normal
+            --configuration Release
             -P:MyRuntimeIdentifier=linux-x64
 
       - name: Publish Project to AppImage
