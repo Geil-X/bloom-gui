@@ -24,7 +24,7 @@ jobs:
           dotnet build
           --self-contained
           --configuration Release
-          -P:RuntimeIdentifier=linux-x64
+          -P:RID=linux-x64
 
 
       - name: Run Tests
@@ -33,7 +33,7 @@ jobs:
           --no-build
           --verbosity normal
           --configuration Release
-          -P:RuntimeIdentifier=linux-x64
+          -P:RID=linux-x64
 
       - name: Publish Project to AppImage
         run:
@@ -43,7 +43,7 @@ jobs:
           --output AppImage
           --self-contained
           --configuration Release
-          -P:RuntimeIdentifier=linux-x64
+          -P:RID=linux-x64
 
 
       - name: Build AppImage
@@ -79,7 +79,7 @@ jobs:
           dotnet build
           --self-contained
           --configuration Release
-          -P:RuntimeIdentifier=osx-x64
+          -P:RID=osx-x64
 
 
       - name: Run Tests
@@ -88,7 +88,7 @@ jobs:
           --no-build
           --verbosity normal
           --configuration Release
-          -P:RuntimeIdentifier=osx-x64
+          -P:RID=osx-x64
 
       - name: Publish Project to AppImage
         run: >
@@ -98,7 +98,7 @@ jobs:
           --self-contained
           --output Gui.app
           --configuration Release
-          -P:RuntimeIdentifier=osx-x64
+          -P:RID=osx-x64
 
 
       - name: Build AppImage
