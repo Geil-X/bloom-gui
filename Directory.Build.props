@@ -1,5 +1,5 @@
 <Project>
   <PropertyGroup>
-    <RuntimeIdentifier>$(MyRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifier>$(RuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
 </Project>
