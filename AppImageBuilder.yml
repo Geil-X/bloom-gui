@@ -17,7 +17,7 @@ AppDir:
   app_info:
     id: org.geil.bloom
     name: Bloom
-    icon: icon
+    icon: icon.ico
     version: latest
     exec: usr/bin/bloom
     exec_args: $@
