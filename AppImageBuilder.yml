@@ -27,7 +27,7 @@ AppDir:
     sources:
       - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy main restricted'
         key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf6ecb3762474eda9d21b7022871920d1991bc93c'
-        
+    
     include:
       - coreutils
       - gtk-update-icon-cache
@@ -49,11 +49,11 @@ AppDir:
 
     exclude:
       - humanity-icon-theme
-      
-    runtime:
-      arch: [ x86_64 ]
-      env:
-        GDK_BACKEND: x11
+  
+  runtime:
+    arch: [ x86_64 ]
+    env:
+      GDK_BACKEND: x11
   
   files:
     include: [ ]
