@@ -3,8 +3,8 @@ version: 1
 script:
   # Remove any previous build
   - rm -rf AppDir | true
-  - rm -rf publish  | true
-
+  
+  # Build directory structure
   - >
     mkdir -p 
     AppDir/usr/bin
@@ -17,10 +17,9 @@ script:
     AppDir/usr/share/metainfo 
     AppDir/usr/share/pixmaps
 
+  # Copy application files over to the AppDir directory
   - cp -r publish/* AppDir/usr/local/share/bloom
-  - cd AppDir || exit
-  - ln usr/local/share/bloom/Gui usr/bin/bloom
-  - cd ../
+  - ln AppDir/usr/local/share/bloom/Gui AppDir/usr/bin/bloom
   - cp publish/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
   - cp publish/icon* AppDir/usr/share/icons/
 
