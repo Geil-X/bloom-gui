@@ -8,7 +8,7 @@ script:
   - mkdir -p AppDir/usr/local/share/bloom AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/metainfo AppDir/usr/share/pixmaps AppDir/usr/lib AppDir/usr/lib64 AppDir/usr/sbin
   - cp -r publish/* AppDir/usr/local/share/bloom
   - cd AppDir || exit
-  - ln usr/local/share/bloom/bloom usr/bin/bloom
+  - ln usr/local/share/bloom/Gui usr/bin/bloom
   - cd ../
   - cp publish/linux/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
 
