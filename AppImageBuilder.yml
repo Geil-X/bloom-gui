@@ -22,13 +22,6 @@ script:
   - ln AppDir/usr/local/share/bloom/Gui AppDir/usr/bin/bloom
   - cp publish/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
   - cp publish/icon* AppDir/usr/share/icons/
-    
-  # Fix for the `mksquashfs` tool
-  - echo "Tommy. mksquashfs = $(which mksquashfs)"
-  - echo "Tommy. appimages = $(~/.cache/electron-builder/appimage/)"
-  - mkdir -p ~/.cache/electron-builder/appimage/appimage-9.1.0/linux-arm/
-  - ln -s `which mksquashfs` ~/.cache/electron-builder/appimage/appimage-9.1.0/linux-arm/mksquashfs
-  - ln -s `which desktop-file-validate` ~/.cache/electron-builder/appimage/appimage-9.1.0/linux-arm/desktop-file-validate
 
 AppDir:
   path: ./AppDir
@@ -62,7 +55,6 @@ AppDir:
       - libnss3
       - libxss1
       - libxtst6
-      - squashfs-tools
       - xdg-utils
 
     exclude:
