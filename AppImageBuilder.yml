@@ -11,13 +11,14 @@ script:
   - ln usr/local/share/bloom/Gui usr/bin/bloom
   - cd ../
   - cp publish/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
+  - cp publish/icon* AppDir/usr/share/icons/
 
 AppDir:
   path: ./AppDir
   app_info:
     id: org.geil.bloom
     name: Bloom
-    icon: icon.ico
+    icon: icon.png
     version: latest
     exec: usr/bin/bloom
     exec_args: $@
