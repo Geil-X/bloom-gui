@@ -44,7 +44,6 @@ AppDir:
       - libxss1
       - libxtst6
       - xdg-utils
-      - libgdiplus
 
     exclude:
       - humanity-icon-theme
