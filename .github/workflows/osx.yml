@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  os-x:
     runs-on: macos-latest
 
     steps:
@@ -32,7 +32,7 @@ jobs:
           dotnet test \
             --no-build \
             --verbosity normal \
-            --os linux
+            -P:MyRuntimeIdentifier=linux-x64
 
       - name: Publish Project to AppImage
         run: >

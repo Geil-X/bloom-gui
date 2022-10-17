@@ -5,7 +5,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  linux:
 
     runs-on: ubuntu-latest
 
@@ -33,7 +33,7 @@ jobs:
           dotnet test \
             --no-build \
             --verbosity normal \
-            --os linux
+            -P:MyRuntimeIdentifier=linux-x64
           
       - name: Publish Project to AppImage
         run: >
