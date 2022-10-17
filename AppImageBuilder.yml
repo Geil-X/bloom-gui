@@ -3,9 +3,20 @@ version: 1
 script:
   # Remove any previous build
   - rm -rf AppDir | true
-  - rm -rf build  | true
+  - rm -rf publish  | true
 
-  - mkdir -p AppDir/usr/local/share/bloom AppDir/usr/bin AppDir/usr/share/applications AppDir/usr/share/metainfo AppDir/usr/share/pixmaps AppDir/usr/lib AppDir/usr/lib64 AppDir/usr/sbin
+  - >
+    mkdir -p 
+    AppDir/usr/bin
+    AppDir/usr/lib
+    AppDir/usr/lib64
+    AppDir/usr/local/share/bloom 
+    AppDir/usr/sbin
+    AppDir/usr/share/applications
+    AppDir/usr/share/icons 
+    AppDir/usr/share/metainfo 
+    AppDir/usr/share/pixmaps
+
   - cp -r publish/* AppDir/usr/local/share/bloom
   - cd AppDir || exit
   - ln usr/local/share/bloom/Gui usr/bin/bloom
