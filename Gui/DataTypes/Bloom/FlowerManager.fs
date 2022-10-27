@@ -1,6 +1,7 @@
 module Gui.DataTypes.FlowerManager
 
 open Avalonia.Input
+open Gui.DataTypes.Bloom
 open Math.Geometry
 open Math.Units
 
@@ -12,13 +13,15 @@ open Gui.DataTypes
 // ---- Types ------------------------------------------------------------------
 
 
+
 type State =
     { CanvasSize: Size2D<Meters>
       Flowers: Map<Flower Id, Flower>
       FlowerInteraction: FlowerInteraction
       Selected: Flower Id option
       NextI2c: I2cAddress
-      FlowerStartPosition: Point2D<Meters, ScreenSpace> }
+      FlowerStartPosition: Point2D<Meters, ScreenSpace>
+      Behavior: Behavior }
 
 and FlowerInteraction =
     | Hovering of Flower Id
@@ -61,7 +64,8 @@ let init () =
       FlowerInteraction = NoInteraction
       Selected = None
       NextI2c = I2cAddress.first
-      FlowerStartPosition = Point2D.pixels 50. 50. }
+      FlowerStartPosition = Point2D.pixels 50. 50.
+      Behavior = UserControlled }
 
 let clear (manager: State) : State =
     { manager with
@@ -86,6 +90,8 @@ let addFlower (flower: Flower) (manager: State) : State =
     { manager with Flowers = Map.add flower.Id flower manager.Flowers }
 
 // ---- Modifiers --------------------------------------------------------------
+
+let setBehavior (behavior: Behavior) (manager: State) : State = { manager with Behavior = behavior }
 
 let addFlowers (flowers: Flower seq) (manager: State) : State =
     let flowerMap =
@@ -171,8 +177,12 @@ let updateFlower (id: Flower Id) (property: string) (f: 'a -> Flower -> Flower) 
         Log.verbose $"Failed to update flower '{Id.shortName id}' with new {property} '{value}'"
         manager
 
+
 let tick (elapsed: Duration) (manager: State) : State =
-    updateFlowers (Flower.tick elapsed) manager
+    updateFlowers
+        (Behavior.getBehavior manager.Behavior
+         >> Flower.tick elapsed)
+        manager
 
 
 // ---- Msg Update ----

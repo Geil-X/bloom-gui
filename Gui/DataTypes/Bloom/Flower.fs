@@ -55,13 +55,6 @@ type Flower =
     override this.GetHashCode() =
         HashCode.Combine(this.OpenPercent, this.TargetPercent, this.Speed, this.MaxSpeed, this.Acceleration)
 
-/// The flowers have different behaviors that they can take on. The flowers
-/// movement is based on their current behavior. If the flower is in the
-/// UserControlled mode, then the flower's behavior is based on the commands
-/// that the user sends to the flowers individually.
-type Behavior =
-    | UserControlled
-    | Bloom
 
 module Flower =
     open Avalonia.Input
@@ -98,6 +91,12 @@ module Flower =
     let microstepSize: Percent =
         Angle.microsteps 1. |> Percent.fromAngle
 
+    let defaultMaxSpeed =
+        AngularSpeed.microstepsPerSecond 10000.
+
+    let defaultAcceleration =
+        AngularAcceleration.microstepsPerSecondSquared 2500.
+
     // ---- Builders -----
 
     /// Create a flower with the default parameters.
@@ -109,8 +108,8 @@ module Flower =
           OpenPercent = Percent.zero
           TargetPercent = Percent.zero
           Speed = AngularSpeed.microstepsPerSecond 0.
-          MaxSpeed = AngularSpeed.microstepsPerSecond 10000.
-          Acceleration = AngularAcceleration.microstepsPerSecondSquared 2500.
+          MaxSpeed = defaultMaxSpeed
+          Acceleration = defaultAcceleration
           Radius = Length.cssPixels 20.
           ConnectionStatus = Disconnected }
 
@@ -232,7 +231,7 @@ module Flower =
 
         let targetDirection =
             Quantity.compare flower.TargetPercent flower.OpenPercent
-            
+
         remainingDistance flower < distanceToStop flower
         && speedDirection = targetDirection
 

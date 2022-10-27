@@ -76,9 +76,7 @@ let ``Flower simulation test cases`` =
         |> Flower.setMaxSpeed maxSpeed
         |> Flower.setAcceleration acceleration
 
-    [
-
-      // Flower is initially opening from a closed position
+    [ // Flower is initially opening from a closed position
       { Name = "Closed to Open"
         InitialState =
           initialState

@@ -5,6 +5,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
 open Elmish
+open Gui.DataTypes.Bloom
 open Math.Units
 open System
 open System.IO.Ports
@@ -17,8 +18,7 @@ type State =
     { TargetPercent: Percent
       MaxSpeed: AngularSpeed
       Acceleration: AngularAcceleration
-      SerialPorts: string list
-      Behavior: Behavior }
+      SerialPorts: string list }
 
 [<RequireQualifiedAccess>]
 type External =
@@ -26,6 +26,7 @@ type External =
     | CloseSerialPort of SerialPort
     | ChangePort of SerialPortName
     | SendCommand of Command
+    | BehaviorSelected of Behavior
     | NoMsg
 
 [<RequireQualifiedAccess>]
@@ -55,8 +56,7 @@ let init () : State * Cmd<'Msg> =
     { TargetPercent = Percent.zero
       MaxSpeed = AngularSpeed.zero
       Acceleration = AngularAcceleration.zero
-      SerialPorts = []
-      Behavior = UserControlled },
+      SerialPorts = [] },
     Cmd.none
 
 /// ---- Update ----------------------------------------------------------------
@@ -90,7 +90,7 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> * External =
         | Start _ -> state, getPorts, External.NoMsg
         | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none, External.NoMsg
     | Msg.SendCommandOfId commandId -> state, Cmd.none, sendCommand commandId state
-    | Msg.BehaviorSelected behavior -> { state with Behavior = behavior }, Cmd.none, External.NoMsg
+    | Msg.BehaviorSelected behavior -> state, Cmd.none, External.BehaviorSelected behavior
 
 
 /// ---- View ------------------------------------------------------------------
@@ -281,8 +281,9 @@ let private iconButton
 
         |> View.withAttr (Button.isEnabled false)
 
-let behaviorsView state dispatch =
-    let behaviors = [ UserControlled; Bloom ]
+let behaviorsView behavior dispatch =
+    let behaviors =
+        [ UserControlled; Bloom; OpenClose ]
 
     Form.formElement
         {| Name = "Behaviors"
@@ -290,7 +291,7 @@ let behaviorsView state dispatch =
            Element =
             ListBox.create [
                 ListBox.dataItems behaviors
-                ListBox.selectedItem state.Behavior
+                ListBox.selectedItem behavior
                 ListBox.selectionMode SelectionMode.Toggle
                 ListBox.onSelectedItemChanged (fun behavior ->
                     if not <| isNull behavior then
@@ -299,9 +300,17 @@ let behaviorsView state dispatch =
                         |> dispatch)
             ] |}
 
-let view (state: State) (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
+let view
+    (state: State)
+    (flowerOption: Flower option)
+    (behavior: Behavior)
+    (serialPort: SerialPort option)
+    (dispatch: Msg -> unit)
+    =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
+
+          behaviorsView behavior dispatch
 
           serialPortView state.SerialPorts serialPort dispatch
 
@@ -317,9 +326,7 @@ let view (state: State) (flowerOption: Flower option) (serialPort: SerialPort op
           maxSpeedView state.MaxSpeed dispatch
 
           iconButton "Set Acceleration" Icon.acceleration Command.Id.Acceleration flowerOption dispatch
-          accelerationView state.Acceleration dispatch
-
-          behaviorsView state dispatch ]
+          accelerationView state.Acceleration dispatch ]
 
     StackPanel.create [
         StackPanel.children children
