@@ -17,7 +17,8 @@ type State =
     { TargetPercent: Percent
       MaxSpeed: AngularSpeed
       Acceleration: AngularAcceleration
-      SerialPorts: string list }
+      SerialPorts: string list
+      Behavior: Behavior }
 
 [<RequireQualifiedAccess>]
 type External =
@@ -35,7 +36,9 @@ type Msg =
     | ChangeAcceleration of AngularAcceleration
     | RefreshSerialPorts of AsyncOperationStatus<unit, SerialPortName list>
     | SendCommandOfId of Command.Id
-    
+    | BehaviorSelected of Behavior
+
+
 let presets =
     {| speedEmpty = AngularSpeed.microstepsPerSecond 0.
        minSpeed = AngularSpeed.microstepsPerSecond 0.
@@ -52,7 +55,8 @@ let init () : State * Cmd<'Msg> =
     { TargetPercent = Percent.zero
       MaxSpeed = AngularSpeed.zero
       Acceleration = AngularAcceleration.zero
-      SerialPorts = [] },
+      SerialPorts = []
+      Behavior = UserControlled },
     Cmd.none
 
 /// ---- Update ----------------------------------------------------------------
@@ -86,6 +90,7 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> * External =
         | Start _ -> state, getPorts, External.NoMsg
         | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none, External.NoMsg
     | Msg.SendCommandOfId commandId -> state, Cmd.none, sendCommand commandId state
+    | Msg.BehaviorSelected behavior -> { state with Behavior = behavior }, Cmd.none, External.NoMsg
 
 
 /// ---- View ------------------------------------------------------------------
@@ -276,6 +281,24 @@ let private iconButton
 
         |> View.withAttr (Button.isEnabled false)
 
+let behaviorsView state dispatch =
+    let behaviors = [ UserControlled; Bloom ]
+
+    Form.formElement
+        {| Name = "Behaviors"
+           Orientation = Orientation.Vertical
+           Element =
+            ListBox.create [
+                ListBox.dataItems behaviors
+                ListBox.selectedItem state.Behavior
+                ListBox.selectionMode SelectionMode.Toggle
+                ListBox.onSelectedItemChanged (fun behavior ->
+                    if not <| isNull behavior then
+                        behavior :?> Behavior
+                        |> Msg.BehaviorSelected
+                        |> dispatch)
+            ] |}
+
 let view (state: State) (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
@@ -294,7 +317,9 @@ let view (state: State) (flowerOption: Flower option) (serialPort: SerialPort op
           maxSpeedView state.MaxSpeed dispatch
 
           iconButton "Set Acceleration" Icon.acceleration Command.Id.Acceleration flowerOption dispatch
-          accelerationView state.Acceleration dispatch ]
+          accelerationView state.Acceleration dispatch
+
+          behaviorsView state dispatch ]
 
     StackPanel.create [
         StackPanel.children children

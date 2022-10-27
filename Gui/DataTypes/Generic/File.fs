@@ -89,9 +89,13 @@ let readJsonTask<'a> (fileInfo: FileInfo) : Task<Result<'a, ReadError>> =
             let fileStream =
                 new StreamReader(fileInfo.OpenRead())
 
-            return
+            let result =
                 Decode.Auto.fromString<'a> (fileStream.ReadToEnd(), extra = extraCoders)
                 |> Result.mapError (fun errorString -> ReadError.JsonDeserializationError(fileInfo, errorString))
+
+            fileStream.Close()
+
+            return result
 
         with
         | :? FileNotFoundException -> return ReadError.FileDoesNotExist fileInfo |> Error
@@ -128,6 +132,7 @@ let writeJsonTask<'a> (fileInfo: FileInfo) (data: 'a) : Task<Result<FileInfo, Wr
             use writer = new StreamWriter(fileStream)
 
             writer.Write(Encode.Auto.toString (2, data, extra = extraCoders))
+            writer.Close()
 
             return Ok fileInfo
         with

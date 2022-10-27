@@ -37,6 +37,14 @@ type Flower =
       Radius: Length
       /// Shows the connection status of the real world flower.
       ConnectionStatus: ConnectionStatus }
+    
+/// The flowers have different behaviors that they can take on. The flowers
+/// movement is based on their current behavior. If the flower is in the
+/// UserControlled mode, then the flower's behavior is based on the commands
+/// that the user sends to the flowers individually.
+type Behavior =
+    | UserControlled
+    | Bloom
 
 module Flower =
     open Avalonia.Input

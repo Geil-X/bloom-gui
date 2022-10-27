@@ -239,8 +239,9 @@ let private startWithFlowers (state: State) (flowers: Flower seq) : State =
         state
 
 let private saveAsCmd (fileInfo: FileInfo) (state: State) : Cmd<Msg> =
-    let flowerFileData =
+    let flowerFileData: Flower list =
         FlowerManager.getFlowers state.FlowerManager
+        |> List.ofSeq
 
     File.write fileInfo flowerFileData (Finished >> Action.SaveAs >> Action)
 
@@ -466,7 +467,13 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         match appConfigResult with
         | Ok appConfig ->
             Log.info "Loaded Application Configuration from the disk."
-            { state with AppConfig = appConfig }, Cmd.none
+            
+            let maybeOpenRecentFlowerFile =
+                match List.tryHead appConfig.RecentFiles with
+                | Some recentFile -> openFile recentFile
+                | None -> Cmd.none
+            
+            { state with AppConfig = appConfig }, maybeOpenRecentFlowerFile
 
         | Error readError ->
             match readError with
