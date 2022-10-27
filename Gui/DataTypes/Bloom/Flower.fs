@@ -1,5 +1,6 @@
 namespace Gui.DataTypes
 
+open System
 open Math.Geometry
 open Math.Units
 
@@ -7,6 +8,7 @@ open Math.Units
 /// to a single flower in the application. This includes information needing
 /// to simulate and communicate with the flower as well as the information
 /// about how the flower is being used within the application.
+[<CustomEquality; NoComparison>]
 type Flower =
     { /// The unique identifier for this flower.
       Id: Flower Id
@@ -37,7 +39,22 @@ type Flower =
       Radius: Length
       /// Shows the connection status of the real world flower.
       ConnectionStatus: ConnectionStatus }
-    
+
+    member this.Equals(other: Flower) : bool =
+        this.OpenPercent = other.OpenPercent
+        && this.TargetPercent = other.TargetPercent
+        && this.Speed = other.Speed
+        && this.MaxSpeed = other.MaxSpeed
+        && this.Acceleration = other.Acceleration
+
+    override this.Equals other =
+        match other with
+        | :? Flower as flower -> this.Equals flower
+        | _ -> false
+
+    override this.GetHashCode() =
+        HashCode.Combine(this.OpenPercent, this.TargetPercent, this.Speed, this.MaxSpeed, this.Acceleration)
+
 /// The flowers have different behaviors that they can take on. The flowers
 /// movement is based on their current behavior. If the flower is in the
 /// UserControlled mode, then the flower's behavior is based on the commands
@@ -184,6 +201,58 @@ module Flower =
     let disconnect flower : Flower =
         { flower with ConnectionStatus = Disconnected }
 
+
+    // ---- Queries ----
+
+    /// Test to see if the flower with the current size on the screen contains a point.
+    let containsPoint (point: Point2D<Meters, ScreenSpace>) (state: Flower) =
+        Circle2D.atPoint state.Position state.Radius
+        |> Circle2D.containsPoint point
+
+    /// The remaining distance that the flower has to move. This value is always positive.
+    let remainingDistance (flower: Flower) : Percent =
+        flower.OpenPercent - flower.TargetPercent
+        |> Quantity.abs
+
+
+    /// Check to see if the flower is moving or not. This takes into account
+    /// the current position of the flower, the speed it is traveling at,
+    /// and how long it is going to stop based on it's current acceleration.
+    let isStopped (flower: Flower) : bool =
+        let almostStopped () =
+            Quantity.equalWithin stepSize (distanceToStop flower) Percent.zero
+
+        // Flower is at target, nothing needs to be done
+        Quantity.equalWithin stepSize flower.OpenPercent flower.TargetPercent
+        && almostStopped ()
+
+    let isAccelerating (flower: Flower) : bool =
+        let speedDirection =
+            AngularSpeed.sign flower.Speed
+
+        let targetDirection =
+            Quantity.compare flower.TargetPercent flower.OpenPercent
+            
+        remainingDistance flower < distanceToStop flower
+        && speedDirection = targetDirection
+
+    /// Get the direction the flower is accelerating in
+    /// Determines if the flower needs to open or close.
+    /// This value is '1' if the flower needs to accelerate
+    /// This value is '-1' if the flower needs to decelerate
+    let accelerationDirection (flower: Flower) : int =
+        let targetDirection =
+            Quantity.compare flower.TargetPercent flower.OpenPercent
+
+        if isAccelerating flower then
+            -targetDirection
+        else
+            targetDirection
+
+
+
+    // ---- Major Interactions -------------------------------------------------
+
     /// <summary>
     /// Update the current position and speed of the flower to simulate it's movement.
     /// </summary>
@@ -191,39 +260,15 @@ module Flower =
     /// <param name="dt">Elapsed time since last update.</param>
     /// <param name="flower">The flower to update</param>
     let tick (dt: Duration) (flower: Flower) : Flower =
-        let stopDistance = distanceToStop flower
-
-        let almostStopped =
-            Quantity.equalWithin stepSize stopDistance Percent.zero
-
         // Flower is at target, nothing needs to be done
-        if flower.TargetPercent = flower.OpenPercent
-           && almostStopped then
-            flower
+        if isStopped flower then
+            { flower with Speed = AngularAcceleration.zero }
 
         // Default Updating
         else
-            // The distance and direction needed to travel before
-            let travelDistance = flower.TargetPercent - flower.OpenPercent
-            
-            // The quantity of distance remaining until the destination. Always positive
-            let distanceToGo: Percent =
-                Quantity.abs travelDistance
-            
-            /// Determines if the flower needs to open or close.
-            /// This value is '1' if the flower needs to accelerate
-            /// This value is '-1' if the flower needs to decelerate
-            let accelerationDirection =
-                let speedDirection = AngularSpeed.sign flower.Speed
-                let targetDirection = Quantity.compare flower.TargetPercent flower.OpenPercent
-                if distanceToGo < stopDistance &&  speedDirection = targetDirection then
-                    -targetDirection
-                else
-                    targetDirection
-                    
             let newSpeed: AngularSpeed =
                 flower.Acceleration
-                |> AngularAcceleration.multiplyBy accelerationDirection
+                |> AngularAcceleration.multiplyBy (accelerationDirection flower)
                 |> Quantity.for_ dt
                 |> AngularSpeed.plus flower.Speed
 
@@ -233,22 +278,18 @@ module Flower =
                 |> Percent.fromAngle
                 |> Percent.plus flower.OpenPercent
 
-            let atTarget =
-                Quantity.equalWithin stepSize flower.TargetPercent newPosition
-
-            // Reached target
-            // TODO: this doesn't take into account the current motor speed. This assumes instantaneous deceleration
-            if almostStopped && atTarget then
+            let newFlower: Flower =
                 flower
+                |> setSpeed newSpeed
+                |> setOpenPercent newPosition
+
+            if isStopped newFlower then
+                newFlower
                 |> setOpenPercent flower.TargetPercent
                 |> setSpeed AngularSpeed.zero
 
             else
-                flower
-                |> setOpenPercent newPosition
-                |> setSpeed newSpeed
-
-
+                newFlower
 
 
     /// Simulate receiving a command and apply that to the flower.
@@ -265,18 +306,6 @@ module Flower =
         | MaxSpeed speed -> setMaxSpeed speed flower
         | Acceleration acceleration -> setAcceleration acceleration flower
 
-
-    // ---- Queries ----
-
-    /// Test to see if the flower with the current size on the screen contains a point.
-    let containsPoint (point: Point2D<Meters, ScreenSpace>) (state: Flower) =
-        Circle2D.atPoint state.Position state.Radius
-        |> Circle2D.containsPoint point
-
-    /// The remaining distance that the flower has to move
-    let remainingDistance (flower: Flower) : Percent =
-        flower.OpenPercent - flower.TargetPercent
-        |> Quantity.abs
 
 
 

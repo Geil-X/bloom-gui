@@ -55,3 +55,62 @@ let ``Max Speed Property`` (maxSpeed: AngularSpeed) =
 [<Ignore("Needs unit tests from Math.Units and Math.Geometry")>]
 let ``Acceleration Property`` (acceleration: AngularAcceleration) =
     testSetterAndGetter Flower.setAcceleration Flower.acceleration acceleration
+
+
+type SimulationTest =
+    { Name: string
+      InitialState: Flower
+      Expected: Flower }
+
+let duration = Duration.millisecond
+
+let ``Flower simulation test cases`` =
+    let maxSpeed =
+        AngularSpeed.microstepsPerSecond 1000.
+
+    let acceleration =
+        AngularAcceleration.microstepsPerSecondSquared 1000.
+
+    let initialState =
+        Flower.empty ()
+        |> Flower.setMaxSpeed maxSpeed
+        |> Flower.setAcceleration acceleration
+
+    [
+
+      // Flower is initially opening from a closed position
+      { Name = "Closed to Open"
+        InitialState =
+          initialState
+          |> Flower.setOpenPercent Percent.zero
+          |> Flower.setTargetPercent Percent.oneHundred
+        Expected =
+          initialState
+          |> Flower.setOpenPercent (Angle.microsteps 0.001 |> Percent.fromAngle)
+          |> Flower.setTargetPercent Percent.oneHundred
+          |> Flower.setSpeed (AngularSpeed.microstepsPerSecond 1.) }
+
+      // Flower is initially closing from an open position
+      { Name = "Open to Closed"
+        InitialState =
+          initialState
+          |> Flower.setOpenPercent Percent.oneHundred
+          |> Flower.setTargetPercent Percent.zero
+        Expected =
+          initialState
+          |> Flower.setOpenPercent (
+              Angle.microsteps 0.001
+              |> Percent.fromAngle
+              |> (-) Percent.oneHundred
+          )
+          |> Flower.setTargetPercent Percent.zero
+          |> Flower.setSpeed (-AngularSpeed.microstepsPerSecond 1.) }
+
+      ]
+    |> List.map (fun testCase ->
+        TestCaseData(testCase.InitialState)
+            .SetName(testCase.Name)
+            .Returns(testCase.Expected))
+
+[<TestCaseSource(nameof ``Flower simulation test cases``)>]
+let ``Flower simulation`` (initialState: Flower) : Flower = Flower.tick duration initialState
