@@ -2,7 +2,7 @@ name: Publish the Bloom Gui
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, ci-cd ]
 
 jobs:
   linux:
@@ -11,9 +11,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        
-      - name: Download Ubuntu Software
-        run: sudo apt-get install squashfs-tools
 
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1.7.2
@@ -50,60 +47,60 @@ jobs:
           -P:RID=linux-x64
 
 
-#      - name: Build AppImage
-#        uses: AppImageCrafters/build-appimage-action@master
+      - name: Build AppImage
+        uses: AppImageCrafters/build-appimage-action@master
+        with:
+          recipe: AppImageBuilder.yml
+  
+  #      - uses: actions/upload-artifact@v2
+  #        with:
+  #          name: AppImage
+  #          path: './*.AppImage*'
+
+
+
+#  os-x:
+#    runs-on: macos-latest
+#
+#    steps:
+#      - uses: actions/checkout@v2
+#
+#      - name: Setup .NET 6.0
+#        uses: actions/setup-dotnet@v1.7.2
 #        with:
-#          recipe: AppImageBuilder.yml
+#          dotnet-version: 6.0.x
+#
+#      - name: Restore dependencies
+#        run: dotnet restore
+#
+#      - name: Build Project
+#        run: >
+#          dotnet build
+#          --self-contained
+#          --configuration Release
+#          -P:RID=osx-x64
+#
+#
+#      - name: Run Tests
+#        run: >
+#          dotnet test
+#          --no-build
+#          --verbosity normal
+#          --configuration Release
+#          -P:RID=osx-x64
+#
+#      - name: Publish Project to App
+#        run: >
+#          mkdir Gui.app
+#          
+#          dotnet publish
+#          --self-contained
+#          --output Gui.app
+#          --configuration Release
+#          -P:RID=osx-x64
 #
 #      - uses: actions/upload-artifact@v2
 #        with:
-#          name: AppImage
-#          path: './*.AppImage*'
-  
-  
-  
-  os-x:
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Setup .NET 6.0
-        uses: actions/setup-dotnet@v1.7.2
-        with:
-          dotnet-version: 6.0.x
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build Project
-        run: >
-          dotnet build
-          --self-contained
-          --configuration Release
-          -P:RID=osx-x64
-
-
-      - name: Run Tests
-        run: >
-          dotnet test
-          --no-build
-          --verbosity normal
-          --configuration Release
-          -P:RID=osx-x64
-
-      - name: Publish Project to App
-        run: >
-          mkdir Gui.app
-          
-          dotnet publish
-          --self-contained
-          --output Gui.app
-          --configuration Release
-          -P:RID=osx-x64
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Gui.app
-          path: './Gui.app'
-          retention-days: 3
+#          name: Gui.app
+#          path: './Gui.app'
+#          retention-days: 3
