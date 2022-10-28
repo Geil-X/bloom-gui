@@ -8,10 +8,7 @@ script:
   - >
     mkdir -p 
     AppDir/usr/bin
-    AppDir/usr/lib
-    AppDir/usr/lib64
     AppDir/usr/local/share/bloom 
-    AppDir/usr/sbin
     AppDir/usr/share/applications
     AppDir/usr/share/icons 
     AppDir/usr/share/metainfo 
@@ -36,36 +33,14 @@ AppDir:
   apt:
     arch: [ amd64 ]
     sources:
-      - sourceline: 'deb http://archive.ubuntu.com/ubuntu/ jammy main restricted'
-        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xf6ecb3762474eda9d21b7022871920d1991bc93c'
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ bionic main restricted universe multiverse'
+        key_url: 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0x3b4fe6acc0b21f32'
     
-    include:
-      - bash
-      - coreutils
-      - gtk-update-icon-cache
-      - libx11-dev
-      - libc6
-      - libgcc1
-      - libgssapi-krb5-2
-      - libicu-dev
-      - libstdc++6
-      - zlib1g
-      - libgtk-3-0
-      - libnotify4
-      - libnss3
-      - libxss1
-      - libxtst6
-      - squashfs-tools
-      - xdg-utils
-
-    exclude:
-      - humanity-icon-theme
+    include: []
+    exclude: []
   
   runtime:
     arch: [ x86_64 ]
-    env:
-      GDK_BACKEND: x11
-      PATH: $PATH:/usr/bin
   
   files:
     include: [ ]
