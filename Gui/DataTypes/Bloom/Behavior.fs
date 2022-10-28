@@ -1,5 +1,6 @@
 namespace Gui.DataTypes.Bloom
 
+open Gui.DataTypes
 
 
 /// The flowers have different behaviors that they can take on. The flowers
@@ -11,32 +12,31 @@ type Behavior =
     | Bloom
     | OpenClose
 
+type BehaviorCommand = Flower -> Command list
+
 module Behavior =
-    open Gui.DataTypes
     open Math.Units
 
-    let userControlled (flower: Flower) : Flower = flower
+    let userControlled (_: Flower) : Command list = []
 
-    let bloom (flower: Flower) : Flower =
+    let bloom (flower: Flower) : Command list =
         if flower.OpenPercent = Percent.zero then
-            flower
-            |> Flower.setTargetPercent Percent.oneHundred
+            [ Command.OpenTo Percent.oneHundred ]
         else
-            flower
+            []
 
-    let openClose (flower: Flower) : Flower =
+    let openClose (flower: Flower) : Command list =
         if flower.OpenPercent = Percent.zero then
-            flower
-            |> Flower.setTargetPercent Percent.oneHundred
+            [ Command.OpenTo Percent.oneHundred ]
 
         else if flower.OpenPercent = Percent.oneHundred then
-            flower |> Flower.setTargetPercent Percent.zero
+            [ Command.OpenTo Percent.zero ]
 
         else
-            flower
+            []
 
 
-    let getBehavior (behavior: Behavior) : Flower -> Flower =
+    let getBehavior (behavior: Behavior) : BehaviorCommand =
         match behavior with
         | UserControlled -> userControlled
         | Bloom -> bloom
