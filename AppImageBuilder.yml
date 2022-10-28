@@ -39,7 +39,11 @@ AppDir:
       - sourceline: deb http://security.ubuntu.com/ubuntu bionic-security main restricted universe multiverse
     
     include: []
-    exclude: []
+    exclude:
+      - adwaita-icon-theme
+      - hicolor-icon-theme
+      - humanity-icon-theme
+      - ubuntu-mono
   
   runtime:
     arch: [ x86_64 ]
