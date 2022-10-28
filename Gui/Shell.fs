@@ -239,8 +239,9 @@ let private startWithFlowers (state: State) (flowers: Flower seq) : State =
         state
 
 let private saveAsCmd (fileInfo: FileInfo) (state: State) : Cmd<Msg> =
-    let flowerFileData =
+    let flowerFileData: Flower list =
         FlowerManager.getFlowers state.FlowerManager
+        |> List.ofSeq
 
     File.write fileInfo flowerFileData (Finished >> Action.SaveAs >> Action)
 
@@ -393,7 +394,7 @@ let private updateAction (action: Action) (state: State) (window: Window) : Stat
         let newState =
             state
             |> mapFlowerManager (FlowerManager.select id)
-        
+
         newState, Cmd.none
 
     | Action.DeselectFlower -> mapFlowerManager FlowerManager.deselect state, Cmd.none
@@ -449,6 +450,8 @@ let private receiveFlowerCommandsExternal (msg: FlowerCommands.External) (state:
     | FlowerCommands.External.OpenSerialPort serialPort -> state, openSerialPort serialPort
     | FlowerCommands.External.CloseSerialPort serialPort -> state, closeSerialPort serialPort
     | FlowerCommands.External.SendCommand command -> sendCommandToSelected command state
+    | FlowerCommands.External.BehaviorSelected behavior ->
+        mapFlowerManager (FlowerManager.setBehavior behavior) state, Cmd.none
     | FlowerCommands.External.NoMsg -> state, Cmd.none
 
 
@@ -466,7 +469,13 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
         match appConfigResult with
         | Ok appConfig ->
             Log.info "Loaded Application Configuration from the disk."
-            { state with AppConfig = appConfig }, Cmd.none
+
+            let maybeOpenRecentFlowerFile =
+                match List.tryHead appConfig.RecentFiles with
+                | Some recentFile -> openFile recentFile
+                | None -> Cmd.none
+
+            { state with AppConfig = appConfig }, maybeOpenRecentFlowerFile
 
         | Error readError ->
             match readError with
@@ -573,6 +582,7 @@ let private simulationView (state: State) (dispatch: Msg -> unit) =
                 (FlowerCommands.view
                     state.FlowerCommandsState
                     maybeSelectedFlower
+                    state.FlowerManager.Behavior
                     state.SerialPort
                     (FlowerCommandsMsg >> dispatch))
 

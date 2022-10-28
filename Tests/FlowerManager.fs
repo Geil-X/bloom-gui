@@ -103,5 +103,4 @@ let ``Basic actions test cases`` =
 [<TestCaseSource(nameof ``Basic actions test cases``)>]
 let ``Basic flower actions`` (initialState: State) (messages: Msg list) : State =
     let updateWithoutCmd state msg = updateMsg msg state
-
     List.fold updateWithoutCmd initialState messages

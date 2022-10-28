@@ -5,6 +5,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
 open Elmish
+open Gui.DataTypes.Bloom
 open Math.Units
 open System
 open System.IO.Ports
@@ -25,6 +26,7 @@ type External =
     | CloseSerialPort of SerialPort
     | ChangePort of SerialPortName
     | SendCommand of Command
+    | BehaviorSelected of Behavior
     | NoMsg
 
 [<RequireQualifiedAccess>]
@@ -35,7 +37,9 @@ type Msg =
     | ChangeAcceleration of AngularAcceleration
     | RefreshSerialPorts of AsyncOperationStatus<unit, SerialPortName list>
     | SendCommandOfId of Command.Id
-    
+    | BehaviorSelected of Behavior
+
+
 let presets =
     {| speedEmpty = AngularSpeed.microstepsPerSecond 0.
        minSpeed = AngularSpeed.microstepsPerSecond 0.
@@ -86,6 +90,7 @@ let update (msg: Msg) (state: State) : State * Cmd<Msg> * External =
         | Start _ -> state, getPorts, External.NoMsg
         | Finished serialPorts -> { state with SerialPorts = serialPorts }, Cmd.none, External.NoMsg
     | Msg.SendCommandOfId commandId -> state, Cmd.none, sendCommand commandId state
+    | Msg.BehaviorSelected behavior -> state, Cmd.none, External.BehaviorSelected behavior
 
 
 /// ---- View ------------------------------------------------------------------
@@ -276,9 +281,36 @@ let private iconButton
 
         |> View.withAttr (Button.isEnabled false)
 
-let view (state: State) (flowerOption: Flower option) (serialPort: SerialPort option) (dispatch: Msg -> unit) =
+let behaviorsView behavior dispatch =
+    let behaviors =
+        [ UserControlled; Bloom; OpenClose ]
+
+    Form.formElement
+        {| Name = "Behaviors"
+           Orientation = Orientation.Vertical
+           Element =
+            ListBox.create [
+                ListBox.dataItems behaviors
+                ListBox.selectedItem behavior
+                ListBox.selectionMode SelectionMode.Toggle
+                ListBox.onSelectedItemChanged (fun behavior ->
+                    if not <| isNull behavior then
+                        behavior :?> Behavior
+                        |> Msg.BehaviorSelected
+                        |> dispatch)
+            ] |}
+
+let view
+    (state: State)
+    (flowerOption: Flower option)
+    (behavior: Behavior)
+    (serialPort: SerialPort option)
+    (dispatch: Msg -> unit)
+    =
     let children: IView list =
         [ Text.iconTitle (Icon.command Icon.medium Theme.palette.primary) "Commands" Theme.palette.foreground
+
+          behaviorsView behavior dispatch
 
           serialPortView state.SerialPorts serialPort dispatch
 

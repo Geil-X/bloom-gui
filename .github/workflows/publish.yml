@@ -106,3 +106,4 @@ jobs:
         with:
           name: Gui.app
           path: './Gui.app'
+          retention-days: 3

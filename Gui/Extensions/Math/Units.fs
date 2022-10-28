@@ -9,7 +9,10 @@ module Extensions =
 
         /// Takes a number and returns 1 if the number is zero or positive
         /// and -1 if the number is negative.
-        static member sign(x: Quantity<'Units>) : int = if x.Value >= 0 then 1 else 0
+        static member sign(x: Quantity<'Units>) : int =
+            if x.Value = 0 then 0
+            else if x.Value > 0 then 1
+            else -1
 
 
 module Constants =
