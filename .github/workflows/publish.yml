@@ -41,12 +41,14 @@ jobs:
         with:
           uri: https://raw.githubusercontent.com/kuiperzone/Publish-AppImage/main/publish-appimage
           name: publish-appimage
+          version: latest
 
       - name: Download appimagetool
         uses: supplypike/setup-bin@v1
         with:
           uri: https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
           name: appimagetool
+          version: latest
 
 
       - name: Build AppImage
