@@ -50,7 +50,7 @@ jobs:
           version: latest
 
       - name: Build x64 AppImage
-        run: publish-appimage -y linux-x64
+        run: publish-appimage -y -r linux-x64
 
       - name: Upload x64 AppImage
         uses: actions/upload-artifact@v2
@@ -59,7 +59,7 @@ jobs:
           path: 'AppImages/Gui-x86_64.AppImage'
 
       - name: Build Arm-64 AppImage
-        run: publish-appimage -y linux-arm64
+        run: publish-appimage -y -r linux-arm64
 
       - name: Upload Arm-64 AppImage
         uses: actions/upload-artifact@v2
