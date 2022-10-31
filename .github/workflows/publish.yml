@@ -57,48 +57,48 @@ jobs:
           name: AppImage
           path: './*.AppImage*'
 
-os-x:
-  runs-on: macos-latest
+  os-x:
+    runs-on: macos-latest
 
-  steps:
-    - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-    - name: Setup .NET 6.0
-      uses: actions/setup-dotnet@v1.7.2
-      with:
-        dotnet-version: 6.0.x
+      - name: Setup .NET 6.0
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: 6.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build Project
-      run: >
-        dotnet build
-        --self-contained
-        --configuration Release
-        -P:RID=osx-x64
+      - name: Build Project
+        run: >
+          dotnet build
+          --self-contained
+          --configuration Release
+          -P:RID=osx-x64
 
 
-    - name: Run Tests
-      run: >
-        dotnet test
-        --no-build
-        --verbosity normal
-        --configuration Release
-        -P:RID=osx-x64
+      - name: Run Tests
+        run: >
+          dotnet test
+          --no-build
+          --verbosity normal
+          --configuration Release
+          -P:RID=osx-x64
 
-    - name: Publish Project to App
-      run: >
-        mkdir Gui.app
+      - name: Publish Project to App
+        run: >
+          mkdir Gui.app
 
-        dotnet publish
-        --self-contained
-        --output Gui.app
-        --configuration Release
-        -P:RID=osx-x64
+          dotnet publish
+          --self-contained
+          --output Gui.app
+          --configuration Release
+          -P:RID=osx-x64
 
-    - uses: actions/upload-artifact@v2
-      with:
-        name: Gui.app
-        path: './Gui.app'
-        retention-days: 3
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Gui.app
+          path: './Gui.app'
+          retention-days: 3
