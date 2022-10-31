@@ -54,8 +54,8 @@ jobs:
  
       - uses: actions/upload-artifact@v2
         with:
-          name: AppImage
-          path: './*.AppImage*'
+          name: Bloom.AppImage
+          path: 'AppImages/*.AppImage'
 
   os-x:
     runs-on: macos-latest
@@ -99,6 +99,6 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: Gui.app
+          name: Bloom.app
           path: './Gui.app'
           retention-days: 3
