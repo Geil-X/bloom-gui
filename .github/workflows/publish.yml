@@ -11,6 +11,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
+      - name: Download publish-appimage
+        uses: supplypike/setup-bin@v1
+        with:
+          uri: https://raw.githubusercontent.com/kuiperzone/Publish-AppImage/main/publish-appimage
+          name: publish-appimage
+          version: latest
+
+      - name: Download appimagetool
+        uses: supplypike/setup-bin@v1
+        with:
+          uri: https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
+          name: appimagetool
+          version: latest
 
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1.7.2
@@ -27,7 +41,6 @@ jobs:
           --configuration Release
           -P:RID=linux-x64
 
-
       - name: Run Tests
         run:
           dotnet test
@@ -36,21 +49,6 @@ jobs:
           --configuration Release
           -P:RID=linux-x64
         
-      - name: Download publish-appimage
-        uses: supplypike/setup-bin@v1
-        with:
-          uri: https://raw.githubusercontent.com/kuiperzone/Publish-AppImage/main/publish-appimage
-          name: publish-appimage
-          version: latest
-
-      - name: Download appimagetool
-        uses: supplypike/setup-bin@v1
-        with:
-          uri: https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
-          name: appimagetool
-          version: latest
-
-
       - name: Build AppImage
         run: publish-appimage -y
   
