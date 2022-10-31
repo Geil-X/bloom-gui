@@ -5,6 +5,7 @@
 AppDir/
 appimage-build/
 *.AppImage*
+AppImages/
 
 
 # User-specific files

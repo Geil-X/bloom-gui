@@ -19,11 +19,10 @@ script:
     AppDir/usr/share/pixmaps
 
   # Copy application files over to the AppDir directory
-  - cp -r publish/* AppDir/usr/local/share/bloom
-  - cp -r publish/*.dll AppDir/usr/bin
-  - cp -r publish/*.so AppDir/usr/bin
-  - cp -r publish/*.json AppDir/usr/bin
-  - ln AppDir/usr/local/share/bloom/Gui AppDir/usr/bin/bloom
+  - cp -r publish/* AppDir/usr/bin
+#  - cp -r publish/*.dll AppDir/usr/bin
+#  - cp -r publish/*.so AppDir/usr/bin
+#  - cp -r publish/*.json AppDir/usr/bin
   - cp publish/Geil-64.svg AppDir/usr/share/pixmaps/Geil-64.svg
   - cp publish/icon* AppDir/usr/share/icons/
   - cp AppDir/usr/share/icons/icon.png AppDir/usr/share/icons/icon
@@ -31,11 +30,11 @@ script:
 AppDir:
   path: ./AppDir
   app_info:
-    id: org.geil.bloom
+    id: com.geil.bloom
     name: Bloom
     icon: icon
     version: latest
-    exec: usr/bin/bloom
+    exec: usr/bin/Gui
     exec_args: $@
   apt:
     arch: amd64
