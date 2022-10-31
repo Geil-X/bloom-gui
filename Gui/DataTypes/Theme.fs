@@ -3,10 +3,14 @@ module Gui.DataTypes.Theme
 open Avalonia.Controls
 open Avalonia.Media
 
+open Extensions
+
 let program = "Bloom"
 let title = "Bloom"
 
-let icon () : WindowIcon = WindowIcon "icon.ico"
+let icon () : WindowIcon =
+    Directory.currentApplication ./ "icon.ico"
+    |> WindowIcon
 
 /// Color palette is based off of the yellow color with a 150° tetradic color scheme
 /// https://paletton.com/#uid=70I2m0krBw0hcHpmp-MvIrjzmlr

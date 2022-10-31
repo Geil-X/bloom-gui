@@ -20,5 +20,10 @@ module Path =
 module Directory =
 
     open System.IO
+    open System.Reflection
+
+    let currentApplication =
+        Assembly.GetEntryAssembly().Location
+        |> Path.GetDirectoryName
 
     let exists = Directory.Exists
