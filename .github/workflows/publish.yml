@@ -66,7 +66,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: arm64-Bloom.AppImage
-          path: 'AppImages/Gui-arm.AppImage'
+          path: 'AppImages/Gui-linux-arm.AppImage'
           retention-days: 14
 
       - name: Build Arm-64 AppImage
