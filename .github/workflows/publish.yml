@@ -37,7 +37,7 @@ jobs:
           -P:RID=linux-x64
         
       - name: Download publish-appimage
-      - uses: supplypike/setup-bin@v1
+        uses: supplypike/setup-bin@v1
         with:
           uri: https://raw.githubusercontent.com/kuiperzone/Publish-AppImage/main/publish-appimage
           name: publish-appimage
