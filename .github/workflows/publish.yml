@@ -11,18 +11,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        
-      - name: Download AppImage Software
-        run: >
-          # Publish-AppImage
-          mkdir -P ~/.local/bin
-          wget https://github.com/kuiperzone/Publish-AppImage/archive/refs/heads/main.zip
-          unzip -p Publish-AppImage.zip
-          ln -s Publish-AppImage-master/publish-appimage publish-appimage 
-          
-          # AppImageTool
-          https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
-          ln -s appimagetool-x86_64.AppImage appimagetool
 
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1.7.2
@@ -47,6 +35,18 @@ jobs:
           --verbosity normal
           --configuration Release
           -P:RID=linux-x64
+        
+      - name: Download publish-appimage
+      - uses: supplypike/setup-bin@v1
+        with:
+          uri: https://raw.githubusercontent.com/kuiperzone/Publish-AppImage/main/publish-appimage
+          name: publish-appimage
+
+      - name: Download appimagetool
+        uses: supplypike/setup-bin@v1
+        with:
+          uri: https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
+          name: appimagetool
 
 
       - name: Build AppImage
