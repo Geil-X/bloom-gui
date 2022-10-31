@@ -294,6 +294,7 @@ let private flowerListing (flowers: Flower seq) (selected: Flower option) (dispa
 let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg -> unit) =
     let children: IView list =
         [ Text.iconTitle (Icon.flower Icon.large Theme.palette.primary) "Flower" Theme.palette.foreground
+          flowerListing flowers selectedFlower (Action >> dispatch)
           nameView selectedFlower dispatch
           i2cAddressView selectedFlower dispatch
           positionView selectedFlower
@@ -302,8 +303,7 @@ let view (flowers: Flower seq) (selectedFlower: Flower option) (dispatch: Msg ->
           targetPercentageView selectedFlower
           speedView selectedFlower
           maxSpeedView selectedFlower
-          accelerationView selectedFlower
-          flowerListing flowers selectedFlower (Action >> dispatch) ]
+          accelerationView selectedFlower ]
 
     StackPanel.create [
         StackPanel.children children

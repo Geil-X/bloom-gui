@@ -179,10 +179,15 @@ let updateFlower (id: Flower Id) (property: string) (f: 'a -> Flower -> Flower) 
 
 
 let tick (elapsed: Duration) (manager: State) : State =
-    updateFlowers
-        (Behavior.getBehavior manager.Behavior
-         >> Flower.tick elapsed)
-        manager
+    /// Apply all commands from the current behavior and then tick the flower simulation forward
+    let update inputFlower =
+        let behaviorCommands =
+            Behavior.getBehavior manager.Behavior inputFlower
+
+        List.fold (fun flower command -> Flower.applyCommand command flower) inputFlower behaviorCommands
+        |> Flower.tick elapsed
+
+    updateFlowers update manager
 
 
 // ---- Msg Update ----
