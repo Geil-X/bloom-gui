@@ -12,20 +12,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Download publish-appimage
-        uses: supplypike/setup-bin@v1
-        with:
-          uri: https://raw.githubusercontent.com/kuiperzone/Publish-AppImage/main/publish-appimage
-          name: publish-appimage
-          version: latest
-
-      - name: Download appimagetool
-        uses: supplypike/setup-bin@v1
-        with:
-          uri: https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
-          name: appimagetool
-          version: latest
-
       - name: Setup .NET 6.0
         uses: actions/setup-dotnet@v1.7.2
         with:
@@ -49,13 +35,49 @@ jobs:
           --configuration Release
           -P:RID=linux-x64
 
-      - name: Build AppImage
-        run: publish-appimage -y
- 
-      - uses: actions/upload-artifact@v2
+      - name: Download publish-appimage
+        uses: supplypike/setup-bin@v1
         with:
-          name: AppImage
-          path: './*.AppImage*'
+          uri: https://raw.githubusercontent.com/kuiperzone/Publish-AppImage/main/publish-appimage
+          name: publish-appimage
+          version: latest
+
+      - name: Download appimagetool
+        uses: supplypike/setup-bin@v1
+        with:
+          uri: https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage
+          name: appimagetool
+          version: latest
+
+      - name: Build x64 AppImage
+        run: publish-appimage -y -r linux-x64
+
+      - name: Upload x64 AppImage
+        uses: actions/upload-artifact@v2
+        with:
+          name: x64-Bloom.AppImage
+          path: 'AppImages/Gui-x86_64.AppImage'
+          retention-days: 7
+          
+      - name: Build Arm-32 AppImage
+        run: publish-appimage -y -r linux-arm
+
+      - name: Upload Arm-32 AppImage
+        uses: actions/upload-artifact@v2
+        with:
+          name: arm-Bloom.AppImage
+          path: 'AppImages/Gui-linux-arm.AppImage'
+          retention-days: 7
+
+      - name: Build Arm-64 AppImage
+        run: publish-appimage -y -r linux-arm64
+
+      - name: Upload Arm-64 AppImage
+        uses: actions/upload-artifact@v2
+        with:
+          name: arm64-Bloom.AppImage
+          path: 'AppImages/Gui-aarch64.AppImage'
+          retention-days: 7
 
   os-x:
     runs-on: macos-latest
@@ -99,6 +121,6 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: Gui.app
+          name: Bloom.app
           path: './Gui.app'
-          retention-days: 3
+          retention-days: 7
