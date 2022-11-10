@@ -23,6 +23,7 @@ open Gui.Views.Panels
 [<StructuralEquality; NoComparison>]
 type State =
     { SerialPort: SerialPort option
+      ConnectedDevices: Set<I2cAddress>
       Rerender: int
       AppConfig: AppConfig
       FlowerManager: FlowerManager.State
@@ -135,46 +136,98 @@ let private connectToSerialPort (newPortName: SerialPortName) (state: State) : S
         Log.debug $"Connecting to serial port '{newPortName}'"
         state, connectAndOpenSerialPort newPortName
 
-
-// ---- Flower Functions -------------------------------------------------------------------------------------------------
+// ---- Flower Mapping ---------------------------------------------------------------------------------------------------
 
 let private mapFlowerManager (f: FlowerManager.State -> FlowerManager.State) (state: State) : State =
     { state with FlowerManager = f state.FlowerManager }
 
+// ---- Serial & I2C Communications --------------------------------------------
 
-let private sendCommandToSelected (command: Command) (state: State) : State * Cmd<Msg> =
-    let maybeSelected =
-        FlowerManager.getSelected state.FlowerManager
+let private serialPortCommand (serialPort: SerialPort) (addr: I2cAddress) (command: Command) =
+    Cmd.OfTask.attempt (Command.sendThroughSerial serialPort addr) command (Finished >> SendCommand >> Action)
 
-    let newStateFrom (flower: Flower) : State =
+let private i2cCommand (addr: I2cAddress) (command: Command) =
+    Cmd.OfTask.attempt (Command.sendToI2c addr) command (Finished >> SendCommand >> Action)
+
+
+/// Send a command to a flower. This updates the simulation of the current
+/// flower as well as sending the command to the flower externally if the
+/// device is connected via the serial port or an i2c bus.
+let private sendCommand (command: Command) (flower: Flower) (state: State) : State * Cmd<Msg> =
+    let newState: State =
         mapFlowerManager (FlowerManager.updateFlower flower.Id "Apply Command" Flower.applyCommand command) state
 
-    match state.SerialPort, maybeSelected with
-    | Some serialPort, Some flower ->
-        Log.debug $"Sending command through serial port '{command}'"
+    match OS.getOS with
+    | OS.Raspbian ->
+        Log.debug $"Sending command {command} over I2C to address {flower.I2cAddress}"
+        newState, i2cCommand flower.I2cAddress command
+    | _ ->
+        match state.SerialPort with
+        | Some serialPort ->
+            Log.debug $"Sending command {command} over Serial to address {flower.I2cAddress}"
+            newState, serialPortCommand serialPort flower.I2cAddress command
+        | None ->
+            Log.debug $"Executing command locally {command} to flower {flower.Name}"
+            newState, Cmd.none
 
-        let communicationCmd =
-            Cmd.OfTask.attempt
-                (Command.sendCommand serialPort flower.I2cAddress)
-                command
-                (Finished >> SendCommand >> Action)
+/// Send a command to a flower. This updates the simulation of the current
+/// flower as well as sending the command to the flower externally if the
+/// device is connected via the serial port or an i2c bus.
+let private sendCommands (commands: Command list) (flower: Flower) (state: State) : State * Cmd<Msg> =
+    if List.isEmpty commands then
+        state, Cmd.none
 
-        newStateFrom flower, communicationCmd
+    else
+        /// Update all the current flower based on all the commands being sent to it.
+        let newState: State =
+            List.fold
+                (fun state command ->
+                    mapFlowerManager
+                        (FlowerManager.updateFlower flower.Id "Apply Command" Flower.applyCommand command)
+                        state)
+                state
+                commands
 
-    | None, Some flower ->
-        Log.warning "Serial port is not selected, cannot send command."
-        newStateFrom flower, Cmd.none
+        match OS.getOS with
+        | OS.Raspbian ->
+            Log.debug $"Sending command {commands} over I2C to address {flower.I2cAddress}"
 
-    | Some _, None ->
+            let elmishCommands =
+                List.map (i2cCommand flower.I2cAddress) commands
+                |> Cmd.batch
+
+            newState, elmishCommands
+        | _ ->
+            match state.SerialPort with
+            | Some serialPort ->
+                Log.debug $"Sending command {commands} over Serial to address {flower.I2cAddress}"
+
+                let elmishCommands =
+                    List.map (serialPortCommand serialPort flower.I2cAddress) commands
+                    |> Cmd.batch
+
+                newState, elmishCommands
+
+            | None ->
+                Log.debug $"Executing command locally {commands} to flower {flower.Name}"
+                newState, Cmd.none
+
+
+/// Send a command to the currently selected flower. If no flower is selected,
+/// the nothing happens.
+let private sendCommandToSelected (command: Command) (state: State) : State * Cmd<Msg> =
+    match FlowerManager.getSelected state.FlowerManager with
+    | None ->
         Log.warning "Flower is not selected, cannot send command."
         state, Cmd.none
 
-    | None, None ->
-        Log.error "An unknown error occured when trying to send command."
-        state, Cmd.none
+    | Some flower -> sendCommand command flower state
+
+
+// ---- Flower Functions -------------------------------------------------------------------------------------------------
 
 let private pingFlower (serialPort: SerialPort) (flower: Flower) : Cmd<Msg> =
-    Cmd.OfTask.attempt (Command.sendCommand serialPort flower.I2cAddress) Ping (Finished >> SendCommand >> Action)
+    Cmd.OfTask.attempt (Command.sendThroughSerial serialPort flower.I2cAddress) Ping (Finished >> SendCommand >> Action)
 
 let private pingAllFlowers (serialPort: SerialPort) (state: State) : Cmd<Msg> =
     let flowers =
@@ -220,8 +273,19 @@ let updateAcceleration id acceleration state =
     mapFlowerManager (FlowerManager.updateFlower id "Acceleration" Flower.setAcceleration acceleration) state
 
 
-let tick elapsed state =
-    mapFlowerManager (FlowerManager.tick elapsed) state
+let tick (elapsed: Duration) (state: State) : State * Cmd<Msg> =
+    let behaviorCommands: (Flower * Command list) list =
+        FlowerManager.behaviorCommands elapsed state.FlowerManager
+
+    let sendFlowerCommands (flower, commands) prevState = sendCommands commands flower prevState
+
+    let folder (prevState: State, cmd: Cmd<Msg>) (commands: Flower * Command list) : State * Cmd<Msg> =
+        let nextState, cmdMsgs =
+            sendFlowerCommands commands prevState
+
+        nextState, Cmd.batch [ cmd; cmdMsgs ]
+
+    List.fold folder (state, Cmd.none) behaviorCommands
 
 
 // ---- File Writing ---------------------------------------------------------------------------------------------------
@@ -290,6 +354,7 @@ let init () : State * Cmd<Msg> =
         FlowerCommands.init ()
 
     { FlowerManager = FlowerManager.init ()
+      ConnectedDevices = Set.empty
       SerialPort = None
       Rerender = 0
       AppConfig = AppConfig.init
@@ -461,7 +526,7 @@ let update (msg: Msg) (state: State) (window: Window) : State * Cmd<Msg> =
 
     match msg with
     // Shell Messages
-    | Tick elapsed -> tick elapsed state, Cmd.none
+    | Tick elapsed -> tick elapsed state
 
     | Action action -> updateAction action state window
 

@@ -312,7 +312,8 @@ let view
 
           behaviorsView behavior dispatch
 
-          serialPortView state.SerialPorts serialPort dispatch
+          if OS.getOS <> OS.Raspbian then
+              serialPortView state.SerialPorts serialPort dispatch
 
           iconButton "Ping" Icon.ping Command.Id.Ping flowerOption dispatch
           iconButton "Home" Icon.home Command.Id.Home flowerOption dispatch

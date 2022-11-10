@@ -41,9 +41,10 @@ module AppConfig =
         let bloomDirectory = "bloom"
         let configFileName = "config.json"
 
-        match OperatingSystem.get with
-        | OSX
-        | Linux ->
+        match OS.getOS with
+        | OS.OSX
+        | OS.Linux
+        | OS.Raspbian ->
             let userDirectory = getEnv "HOME"
 
             userDirectory
@@ -52,7 +53,7 @@ module AppConfig =
             ./ configFileName
 
 
-        | Windows ->
+        | OS.Windows ->
             // On windows we are using the '.../AppData/' directory to hold user configuration. This folder is
             // for user settings that stay on the local machine
             let appdata = getEnv "LOCALAPPDATA"

@@ -178,6 +178,12 @@ let updateFlower (id: Flower Id) (property: string) (f: 'a -> Flower -> Flower) 
         manager
 
 
+let behaviorCommands (elapsed: Duration) (manager: State) : (Flower * Command list) list =
+    Map.values manager.Flowers
+    |> Seq.map (fun flower -> (flower, Behavior.getBehavior manager.Behavior flower))
+    |> List.ofSeq
+
+
 let tick (elapsed: Duration) (manager: State) : State =
     /// Apply all commands from the current behavior and then tick the flower simulation forward
     let update inputFlower =
